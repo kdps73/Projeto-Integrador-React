@@ -1,4 +1,6 @@
 # Contexto do Projeto
+Antes de fazer qualquer coisa, leia os arquivos `agents.md`, `arquitetura.md` e `backlog.md`.
+
 Contexto geral do Projeto CiNEPLANNER, projeto do grupo vermelho. Site de comentários e avaliação sobre filmes.
 
 ## Tecnologias

@@ -10,6 +10,7 @@ Este é um projeto web feito em React com Vite, sendo o banco de dados e comunic
 ## Backlogs
 - Você deve sempre ler o arquivo `docs/backlog.md`
 - Antes de implementar novas features, verifique o arquivo `docs/backlog.md` e verifique se já foi implementado e como ele funciona
+- A primeira vez que ler este documento, identifique as features de `docs/contexto.md` que ja existem e coloque no `docs/backlog.md`
 - Após implementar uma nova feature, adicione ela em `docs/backlog.md`
     - O arquivo de backlog não é escrito por humanos, apenas por você e outras IAs
     - Sempre escreva da forma que é melhor para você mesmo e outras IAs entender o contexto
