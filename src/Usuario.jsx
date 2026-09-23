@@ -339,12 +339,7 @@ function Usuario() {
                 </section>
             </main>
 
-            <footer className="footer" id="footer">
-                <div className="footer-container">
-                    <span className="footer-logo">CiNEPLANNER</span>
-                    <p className="footer-copy">&copy; 2026 CiNEPLANNER – Grupo Vermelho · Senac</p>
-                </div>
-            </footer>
+
         </div>
     );
 }
