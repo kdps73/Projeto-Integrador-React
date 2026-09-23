@@ -3,26 +3,28 @@
    ============================================================= */
 
 /* ===== RESET & BASE ===== */
-*, *::before, *::after {
+*,
+*::before,
+*::after {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
 }
 
 :root {
-    --vermelho:       #e50914;
-    --vermelho-escuro:#b30710;
-    --vermelho-brilho:rgba(229, 9, 20, 0.55);
-    --preto:          #000000;
-    --preto-suave:    #111111;
-    --cinza-card:     #1a1a1a;
-    --cinza-claro:    #d4d4d4;
-    --cinza-fundo:    #c8c8c8;
-    --branco:         #ffffff;
-    --fonte-titulo:   'Outfit', 'Montserrat', sans-serif;
-    --fonte-corpo:    'Inter', 'Roboto', 'Segoe UI', sans-serif;
-    --transicao:      0.3s ease;
-    
+    --vermelho: #e50914;
+    --vermelho-escuro: #b30710;
+    --vermelho-brilho: rgba(229, 9, 20, 0.55);
+    --preto: #000000;
+    --preto-suave: #111111;
+    --cinza-card: #1a1a1a;
+    --cinza-claro: #d4d4d4;
+    --cinza-fundo: #c8c8c8;
+    --branco: #ffffff;
+    --fonte-titulo: 'Outfit', 'Montserrat', sans-serif;
+    --fonte-corpo: 'Inter', 'Roboto', 'Segoe UI', sans-serif;
+    --transicao: 0.3s ease;
+
     /* Variáveis antigas do quiz mantidas por compatibilidade */
     --preto-hover: #222222;
     --vermelho-claro: #ff3b47;
@@ -45,7 +47,7 @@ body {
     background-color: var(--cinza-fundo);
     font-family: var(--fonte-corpo);
     color: var(--branco);
-    overflow-x: hidden;
+    overflow-x: auto;
 }
 
 a {
@@ -69,22 +71,20 @@ ul {
     justify-content: center;
     text-align: center;
     padding: 120px 2rem 60px;
-    
+
     background:
-        linear-gradient(
-            to bottom,
-            rgba(0,0,0,0.72) 0%,
-            rgba(0,0,0,0.55) 50%,
-            rgba(0,0,0,0.85) 100%
-        ),
+        linear-gradient(to bottom,
+            rgba(0, 0, 0, 0.72) 0%,
+            rgba(0, 0, 0, 0.55) 50%,
+            rgba(0, 0, 0, 0.85) 100%),
         url('https://placehold.co/1920x1080/111111/333333?text=Fundo+Quiz') center center / cover no-repeat;
-    overflow: hidden;
+    overflow: auto;
 }
 
 .hero-overlay {
     position: absolute;
     inset: 0;
-    background: radial-gradient(ellipse at center, rgba(229,9,20,0.08) 0%, transparent 70%);
+    background: radial-gradient(ellipse at center, rgba(229, 9, 20, 0.08) 0%, transparent 70%);
     pointer-events: none;
 }
 
@@ -96,8 +96,15 @@ ul {
 }
 
 @keyframes fadeInUp {
-    from { opacity: 0; transform: translateY(30px); }
-    to { opacity: 1; transform: translateY(0); }
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .quiz-title {
@@ -116,7 +123,7 @@ ul {
 
 .quiz-subtitle {
     font-size: 1.2rem;
-    color: rgba(255,255,255,0.8);
+    color: rgba(255, 255, 255, 0.8);
     margin-bottom: 2rem;
     font-weight: 400;
 }
@@ -135,8 +142,15 @@ ul {
 }
 
 @keyframes badgeFloat {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-5px); }
+
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-5px);
+    }
 }
 
 .xp-icon {
@@ -185,7 +199,7 @@ ul {
 .genre-card {
     background: var(--cinza-card);
     border-radius: var(--radius-lg);
-    overflow: hidden;
+    overflow: auto;
     border: 1.5px solid rgba(229, 9, 20, 0.2);
     transition: all var(--transicao);
     cursor: pointer;
@@ -201,7 +215,7 @@ ul {
 
 .genre-card-image {
     height: 160px;
-    overflow: hidden;
+    overflow: auto;
 }
 
 .genre-placeholder {
@@ -218,12 +232,29 @@ ul {
     transform: scale(1.1);
 }
 
-.genre-acao { background: linear-gradient(135deg, #1a0000, #3d0008, #5c0010); }
-.genre-terror { background: linear-gradient(135deg, #0a0a1a, #1a0a2e, #2e0a3d); }
-.genre-comedia { background: linear-gradient(135deg, #1a1a00, #3d3300, #5c4c00); }
-.genre-ficcao { background: linear-gradient(135deg, #001a1a, #003333, #004c4c); }
-.genre-romance { background: linear-gradient(135deg, #1a000a, #3d001f, #5c0030); }
-.genre-aventura { background: linear-gradient(135deg, #0a1a00, #1a3300, #2e4c00); }
+.genre-acao {
+    background: linear-gradient(135deg, #1a0000, #3d0008, #5c0010);
+}
+
+.genre-terror {
+    background: linear-gradient(135deg, #0a0a1a, #1a0a2e, #2e0a3d);
+}
+
+.genre-comedia {
+    background: linear-gradient(135deg, #1a1a00, #3d3300, #5c4c00);
+}
+
+.genre-ficcao {
+    background: linear-gradient(135deg, #001a1a, #003333, #004c4c);
+}
+
+.genre-romance {
+    background: linear-gradient(135deg, #1a000a, #3d001f, #5c0030);
+}
+
+.genre-aventura {
+    background: linear-gradient(135deg, #0a1a00, #1a3300, #2e4c00);
+}
 
 .genre-card-info {
     padding: 1.25rem;
@@ -245,7 +276,8 @@ ul {
 /* ===== SEÇÃO DO QUIZ ===== */
 .quiz-section {
     padding: 60px 2rem 40px;
-    background: #141414; /* cinza escuro para combinar com o bg de filmes na index */
+    background: #141414;
+    /* cinza escuro para combinar com o bg de filmes na index */
 }
 
 .quiz-header {
@@ -287,10 +319,11 @@ ul {
     -webkit-overflow-scrolling: touch;
     gap: 2rem;
     padding-bottom: 1rem;
-    
+
     scrollbar-width: none;
     -ms-overflow-style: none;
 }
+
 .quiz-carousel-wrapper::-webkit-scrollbar {
     display: none;
 }
@@ -303,7 +336,7 @@ ul {
     background: var(--cinza-card);
     border-radius: var(--radius-xl);
     border: 1.5px solid rgba(229, 9, 20, 0.4);
-    overflow: hidden;
+    overflow: auto;
     display: flex;
     flex-direction: column;
     max-width: 1200px;
@@ -324,7 +357,7 @@ ul {
 .card-image {
     width: 100%;
     height: 280px;
-    overflow: hidden;
+    overflow: auto;
 }
 
 .image-placeholder {
@@ -388,14 +421,14 @@ ul {
     display: none;
 }
 
-.alternative input[type="radio"]:checked ~ .alt-marker {
+.alternative input[type="radio"]:checked~.alt-marker {
     background: var(--vermelho);
     color: var(--branco);
     border-color: var(--vermelho);
     box-shadow: 0 0 15px rgba(229, 9, 20, 0.4);
 }
 
-.alternative input[type="radio"]:checked ~ .alt-text {
+.alternative input[type="radio"]:checked~.alt-text {
     color: var(--branco);
     font-weight: 600;
 }
@@ -444,14 +477,16 @@ ul {
     cursor: pointer;
 }
 
-.btn-next, .btn-finish {
+.btn-next,
+.btn-finish {
     background: var(--vermelho);
     color: var(--branco);
     padding: 12px 24px;
     border-radius: 23px;
 }
 
-.btn-next:hover, .btn-finish:hover {
+.btn-next:hover,
+.btn-finish:hover {
     background: var(--vermelho-escuro);
     box-shadow: var(--shadow-glow);
     transform: translateY(-2px);
@@ -522,7 +557,7 @@ ul {
     text-align: center;
     box-shadow: var(--shadow-card), 0 0 30px rgba(229, 9, 20, 0.15);
     position: relative;
-    overflow: hidden;
+    overflow: auto;
 }
 
 .result-icon {
@@ -532,9 +567,19 @@ ul {
 }
 
 @keyframes trophyBounce {
-    0%, 100% { transform: translateY(0) rotate(0deg); }
-    25% { transform: translateY(-10px) rotate(-5deg); }
-    75% { transform: translateY(-10px) rotate(5deg); }
+
+    0%,
+    100% {
+        transform: translateY(0) rotate(0deg);
+    }
+
+    25% {
+        transform: translateY(-10px) rotate(-5deg);
+    }
+
+    75% {
+        transform: translateY(-10px) rotate(5deg);
+    }
 }
 
 .result-title {
@@ -556,7 +601,7 @@ ul {
     height: 12px;
     background: rgba(255, 255, 255, 0.1);
     border-radius: 50px;
-    overflow: hidden;
+    overflow: auto;
     margin-bottom: 1rem;
 }
 
@@ -570,8 +615,13 @@ ul {
 }
 
 @keyframes barFill {
-    0% { width: 0%; }
-    100% { width: 100%; }
+    0% {
+        width: 0%;
+    }
+
+    100% {
+        width: 100%;
+    }
 }
 
 .xp-earned {
@@ -640,23 +690,23 @@ ul {
 
 /* ===== RESPONSIVIDADE ===== */
 @media (max-width: 768px) {
-    
+
     .quiz-title {
         font-size: 2.5rem;
     }
-    
+
     .quiz-carousel-wrapper {
         gap: 1rem;
     }
-    
+
     .card-question {
         font-size: 1.2rem;
     }
-    
+
     .card-image {
         height: 180px;
     }
-    
+
     .result-stats {
         gap: 1.5rem;
     }

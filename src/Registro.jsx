@@ -74,13 +74,13 @@ function Registro() {
                 cy="8"
                 r="4"
                 stroke="#888"
-                stroke-width="2"
+                strokeWidth="2"
                 fill="none"
               />
               <path
                 d="M5 20C5 16.686 8.134 14 12 14C15.866 14 19 16.686 19 20"
                 stroke="#888"
-                stroke-width="2"
+                strokeWidth="2"
                 fill="none"
               />
             </svg>
@@ -106,13 +106,13 @@ function Registro() {
                 height="14"
                 rx="2"
                 stroke="#888"
-                stroke-width="2"
+                strokeWidth="2"
                 fill="none"
               />
               <path
                 d="M2 7L12 13L22 7"
                 stroke="#888"
-                stroke-width="2"
+                strokeWidth="2"
                 fill="none"
               />
             </svg>
@@ -133,13 +133,13 @@ function Registro() {
                 height="10"
                 rx="2"
                 stroke="#888"
-                stroke-width="2"
+                strokeWidth="2"
                 fill="none"
               />
               <path
                 d="M8 11V7C8 4.79 9.79 3 12 3C14.21 3 16 4.79 16 7V11"
                 stroke="#888"
-                stroke-width="2"
+                strokeWidth="2"
                 fill="none"
               />
             </svg>
@@ -160,13 +160,13 @@ function Registro() {
                 height="10"
                 rx="2"
                 stroke="#888"
-                stroke-width="2"
+                strokeWidth="2"
                 fill="none"
               />
               <path
                 d="M8 11V7C8 4.79 9.79 3 12 3C14.21 3 16 4.79 16 7V11"
                 stroke="#888"
-                stroke-width="2"
+                strokeWidth="2"
                 fill="none"
               />
             </svg>
@@ -189,3 +189,5 @@ function Registro() {
     </>
   );
 }
+
+export default Registro;

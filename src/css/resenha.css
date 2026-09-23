@@ -4,29 +4,31 @@
    ============================================================= */
 
 /* ===== RESET & BASE ===== */
-*, *::before, *::after {
+*,
+*::before,
+*::after {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
 }
 
 :root {
-    --vermelho:        #e50914;
+    --vermelho: #e50914;
     --vermelho-escuro: #b30710;
     --vermelho-brilho: rgba(229, 9, 20, 0.55);
-    --preto:           #000000;
-    --preto-suave:     #111111;
-    --cinza-card:      #1a1a1a;
-    --cinza-coment:    #222222;
-    --cinza-resposta:  #2a2a2a;
-    --cinza-fundo:     #141414;
-    --cinza-claro:     #d4d4d4;
-    --branco:          #ffffff;
-    --fonte-titulo:    'Outfit', 'Montserrat', sans-serif;
-    --fonte-corpo:     'Inter', 'Roboto', 'Segoe UI', sans-serif;
-    --transicao:       0.3s ease;
-    --borda-brilho:    1.5px solid rgba(229, 9, 20, 0.45);
-    --sombra-brilho:   0 0 12px rgba(229, 9, 20, 0.28), 0 4px 24px rgba(0,0,0,0.55);
+    --preto: #000000;
+    --preto-suave: #111111;
+    --cinza-card: #1a1a1a;
+    --cinza-coment: #222222;
+    --cinza-resposta: #2a2a2a;
+    --cinza-fundo: #141414;
+    --cinza-claro: #d4d4d4;
+    --branco: #ffffff;
+    --fonte-titulo: 'Outfit', 'Montserrat', sans-serif;
+    --fonte-corpo: 'Inter', 'Roboto', 'Segoe UI', sans-serif;
+    --transicao: 0.3s ease;
+    --borda-brilho: 1.5px solid rgba(229, 9, 20, 0.45);
+    --sombra-brilho: 0 0 12px rgba(229, 9, 20, 0.28), 0 4px 24px rgba(0, 0, 0, 0.55);
 }
 
 html {
@@ -37,7 +39,7 @@ body {
     background-color: var(--preto-suave);
     font-family: var(--fonte-corpo);
     color: var(--branco);
-    overflow-x: hidden;
+    overflow-x: auto;
 }
 
 a {
@@ -54,16 +56,15 @@ ul {
 /* ===== HERO DO FILME ===== */
 .filme-hero {
     position: relative;
-    padding-top: 64px; /* altura da navbar */
+    padding-top: 64px;
+    /* altura da navbar */
     background:
-        linear-gradient(
-            to bottom,
-            rgba(0,0,0,0.78) 0%,
-            rgba(0,0,0,0.60) 55%,
-            rgba(20,20,20,0.98) 100%
-        ),
+        linear-gradient(to bottom,
+            rgba(0, 0, 0, 0.78) 0%,
+            rgba(0, 0, 0, 0.60) 55%,
+            rgba(20, 20, 20, 0.98) 100%),
         url('https://placehold.co/1920x900/0d0d0d/1a1a1a?text=') center center / cover no-repeat;
-    overflow: hidden;
+    overflow: auto;
 }
 
 .filme-hero-inner {
@@ -98,18 +99,18 @@ ul {
 .poster-wrap {
     width: 100%;
     border-radius: 12px;
-    overflow: hidden;
+    overflow: auto;
     border: var(--borda-brilho);
     box-shadow:
         0 0 18px rgba(229, 9, 20, 0.45),
-        0 6px 30px rgba(0,0,0,0.7);
+        0 6px 30px rgba(0, 0, 0, 0.7);
     transition: box-shadow var(--transicao), transform var(--transicao);
 }
 
 .poster-wrap:hover {
     box-shadow:
         0 0 32px rgba(229, 9, 20, 0.7),
-        0 10px 40px rgba(0,0,0,0.8);
+        0 10px 40px rgba(0, 0, 0, 0.8);
     transform: translateY(-4px);
 }
 
@@ -126,7 +127,7 @@ ul {
     flex-direction: column;
     align-items: center;
     gap: 0.5rem;
-    background-color: rgba(0,0,0,0.45);
+    background-color: rgba(0, 0, 0, 0.45);
     border: var(--borda-brilho);
     border-radius: 10px;
     padding: 0.8rem 1rem;
@@ -154,9 +155,9 @@ ul {
 }
 
 /* Quando uma estrela for checked, ela e todas as anteriores ficam douradas */
-.star-input:checked ~ .star-label,
+.star-input:checked~.star-label,
 .star-label:hover,
-.star-label:hover ~ .star-label {
+.star-label:hover~.star-label {
     color: #f5c518;
     transform: scale(1.12);
 }
@@ -181,14 +182,14 @@ ul {
 
 .nota-total {
     font-size: 0.85rem;
-    color: rgba(255,255,255,0.5);
+    color: rgba(255, 255, 255, 0.5);
     align-self: flex-end;
     margin-bottom: 2px;
 }
 
 .nota-votos {
     font-size: 0.78rem;
-    color: rgba(255,255,255,0.4);
+    color: rgba(255, 255, 255, 0.4);
     margin-left: 0.2rem;
     align-self: flex-end;
     margin-bottom: 2px;
@@ -214,7 +215,7 @@ ul {
     padding: 0.28rem 0.9rem;
     border-radius: 20px;
     align-self: flex-start;
-    box-shadow: 0 0 12px rgba(229,9,20,0.5);
+    box-shadow: 0 0 12px rgba(229, 9, 20, 0.5);
 }
 
 .filme-titulo {
@@ -223,7 +224,7 @@ ul {
     font-weight: 800;
     color: var(--branco);
     line-height: 1.1;
-    text-shadow: 0 2px 20px rgba(0,0,0,0.8);
+    text-shadow: 0 2px 20px rgba(0, 0, 0, 0.8);
 }
 
 .filme-meta {
@@ -234,18 +235,18 @@ ul {
 
 .meta-item {
     font-size: 0.88rem;
-    color: rgba(255,255,255,0.6);
+    color: rgba(255, 255, 255, 0.6);
     font-weight: 500;
 }
 
 .meta-sep {
-    color: rgba(255,255,255,0.3);
+    color: rgba(255, 255, 255, 0.3);
 }
 
 .filme-sinopse {
     font-size: 0.97rem;
     line-height: 1.75;
-    color: rgba(255,255,255,0.82);
+    color: rgba(255, 255, 255, 0.82);
     max-width: 640px;
     border-left: 3px solid var(--vermelho);
     padding-left: 1rem;
@@ -260,7 +261,7 @@ ul {
     font-family: var(--fonte-titulo);
     font-size: 1rem;
     font-weight: 700;
-    color: rgba(255,255,255,0.7);
+    color: rgba(255, 255, 255, 0.7);
     text-transform: uppercase;
     letter-spacing: 1px;
     margin-bottom: 0.8rem;
@@ -276,15 +277,15 @@ ul {
     display: flex;
     align-items: center;
     gap: 0.6rem;
-    background-color: rgba(255,255,255,0.05);
-    border: 1px solid rgba(229,9,20,0.25);
+    background-color: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(229, 9, 20, 0.25);
     border-radius: 8px;
     padding: 0.45rem 0.8rem 0.45rem 0.5rem;
     transition: background var(--transicao), border-color var(--transicao);
 }
 
 .elenco-item:hover {
-    background-color: rgba(229,9,20,0.1);
+    background-color: rgba(229, 9, 20, 0.1);
     border-color: var(--vermelho);
 }
 
@@ -293,7 +294,7 @@ ul {
     height: 40px;
     border-radius: 50%;
     object-fit: cover;
-    border: 1.5px solid rgba(229,9,20,0.5);
+    border: 1.5px solid rgba(229, 9, 20, 0.5);
 }
 
 .elenco-nomes {
@@ -310,7 +311,7 @@ ul {
 
 .elenco-personagem {
     font-size: 0.75rem;
-    color: rgba(255,255,255,0.45);
+    color: rgba(255, 255, 255, 0.45);
 }
 
 /* ===== SEÇÃO DE COMENTÁRIOS ===== */
@@ -342,11 +343,11 @@ ul {
     font-weight: 700;
     color: var(--branco);
     padding-bottom: 0.8rem;
-    border-bottom: 1px solid rgba(229,9,20,0.25);
+    border-bottom: 1px solid rgba(229, 9, 20, 0.25);
 }
 
 .comentarios-count {
-    color: rgba(255,255,255,0.4);
+    color: rgba(255, 255, 255, 0.4);
     font-weight: 400;
     font-size: 1.1rem;
 }
@@ -376,11 +377,11 @@ ul {
 }
 
 /* Quando expandido, muda o fundo do card para a cor do card */
-.toggle-coment:checked ~ .comentario-card {
+.toggle-coment:checked~.comentario-card {
     background-color: var(--cinza-coment);
     box-shadow:
         0 0 24px rgba(229, 9, 20, 0.45),
-        0 6px 32px rgba(0,0,0,0.7);
+        0 6px 32px rgba(0, 0, 0, 0.7);
 }
 
 /* ─── Cabeçalho do comentário ─── */
@@ -402,7 +403,7 @@ ul {
     height: 44px;
     border-radius: 50%;
     object-fit: cover;
-    border: 1.5px solid rgba(229,9,20,0.5);
+    border: 1.5px solid rgba(229, 9, 20, 0.5);
     flex-shrink: 0;
 }
 
@@ -429,7 +430,7 @@ ul {
 
 .user-data {
     font-size: 0.72rem;
-    color: rgba(255,255,255,0.38);
+    color: rgba(255, 255, 255, 0.38);
 }
 
 /* ─── Botão de curtir (checkbox hack) ─── */
@@ -442,7 +443,7 @@ ul {
     align-items: center;
     gap: 0.3rem;
     cursor: pointer;
-    color: rgba(255,255,255,0.5);
+    color: rgba(255, 255, 255, 0.5);
     font-size: 0.9rem;
     font-weight: 500;
     padding: 0.3rem 0.6rem;
@@ -454,8 +455,8 @@ ul {
 
 .curtir-btn:hover {
     color: var(--vermelho);
-    background: rgba(229,9,20,0.1);
-    border-color: rgba(229,9,20,0.3);
+    background: rgba(229, 9, 20, 0.1);
+    border-color: rgba(229, 9, 20, 0.3);
 }
 
 .curtir-btn--sm {
@@ -478,32 +479,40 @@ ul {
 }
 
 /* Quando curtido */
-.curtir-input:checked + .curtir-btn {
+.curtir-input:checked+.curtir-btn {
     color: var(--vermelho);
-    background: rgba(229,9,20,0.12);
-    border-color: rgba(229,9,20,0.4);
+    background: rgba(229, 9, 20, 0.12);
+    border-color: rgba(229, 9, 20, 0.4);
 }
 
-.curtir-input:checked + .curtir-btn .icone-coracao {
+.curtir-input:checked+.curtir-btn .icone-coracao {
     display: none;
 }
 
-.curtir-input:checked + .curtir-btn .icone-coracao-cheio {
+.curtir-input:checked+.curtir-btn .icone-coracao-cheio {
     display: inline;
     animation: coracao-pulso 0.35s ease;
 }
 
 @keyframes coracao-pulso {
-    0%   { transform: scale(1); }
-    50%  { transform: scale(1.45); }
-    100% { transform: scale(1); }
+    0% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.45);
+    }
+
+    100% {
+        transform: scale(1);
+    }
 }
 
 /* ─── Texto do comentário ─── */
 .coment-texto {
     font-size: 0.95rem;
     line-height: 1.7;
-    color: rgba(255,255,255,0.88);
+    color: rgba(255, 255, 255, 0.88);
 }
 
 .coment-texto--sm {
@@ -516,7 +525,7 @@ ul {
 }
 
 /* Esconder prévia quando expandido */
-.toggle-coment:checked ~ .comentario-card .respostas-preview {
+.toggle-coment:checked~.comentario-card .respostas-preview {
     display: none;
 }
 
@@ -526,18 +535,18 @@ ul {
     gap: 0.5rem;
     cursor: pointer;
     font-size: 0.83rem;
-    color: rgba(255,255,255,0.5);
+    color: rgba(255, 255, 255, 0.5);
     padding: 0.4rem 0.7rem;
     border-radius: 20px;
-    border: 1px solid rgba(255,255,255,0.1);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     transition: color var(--transicao), border-color var(--transicao), background var(--transicao);
     user-select: none;
 }
 
 .ver-respostas-btn:hover {
     color: var(--branco);
-    border-color: rgba(229,9,20,0.4);
-    background: rgba(229,9,20,0.08);
+    border-color: rgba(229, 9, 20, 0.4);
+    background: rgba(229, 9, 20, 0.08);
 }
 
 .preview-avatares {
@@ -557,7 +566,7 @@ ul {
 }
 
 .preview-texto {
-    color: rgba(255,255,255,0.55);
+    color: rgba(255, 255, 255, 0.55);
 }
 
 .expand-arrow {
@@ -576,12 +585,12 @@ ul {
     gap: 1rem;
     margin-top: 0.6rem;
     padding-top: 1rem;
-    border-top: 1px solid rgba(229,9,20,0.18);
+    border-top: 1px solid rgba(229, 9, 20, 0.18);
     position: relative;
 }
 
 /* Mostrar quando checkbox marcado */
-.toggle-coment:checked ~ .comentario-card .respostas-expandidas {
+.toggle-coment:checked~.comentario-card .respostas-expandidas {
     display: flex;
 }
 
@@ -594,18 +603,18 @@ ul {
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    color: rgba(255,255,255,0.45);
+    color: rgba(255, 255, 255, 0.45);
     padding: 0.15rem 0.5rem;
     border-radius: 20px;
-    border: 1px solid rgba(255,255,255,0.1);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     transition: color var(--transicao), border-color var(--transicao), background var(--transicao);
     user-select: none;
 }
 
 .btn-voltar-respostas:hover {
     color: var(--branco);
-    border-color: rgba(229,9,20,0.4);
-    background: rgba(229,9,20,0.1);
+    border-color: rgba(229, 9, 20, 0.4);
+    background: rgba(229, 9, 20, 0.1);
 }
 
 .collapse-arrow {
@@ -623,7 +632,7 @@ ul {
     background-color: var(--cinza-resposta);
     border-radius: 9px;
     padding: 0.8rem 1rem;
-    border: 1px solid rgba(229,9,20,0.2);
+    border: 1px solid rgba(229, 9, 20, 0.2);
 }
 
 .resposta-header {
@@ -642,8 +651,8 @@ ul {
     font-size: 0.82rem;
     font-weight: 600;
     color: var(--vermelho);
-    background: rgba(229,9,20,0.1);
-    border: 1px solid rgba(229,9,20,0.35);
+    background: rgba(229, 9, 20, 0.1);
+    border: 1px solid rgba(229, 9, 20, 0.35);
     border-radius: 20px;
     padding: 0.35rem 0.9rem;
     cursor: pointer;
@@ -653,8 +662,8 @@ ul {
 }
 
 .btn-nova-resposta:hover {
-    background: rgba(229,9,20,0.22);
-    box-shadow: 0 0 10px rgba(229,9,20,0.35);
+    background: rgba(229, 9, 20, 0.22);
+    box-shadow: 0 0 10px rgba(229, 9, 20, 0.35);
     transform: translateY(-1px);
 }
 
@@ -664,18 +673,25 @@ ul {
     margin-top: 0.5rem;
 }
 
-.toggle-nova-resposta:checked ~ .btn-nova-resposta {
+.toggle-nova-resposta:checked~.btn-nova-resposta {
     display: none;
 }
 
-.toggle-nova-resposta:checked ~ .nova-resposta-form {
+.toggle-nova-resposta:checked~.nova-resposta-form {
     display: block;
     animation: slideDown 0.25s ease;
 }
 
 @keyframes slideDown {
-    from { opacity: 0; transform: translateY(-8px); }
-    to   { opacity: 1; transform: translateY(0); }
+    from {
+        opacity: 0;
+        transform: translateY(-8px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .nova-resp-inner {
@@ -686,8 +702,8 @@ ul {
 
 .nova-resp-textarea {
     flex: 1;
-    background-color: rgba(255,255,255,0.06);
-    border: 1px solid rgba(229,9,20,0.3);
+    background-color: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(229, 9, 20, 0.3);
     border-radius: 8px;
     color: var(--branco);
     font-family: var(--fonte-corpo);
@@ -700,7 +716,7 @@ ul {
 
 .nova-resp-textarea:focus {
     border-color: var(--vermelho);
-    box-shadow: 0 0 10px rgba(229,9,20,0.3);
+    box-shadow: 0 0 10px rgba(229, 9, 20, 0.3);
 }
 
 .nova-resp-actions {
@@ -712,10 +728,10 @@ ul {
 
 .btn-cancelar-resp {
     font-size: 0.82rem;
-    color: rgba(255,255,255,0.45);
+    color: rgba(255, 255, 255, 0.45);
     cursor: pointer;
     padding: 0.35rem 0.8rem;
-    border: 1px solid rgba(255,255,255,0.15);
+    border: 1px solid rgba(255, 255, 255, 0.15);
     border-radius: 20px;
     transition: color var(--transicao), border-color var(--transicao);
     user-select: none;
@@ -723,7 +739,7 @@ ul {
 
 .btn-cancelar-resp:hover {
     color: var(--branco);
-    border-color: rgba(255,255,255,0.4);
+    border-color: rgba(255, 255, 255, 0.4);
 }
 
 .btn-enviar-resp {
@@ -740,7 +756,7 @@ ul {
 
 .btn-enviar-resp:hover {
     background-color: var(--vermelho-escuro);
-    box-shadow: 0 0 12px rgba(229,9,20,0.45);
+    box-shadow: 0 0 12px rgba(229, 9, 20, 0.45);
 }
 
 /* ===== ÁREA DE NOVO COMENTÁRIO ===== */
@@ -762,7 +778,7 @@ ul {
     font-weight: 700;
     color: var(--branco);
     padding-bottom: 0.6rem;
-    border-bottom: 1px solid rgba(229,9,20,0.2);
+    border-bottom: 1px solid rgba(229, 9, 20, 0.2);
 }
 
 .novo-coment-form {
@@ -780,8 +796,8 @@ ul {
 
 .novo-coment-textarea {
     width: 100%;
-    background-color: rgba(255,255,255,0.05);
-    border: 1px solid rgba(229,9,20,0.3);
+    background-color: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(229, 9, 20, 0.3);
     border-radius: 10px;
     color: var(--branco);
     font-family: var(--fonte-corpo);
@@ -795,11 +811,11 @@ ul {
 
 .novo-coment-textarea:focus {
     border-color: var(--vermelho);
-    box-shadow: 0 0 14px rgba(229,9,20,0.3);
+    box-shadow: 0 0 14px rgba(229, 9, 20, 0.3);
 }
 
 .novo-coment-textarea::placeholder {
-    color: rgba(255,255,255,0.3);
+    color: rgba(255, 255, 255, 0.3);
 }
 
 .novo-coment-actions {
@@ -812,7 +828,7 @@ ul {
 
 .coment-dica {
     font-size: 0.78rem;
-    color: rgba(255,255,255,0.3);
+    color: rgba(255, 255, 255, 0.3);
 }
 
 .btn-publicar {
@@ -831,7 +847,7 @@ ul {
 
 .btn-publicar:hover {
     background-color: var(--vermelho-escuro);
-    box-shadow: 0 0 18px rgba(229,9,20,0.55);
+    box-shadow: 0 0 18px rgba(229, 9, 20, 0.55);
     transform: translateY(-2px);
 }
 

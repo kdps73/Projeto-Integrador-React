@@ -4,25 +4,27 @@
    ============================================================= */
 
 /* ===== RESET & BASE ===== */
-*, *::before, *::after {
+*,
+*::before,
+*::after {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
 }
 
 :root {
-    --vermelho:       #e50914;
-    --vermelho-escuro:#b30710;
-    --vermelho-brilho:rgba(229, 9, 20, 0.55);
-    --preto:          #000000;
-    --preto-suave:    #111111;
-    --cinza-card:     #1a1a1a;
-    --cinza-claro:    #d4d4d4;
-    --cinza-fundo:    #c8c8c8;
-    --branco:         #ffffff;
-    --fonte-titulo:   'Outfit', 'Montserrat', sans-serif;
-    --fonte-corpo:    'Inter', 'Roboto', 'Segoe UI', sans-serif;
-    --transicao:      0.3s ease;
+    --vermelho: #e50914;
+    --vermelho-escuro: #b30710;
+    --vermelho-brilho: rgba(229, 9, 20, 0.55);
+    --preto: #000000;
+    --preto-suave: #111111;
+    --cinza-card: #1a1a1a;
+    --cinza-claro: #d4d4d4;
+    --cinza-fundo: #c8c8c8;
+    --branco: #ffffff;
+    --fonte-titulo: 'Outfit', 'Montserrat', sans-serif;
+    --fonte-corpo: 'Inter', 'Roboto', 'Segoe UI', sans-serif;
+    --transicao: 0.3s ease;
 }
 
 html {
@@ -33,7 +35,7 @@ body {
     background-color: var(--preto-suave);
     font-family: var(--fonte-corpo);
     color: var(--branco);
-    overflow-x: hidden;
+    overflow-x: auto;
 }
 
 a {
@@ -137,21 +139,19 @@ ul {
 
     /* Placeholder de imagem de fundo via gradient escuro */
     background:
-        linear-gradient(
-            to bottom,
-            rgba(0,0,0,0.72) 0%,
-            rgba(0,0,0,0.55) 50%,
-            rgba(0,0,0,0.85) 100%
-        ),
+        linear-gradient(to bottom,
+            rgba(0, 0, 0, 0.72) 0%,
+            rgba(0, 0, 0, 0.55) 50%,
+            rgba(0, 0, 0, 0.85) 100%),
         url('https://placehold.co/1920x1080/111111/333333?text=Imagem+de+Fundo') center center / cover no-repeat;
 
-    overflow: hidden;
+    overflow: auto;
 }
 
 .hero-overlay {
     position: absolute;
     inset: 0;
-    background: radial-gradient(ellipse at center, rgba(229,9,20,0.08) 0%, transparent 70%);
+    background: radial-gradient(ellipse at center, rgba(229, 9, 20, 0.08) 0%, transparent 70%);
     pointer-events: none;
 }
 
@@ -168,6 +168,7 @@ ul {
         opacity: 0;
         transform: translateY(30px);
     }
+
     to {
         opacity: 1;
         transform: translateY(0);
@@ -198,7 +199,7 @@ ul {
 
 .hero-description {
     font-size: 1rem;
-    color: rgba(255,255,255,0.7);
+    color: rgba(255, 255, 255, 0.7);
     line-height: 1.6;
     margin-bottom: 2rem;
 }
@@ -244,8 +245,15 @@ ul {
 }
 
 @keyframes scrollLine {
-    0%   { opacity: 1; transform: scaleY(1) translateY(0); }
-    100% { opacity: 0; transform: scaleY(0.4) translateY(20px); }
+    0% {
+        opacity: 1;
+        transform: scaleY(1) translateY(0);
+    }
+
+    100% {
+        opacity: 0;
+        transform: scaleY(0.4) translateY(20px);
+    }
 }
 
 /* ===== SEÇÃO DE FILMES ===== */
@@ -259,9 +267,10 @@ ul {
     background-color: var(--preto-suave);
     border-bottom: 1px solid rgba(229, 9, 20, 0.2);
     position: sticky;
-    top: 64px;             /* abaixo da navbar global */
+    top: 64px;
+    /* abaixo da navbar global */
     z-index: 900;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
 }
 
 .filtros-container {
@@ -322,11 +331,11 @@ ul {
     border-radius: 8px;
     min-width: 180px;
     padding: 0.4rem 0;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.6), 0 0 16px rgba(229,9,20,0.15);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6), 0 0 16px rgba(229, 9, 20, 0.15);
 
     /* Escondido por padrão usando CSS puro */
     opacity: 0;
-    visibility: hidden;
+    visibility: auto;
     transform: translateY(-6px);
     transition: opacity var(--transicao), visibility var(--transicao), transform var(--transicao);
 }
@@ -341,7 +350,7 @@ ul {
     display: block;
     padding: 0.55rem 1.2rem;
     font-size: 0.88rem;
-    color: rgba(255,255,255,0.75);
+    color: rgba(255, 255, 255, 0.75);
     transition: color var(--transicao), background var(--transicao), padding-left var(--transicao);
 }
 
@@ -477,7 +486,7 @@ ul {
 
 .card-genero {
     font-size: 0.78rem;
-    color: rgba(255,255,255,0.55);
+    color: rgba(255, 255, 255, 0.55);
     font-weight: 400;
     text-transform: uppercase;
     letter-spacing: 0.6px;
@@ -508,6 +517,7 @@ ul {
     background-color: var(--preto);
     border-top: 2px solid var(--vermelho);
     padding: 1.5rem 2rem;
+    width: 100%;
 }
 
 .footer-container {
@@ -518,6 +528,7 @@ ul {
     justify-content: space-between;
     flex-wrap: wrap;
     gap: 1rem;
+    
 }
 
 .footer-logo {
@@ -530,7 +541,7 @@ ul {
 
 .footer-copy {
     font-size: 0.82rem;
-    color: rgba(255,255,255,0.45);
+    color: rgba(255, 255, 255, 0.45);
 }
 
 /* ===== RESPONSIVIDADE ===== */
@@ -552,7 +563,7 @@ ul {
 
     .filtros-container {
         gap: 0;
-        overflow-x: auto;
+        overflow-x: hidden;
         padding: 0 1rem;
     }
 
