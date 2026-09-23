@@ -1,4 +1,4 @@
-import "./rodape.css"
+import "..//rodape.css"
 
 function Rodape() {
     return (
