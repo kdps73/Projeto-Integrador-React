@@ -1,0 +1,621 @@
+/* ==================================================
+   CONFIGURAÇÕES GERAIS
+================================================== */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    background: #141414;
+    color: #ffffff;
+
+    font-family: Arial, Helvetica, sans-serif;
+
+    overflow-x: hidden;
+}
+
+a {
+    text-decoration: none;
+}
+
+
+/* ==================================================
+   NAVBAR GLOBAL
+================================================== */
+
+.navbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 1000;
+    background-color: #000000;
+    border-bottom: 2px solid #e50914;
+    box-shadow: 0 2px 20px rgba(229, 9, 20, 0.3);
+}
+
+.navbar-container {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 0 2rem;
+    height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 2rem;
+}
+
+.navbar-logo {
+    display: flex;
+    align-items: center;
+}
+
+.logo-text {
+    font-family: 'Outfit', 'Montserrat', sans-serif;
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: #e50914;
+    letter-spacing: 1px;
+    text-shadow: 0 0 12px rgba(229, 9, 20, 0.6);
+    transition: text-shadow 0.3s ease;
+}
+
+.logo-text:hover {
+    text-shadow: 0 0 22px rgba(229, 9, 20, 0.9);
+}
+
+.navbar-links {
+    display: flex;
+    gap: 2rem;
+    list-style: none;
+}
+
+.nav-link {
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: #d4d4d4;
+    padding: 0.4rem 0;
+    border-bottom: 2px solid transparent;
+    transition: color 0.3s ease, border-color 0.3s ease;
+    letter-spacing: 0.3px;
+}
+
+.nav-link:hover,
+.nav-link.active {
+    color: #ffffff;
+    border-bottom-color: #e50914;
+}
+
+.btn-login {
+    background-color: #e50914;
+    color: #ffffff;
+    font-family: 'Inter', 'Roboto', 'Segoe UI', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 600;
+    padding: 0.5rem 1.4rem;
+    border-radius: 25px;
+    transition: background-color 0.3s ease, box-shadow 0.3s ease, transform 0.15s;
+}
+
+.btn-login:hover {
+    background-color: #b30710;
+    box-shadow: 0 0 16px rgba(229, 9, 20, 0.5);
+    transform: translateY(-1px);
+}
+
+
+/* ==================================================
+   CONTAINER PRINCIPAL
+================================================== */
+
+.container {
+    width: 90%;
+
+    max-width: 1250px;
+
+    margin: 0 auto;
+
+    padding: 65px 0 90px;
+}
+
+
+/* ==================================================
+   CABEÇALHO DA PÁGINA
+================================================== */
+.page-heading {
+    margin-bottom: 65px;
+}
+
+.page-heading h1 {
+    font-size: clamp(35px, 5vw, 54px);
+
+    margin-top: 50px;
+
+    font-weight: 900;
+
+    letter-spacing: 2px;
+}
+
+.red-line {
+    width: 55px;
+    height: 4px;
+
+    margin: 13px 0;
+
+    background: #e50914;
+}
+
+.page-heading p {
+    color: #888888;
+
+    font-size: 14px;
+}
+
+
+/* ==================================================
+   SEÇÃO
+================================================== */
+
+.movie-section {
+    margin-bottom: 75px;
+}
+
+.section-heading {
+    display: flex;
+
+    align-items: flex-end;
+
+    justify-content: space-between;
+
+    margin-bottom: 20px;
+}
+
+.section-heading h2 {
+    font-size: 24px;
+
+    font-weight: 800;
+
+    margin-bottom: 7px;
+}
+
+.section-heading h2::before {
+    content: "";
+
+    display: inline-block;
+
+    width: 4px;
+    height: 22px;
+
+    margin-right: 10px;
+
+    background: #e50914;
+
+    vertical-align: -3px;
+}
+
+.section-heading p {
+    margin-left: 14px;
+
+    color: #777777;
+
+    font-size: 12px;
+}
+
+.section-heading > a {
+    color: #e50914;
+
+    font-size: 12px;
+
+    font-weight: bold;
+}
+
+.section-heading > a:hover {
+    text-decoration: underline;
+}
+
+
+/* ==================================================
+   CARROSSEL
+================================================== */
+
+.carousel {
+    width: 100%;
+
+    position: relative;
+}
+
+
+/* ÁREA VISÍVEL */
+
+.carousel-window {
+    width: calc(100% - 100px);
+
+    margin: 0 auto;
+
+    overflow: hidden;
+}
+
+/* LINHA DOS CARDS */
+
+.carousel-track {
+    display: flex;
+
+    gap: 20px;
+
+    transition: transform 0.5s ease;
+}
+/* Remove scrollbar */
+
+.carousel-window::-webkit-scrollbar {
+    display: none;
+}
+
+/* ==================================================
+   CARDS
+================================================== */
+
+.movie-card {
+    flex: 0 0 calc((100% - 40px) / 3);
+
+    background: #151515;
+
+    border: 1px solid #272727;
+
+    border-radius: 6px;
+
+    overflow: hidden;
+
+    transition:
+        transform 0.3s ease,
+        border-color 0.3s ease;
+
+    cursor: pointer;
+}
+
+.movie-card:hover {
+    transform: translateY(-7px);
+
+    border-color: #e50914;
+}
+
+
+/* IMAGEM */
+
+.movie-card img {
+    width: 100%;
+
+    aspect-ratio: 2 / 3;
+
+    display: block;
+
+    object-fit: cover;
+
+    background: #1d1d1d;
+
+    transition: transform 0.4s ease;
+}
+
+.movie-card:hover img {
+    transform: scale(1.04);
+}
+
+
+/* ==================================================
+   INFORMAÇÕES DO FILME
+================================================== */
+
+.movie-info {
+    min-height: 72px;
+
+    padding: 13px;
+}
+
+.movie-info h3 {
+    margin-bottom: 7px;
+
+    color: #ffffff;
+
+    font-size: 14px;
+
+    line-height: 1.35;
+
+    font-weight: bold;
+
+    white-space: nowrap;
+
+    overflow: hidden;
+
+    text-overflow: ellipsis;
+}
+
+.movie-info span {
+    color: #999999;
+
+    font-size: 11px;
+}
+
+
+/* ==================================================
+   SETAS
+================================================== */
+.carousel-window::scroll-button(left) {
+
+    content: "❮";
+
+    position: absolute;
+
+    left: 0;
+
+    top: 50%;
+
+    transform: translateY(-50%);
+
+    width: 42px;
+
+    height: 62px;
+
+    border: 1px solid #333;
+
+    border-radius: 4px;
+
+    background: #000;
+
+    color: #fff;
+
+    font-size: 25px;
+
+    cursor: pointer;
+
+    z-index: 10;
+
+}
+
+/* ==================================================
+   SETA DIREITA
+================================================== */
+
+.carousel-window::scroll-button(right) {
+
+    content: "❯";
+
+    position: absolute;
+
+    right: 0;
+
+    top: 50%;
+
+    transform: translateY(-50%);
+
+    width: 42px;
+
+    height: 62px;
+
+    border: 1px solid #333;
+    border-radius: 4px;
+
+    background: #000;
+
+    color: #fff;
+
+    font-size: 25px;
+
+    cursor: pointer;
+
+    z-index: 10;
+
+}
+
+/* ==================================================
+   HOVER DAS SETAS
+================================================== */
+
+.carousel-window::scroll-button(left):hover,
+.carousel-window::scroll-button(right):hover {
+
+    background: #e50914;
+
+    border-color: #e50914;
+
+}
+/* ==================================================
+   SETA DESABILITADA
+================================================== */
+
+.carousel-window::scroll-button(left):disabled,
+.carousel-window::scroll-button(right):disabled {
+
+    opacity: 0.2;
+
+    cursor: default;
+
+}
+/* ==================================================
+   FOOTER
+================================================== */
+
+footer {
+    padding: 40px 20px;
+
+    background: #000000;
+
+    border-top: 1px solid #222222;
+
+    text-align: center;
+}
+
+.footer-logo {
+    margin-bottom: 10px;
+
+    font-size: 20px;
+
+    font-weight: 900;
+}
+
+.footer-logo span {
+    color: #e50914;
+}
+
+footer p {
+    color: #666666;
+
+    font-size: 11px;
+}
+
+
+/* ==================================================
+   TABLET
+================================================== */
+
+@media (max-width: 900px) {
+
+    .navbar {
+        padding: 15px 4%;
+
+        flex-wrap: wrap;
+    }
+
+    .nav-menu {
+        order: 3;
+
+        width: 100%;
+    }
+
+    .nav-menu a {
+        flex: 1;
+
+        text-align: center;
+    }
+
+    .search {
+        width: 220px;
+    }
+
+
+    /*
+       Tablet:
+       2 cards visíveis.
+    */
+
+    .movie-card {
+        flex-basis: calc((100% - 20px) / 2);
+    }
+
+    .carousel-window {
+        width: calc(100% - 85px);
+    }
+
+
+    #assistir-2:checked ~ .carousel-window .carousel-track,
+    #lancamentos-2:checked ~ .carousel-window .carousel-track,
+    #avaliados-2:checked ~ .carousel-window .carousel-track {
+        transform: translateX(
+            calc(-50% - 10px)
+        );
+    }
+
+}
+
+
+/* ==================================================
+   CELULAR
+================================================== */
+
+@media (max-width: 600px) {
+
+    .navbar {
+        padding: 15px 5%;
+
+        gap: 12px;
+    }
+
+    .logo {
+        font-size: 19px;
+    }
+
+    .search {
+        width: 100%;
+
+        order: 2;
+    }
+
+    .nav-menu {
+        order: 3;
+    }
+
+    .nav-menu a {
+        padding: 12px 5px;
+
+        font-size: 10px;
+    }
+
+
+    .container {
+        width: 92%;
+
+        padding-top: 45px;
+    }
+
+    .page-heading {
+        margin-bottom: 45px;
+    }
+
+    .page-heading h1 {
+        font-size: 36px;
+    }
+
+
+    .movie-section {
+        margin-bottom: 55px;
+    }
+
+    .section-heading h2 {
+        font-size: 19px;
+    }
+
+    .section-heading p {
+        font-size: 10px;
+    }
+
+    .section-heading > a {
+        font-size: 10px;
+    }
+
+
+    /*
+       Celular:
+       1 card visível.
+    */
+
+    .carousel-window {
+        width: calc(100% - 70px);
+    }
+
+    .movie-card {
+        flex-basis: 100%;
+    }
+
+
+    #assistir-2:checked ~ .carousel-window .carousel-track,
+    #lancamentos-2:checked ~ .carousel-window .carousel-track,
+    #avaliados-2:checked ~ .carousel-window .carousel-track {
+        transform: translateX(
+            calc(-100% - 20px)
+        );
+    }
+
+
+    .arrow {
+        width: 32px;
+        height: 52px;
+
+        font-size: 24px;
+    }
+
+}
