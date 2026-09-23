@@ -1,4 +1,4 @@
-import "../css/menu"
+import "../css/menu.css"
 function Menu() {
     return ( 
         <div>
@@ -19,7 +19,7 @@ function Menu() {
                             </a>
                         </li>
                         <li>
-                            <a href="listas.html" className="nav-link active">
+                            <a href="listas.jsx" className="nav-link active">
                                 Listas
                             </a>
                         </li>
