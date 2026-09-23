@@ -169,7 +169,7 @@ a {
 
     border-radius: 10px;
 
-    overflow: hidden;
+    overflow: auto;
 }
 
 
@@ -209,7 +209,7 @@ a {
 
     position: relative;
 
-    overflow: hidden;
+    overflow: auto;
 
     transition: 0.25s ease;
 }
@@ -266,7 +266,7 @@ a {
 
     border-radius: 50%;
 
-    overflow: hidden;
+    overflow: auto;
 
     background: #000;
 
