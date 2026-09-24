@@ -229,27 +229,66 @@
 /* Caixa de Bio */
 #pagina-usuario .bio-box {
     display: flex;
-    align-items: center;
-    gap: 10px;
+    gap: 12px;
     max-width: 650px;
+    width: 100%;
+}
+
+#pagina-usuario .bio-box.display {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+}
+
+#pagina-usuario .bio-text-display {
+    font-size: 0.95rem;
+    line-height: 1.5;
+    color: #cccccc;
+    margin: 0;
+    word-break: break-word;
+}
+
+#pagina-usuario .btn-editar-bio {
+    background: transparent;
+    border: 1px solid #444444;
+    color: #e0e0e0;
+    padding: 6px 14px;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+#pagina-usuario .btn-editar-bio:hover {
+    border-color: var(--vermelho, #e50914);
+    color: #ffffff;
+    background: rgba(229, 9, 20, 0.1);
+}
+
+#pagina-usuario .bio-box.editing {
+    flex-direction: column;
+    align-items: flex-start;
 }
 
 #pagina-usuario .bio-input-wrapper {
-    flex: 1;
+    width: 100%;
     position: relative;
 }
 
 #pagina-usuario .bio-text {
     width: 100%;
-    height: 42px;
-    padding: 0 16px;
+    min-height: 90px;
+    padding: 12px 14px;
     background: #0d0d0d;
     border: 1px solid #333333;
     border-radius: 8px;
     outline: none;
     color: #ffffff;
     font-family: inherit;
-    font-size: 0.88rem;
+    font-size: 0.9rem;
+    line-height: 1.4;
+    resize: vertical;
     transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
@@ -262,8 +301,14 @@
     box-shadow: 0 0 10px rgba(229, 9, 20, 0.3);
 }
 
+#pagina-usuario .bio-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 8px;
+}
+
 #pagina-usuario .btn-salvar-bio {
-    height: 42px;
+    height: 38px;
     padding: 0 20px;
     background-color: var(--vermelho, #e50914);
     color: #ffffff;
@@ -284,6 +329,24 @@
 
 #pagina-usuario .btn-salvar-bio:active {
     transform: translateY(0);
+}
+
+#pagina-usuario .btn-cancelar-bio {
+    height: 38px;
+    padding: 0 16px;
+    background-color: #222222;
+    color: #aaaaaa;
+    border: 1px solid #333333;
+    border-radius: 8px;
+    font-weight: 500;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+#pagina-usuario .btn-cancelar-bio:hover {
+    background-color: #333333;
+    color: #ffffff;
 }
 
 #pagina-usuario .bio-status-msg {
