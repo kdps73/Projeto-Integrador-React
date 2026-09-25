@@ -1,4 +1,6 @@
 import "./css/index.css";
+import { supabase } from "./supabse";
+import { useState } from "react";
 
 function Inicio() {
     return (
