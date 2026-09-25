@@ -4,8 +4,6 @@ import "./css/resenha.css";
 function Resenha() {
     return (
         <>
-
-
             <section className="filme-hero" id="filme-hero">
                 <div className="filme-hero-inner">
                     <div className="poster-col">
