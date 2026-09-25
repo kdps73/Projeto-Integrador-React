@@ -1,47 +1,12 @@
+import { Link } from "react-router-dom";
 import "./css/index.css";
 import "./css/listas.css";
+
 
 function Lista() {
     return (
         <>
-            <nav className="navbar" id="navbar">
-                <div className="navbar-container">
-                    <a href="frontend/index.html" className="navbar-logo" id="logo-link">
-                        <span className="logo-text">CiNEPLANNER</span>
-                    </a>
-                    <ul className="navbar-links">
-                        <li>
-                            <a href="frontend/index.html" className="nav-link">
-                                Início
-                            </a>
-                        </li>
-                        <li>
-                            <a href="#" className="nav-link">
-                                Filmes
-                            </a>
-                        </li>
-                        <li>
-                            <a href="listas.html" className="nav-link active">
-                                Listas
-                            </a>
-                        </li>
-                        <li>
-                            <a href="frontend/quiz.html" className="nav-link">
-                                Quiz
-                            </a>
-                        </li>
-                    </ul>
-                    <div className="navbar-actions">
-                        <a
-                            href="frontend/registro.html"
-                            className="btn-login"
-                            id="btn-entrar"
-                        >
-                            Entrar
-                        </a>
-                    </div>
-                </div>
-            </nav>
+
 
             <main className="container">
                 <section className="page-heading">
@@ -475,13 +440,7 @@ function Lista() {
                 </section>
             </main>
 
-            <footer>
-                <div className="footer-logo">
-                    CiNE<span>PLANNER</span>
-                </div>
 
-                <p>© 2026 CiNEPLANNER. Todos os direitos reservados.</p>
-            </footer>
         </>
     );
 }

@@ -3,6 +3,24 @@ import "./css/index.css";
 import Filmes from "./components/Filmes";
 
 function Inicio() {
+    const [filmes, setFilmes] = useState([]);
+
+    useEffect(() => {
+        async function fetchFilmes() {
+            const { data, error } = await supabase
+                .from("filmes")
+                .select("*")
+                .order("id", { ascending: true });
+            
+            if (error) {
+                console.error("Erro ao buscar filmes:", error);
+            } else {
+                setFilmes(data);
+            }
+        }
+        
+        fetchFilmes();
+    }, []);
     return (
         <>
             <header className="hero" id="hero">
@@ -226,7 +244,6 @@ function Inicio() {
                 </div>
 
                 <div className="filmes-grid" id="filmes-grid">
-
                     <Filmes/>
                     <Filmes/>
                     <Filmes/>

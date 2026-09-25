@@ -4,40 +4,7 @@ import "./css/resenha.css";
 function Resenha() {
     return (
         <>
-            <nav className="navbar" id="navbar">
-                <div className="navbar-container">
-                    <a href="index.html" className="navbar-logo" id="logo-link">
-                        <span className="logo-text">CiNEPLANNER</span>
-                    </a>
-                    <ul className="navbar-links">
-                        <li>
-                            <a href="index.html" className="nav-link">
-                                Início
-                            </a>
-                        </li>
-                        <li>
-                            <a href="#" className="nav-link active">
-                                Filmes
-                            </a>
-                        </li>
-                        <li>
-                            <a href="#" className="nav-link">
-                                Listas
-                            </a>
-                        </li>
-                        <li>
-                            <a href="#" className="nav-link">
-                                Quiz
-                            </a>
-                        </li>
-                    </ul>
-                    <div className="navbar-actions">
-                        <a href="registro.html" className="btn-login" id="btn-entrar">
-                            Entrar
-                        </a>
-                    </div>
-                </div>
-            </nav>
+
 
             <section className="filme-hero" id="filme-hero">
                 <div className="filme-hero-inner">
@@ -789,14 +756,7 @@ function Resenha() {
                 </div>
             </section>
 
-            <footer className="footer" id="footer">
-                <div className="footer-container">
-                    <span className="footer-logo">CiNEPLANNER</span>
-                    <p className="footer-copy">
-                        &copy; 2026 CiNEPLANNER – Grupo Vermelho · Senac
-                    </p>
-                </div>
-            </footer>
+
         </>
     );
 }
