@@ -245,23 +245,6 @@ function Inicio() {
 
                 <div className="filmes-grid" id="filmes-grid">
                     <Filmes/>
-                    <Filmes/>
-                    <Filmes/>
-                    <Filmes/>
-                    <Filmes/>
-                    <Filmes/>
-                    <Filmes/>
-                    <Filmes/>
-                    <Filmes/>
-                    <Filmes/>
-                    <Filmes/>
-                    <Filmes/>
-                    <Filmes/>
-                    <Filmes/>
-                    <Filmes/>
-                    <Filmes/>
-                    <Filmes/>
-
                 </div>
             </section>
         </>
