@@ -10,7 +10,7 @@ function Usuario() {
     // 1. ESTADOS DO USUÁRIO (Baseados na tabela 'usuario')
     // =========================================================
     const [usuario, setUsuario] = useState({
-        id: 1,
+        id: 15,
         nome: "They Pro Filmes",
         username: "THEY_PRO_FILMES",
         email: "usuario@cineplanner.com",
@@ -21,12 +21,13 @@ function Usuario() {
         chapeuUrl: "./img/hat-red-dead.png",
         maoUrl: "./img/acessorio-red-dead.png",
         mascoteUrl: "./img/pet-red-dead.png",
-        avatarUrl: "https://adaptcommunitynetwork.org/wp-content/uploads/2023/09/person-placeholder.jpg"
+        avatarUrl: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=300&q=80"
     });
 
     // Estado para o input de edição de bio
     const [inputBio, setInputBio] = useState(usuario.bio);
     const [statusBio, setStatusBio] = useState("");
+    const [isEditingBio, setIsEditingBio] = useState(false);
 
     // =========================================================
     // 2. SISTEMA DE XP E NÍVEL
@@ -157,67 +158,95 @@ function Usuario() {
     // =========================================================
     const handleSalvarBio = async () => {
         setUsuario(prev => ({ ...prev, bio: inputBio }));
-        setStatusBio("Bio atualizada!");
+        setIsEditingBio(false);
+        setStatusBio("Bio atualizada com sucesso!");
 
         setTimeout(() => setStatusBio(""), 3000);
 
         // =====================================================
         // SUPABASE: SALVAR BIO NO BANCO
         // =====================================================
-        /*
         if (supabase) {
-            const { error } = await supabase
-                .from('usuario')
-                .update({ bio: inputBio })
-                .eq('id', usuario.id);
+            try {
+                const { error } = await supabase
+                    .from('usuario')
+                    .update({ bio: inputBio })
+                    .eq('id', usuario.id);
 
-            if (error) {
-                console.error("Erro ao atualizar bio no Supabase:", error);
+                if (error) {
+                    console.error("Erro ao atualizar bio no Supabase:", error);
+                }
+            } catch (err) {
+                console.warn("Erro ao comunicar com Supabase ao salvar bio:", err);
             }
         }
-        */
     };
 
     // =========================================================
     // 6. INTEGRAÇÃO COM O BANCO DE DADOS (SUPABASE)
-    // Descomente e ajuste os blocos abaixo ao conectar suas chaves
     // =========================================================
     useEffect(() => {
         async function carregarDadosDoBanco() {
-            /*
             try {
-                // A) Buscar dados do Usuário e seus itens cosméticos
+                if (!supabase) return;
+
+                // A) Buscar dados do Usuário (ID atual) e seus itens cosméticos
                 const { data: dadosUsuario, error: erroUsuario } = await supabase
                     .from('usuario')
                     .select('*, id_item_chapeu(*), id_item_mao(*), id_item_mascote(*)')
-                    .single();
+                    .eq('id', usuario.id)
+                    .maybeSingle();
 
                 if (dadosUsuario && !erroUsuario) {
                     setUsuario(prev => ({
                         ...prev,
                         id: dadosUsuario.id,
-                        nome: dadosUsuario.nome,
-                        username: dadosUsuario.username,
-                        email: dadosUsuario.email,
+                        nome: dadosUsuario.nome || prev.nome,
+                        username: dadosUsuario.username || prev.username,
+                        email: dadosUsuario.email || prev.email,
                         bio: dadosUsuario.bio || prev.bio,
-                        xpTotal: dadosUsuario.xp_total || 0,
-                        nivel: dadosUsuario.nivel || 1
+                        xpTotal: dadosUsuario.xp_total ?? prev.xpTotal,
+                        nivel: dadosUsuario.nivel ?? prev.nivel,
+                        avatarUrl: dadosUsuario.url_img || dadosUsuario.avatar_url || prev.avatarUrl,
+                        chapeuUrl: dadosUsuario.id_item_chapeu?.url_imagem || prev.chapeuUrl,
+                        maoUrl: dadosUsuario.id_item_mao?.url_imagem || prev.maoUrl,
+                        mascoteUrl: dadosUsuario.id_item_mascote?.url_imagem || prev.mascoteUrl
                     }));
                     setInputBio(dadosUsuario.bio || "");
                 }
 
-                // B) Buscar Filmes Favoritos
-                // const { data: dadosFavoritos } = await supabase.from('filmes').select('*').limit(10);
-                // if (dadosFavoritos) setFavoritos(dadosFavoritos);
+                // B) Buscar Filmes do Usuários (se existir tabela de vinculo usuario_filmes)
+                const { data: dadosRelacao } = await supabase
+                    .from('usuario_filmes')
+                    .select('*, filmes(*)')
+                    .eq('id_usuario', usuario.id);
 
-                // C) Buscar Filmes para Assistir Mais Tarde
-                // const { data: dadosAssistir } = await supabase.from('filmes').select('*').limit(10);
-                // if (dadosAssistir) setAssistirMaisTarde(dadosAssistir);
+                if (dadosRelacao && dadosRelacao.length > 0) {
+                    const favs = dadosRelacao
+                        .filter(item => item.tipo === 'favorito')
+                        .map(item => item.filmes);
+                    const watchLater = dadosRelacao
+                        .filter(item => item.tipo === 'assistir_mais_tarde')
+                        .map(item => item.filmes);
+
+                    if (favs.length > 0) setFavoritos(favs);
+                    if (watchLater.length > 0) setAssistirMaisTarde(watchLater);
+                } else {
+                    // Fallback: Busca geral de filmes caso a tabela usuario_filmes ainda não esteja populada
+                    const { data: dadosFilmes, error: erroFilmes } = await supabase
+                        .from('filmes')
+                        .select('*');
+
+                    if (dadosFilmes && dadosFilmes.length > 0 && !erroFilmes) {
+                        const metade = Math.ceil(dadosFilmes.length / 2);
+                        setFavoritos(dadosFilmes.slice(0, metade));
+                        setAssistirMaisTarde(dadosFilmes.slice(metade));
+                    }
+                }
 
             } catch (err) {
-                console.warn("Supabase ainda não configurado ou em modo offline:", err);
+                console.warn("Supabase offline ou aguardando dados:", err);
             }
-            */
         }
 
         carregarDadosDoBanco();
@@ -233,7 +262,7 @@ function Usuario() {
 
             {/* Conteúdo Principal */}
             <main className="usuario-main container">
-                
+
                 {/* SEÇÃO DE PROGRESSO E XP */}
                 <section className="xp-section" aria-label="Progresso do Usuário">
                     <div className="xp-header">
@@ -248,8 +277,8 @@ function Usuario() {
                     </div>
 
                     <div className="xp-bar-container" title={`${porcentagemXp}% concluído`}>
-                        <div 
-                            className="xp-fill" 
+                        <div
+                            className="xp-fill"
                             style={{ width: `${porcentagemXp}%` }}
                         ></div>
                     </div>
@@ -260,27 +289,31 @@ function Usuario() {
                     <div className="avatar-container">
                         {/* Acessório de Chapéu (Tabela 'itens') */}
                         {usuario.chapeuUrl && (
-                            <img 
-                                className="hat-accessory" 
-                                src={usuario.chapeuUrl} 
-                                alt="Chapéu do Avatar" 
+                            <img
+                                className="hat-accessory"
+                                src={usuario.chapeuUrl}
+                                alt="Chapéu do Avatar"
                             />
                         )}
 
                         <div className="avatar-circle">
-                            <img 
+                            <img
                                 src={usuario.avatarUrl}
-                                alt={`Avatar de ${usuario.username}`} 
-                                className="avatar-img" 
+                                alt={`Avatar de ${usuario.username}`}
+                                className="avatar-img"
+                                onError={(e) => {
+                                    e.target.onerror = null;
+                                    e.target.src = "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=300&q=80";
+                                }}
                             />
                         </div>
 
                         {/* Acessório de Mão/Item (Tabela 'itens') */}
                         {usuario.maoUrl && (
-                            <img 
-                                className="accessory" 
-                                src={usuario.maoUrl} 
-                                alt="Acessório do Avatar" 
+                            <img
+                                className="accessory"
+                                src={usuario.maoUrl}
+                                alt="Acessório do Avatar"
                             />
                         )}
                     </div>
@@ -293,34 +326,61 @@ function Usuario() {
 
                         <h1 className="username">{usuario.username}</h1>
 
-                        <div className="bio-box">
-                            <div className="bio-input-wrapper">
-                                <input 
-                                    type="text" 
-                                    className="bio-text" 
-                                    placeholder="Escreva sua bio aqui..."
-                                    value={inputBio}
-                                    onChange={(e) => setInputBio(e.target.value)}
-                                    onKeyDown={(e) => e.key === "Enter" && handleSalvarBio()}
-                                />
+                        {isEditingBio ? (
+                            <div className="bio-box editing">
+                                <div className="bio-input-wrapper">
+                                    <textarea
+                                        className="bio-text"
+                                        placeholder="Escreva sua bio aqui..."
+                                        value={inputBio}
+                                        onChange={(e) => setInputBio(e.target.value)}
+                                        rows={3}
+                                    />
+                                    {statusBio && <span className="bio-status-msg">{statusBio}</span>}
+                                </div>
+                                <div className="bio-actions">
+                                    <button
+                                        className="btn-salvar-bio"
+                                        onClick={handleSalvarBio}
+                                        type="button"
+                                    >
+                                        Salvar Bio
+                                    </button>
+                                    <button
+                                        className="btn-cancelar-bio"
+                                        onClick={() => {
+                                            setInputBio(usuario.bio);
+                                            setIsEditingBio(false);
+                                        }}
+                                        type="button"
+                                    >
+                                        Cancelar
+                                    </button>
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="bio-box display">
+                                <p className="bio-text-display">
+                                    {usuario.bio ? usuario.bio : "Nenhuma bio informada."}
+                                </p>
+                                <button
+                                    className="btn-editar-bio"
+                                    onClick={() => setIsEditingBio(true)}
+                                    type="button"
+                                >
+                                    Editar Bio
+                                </button>
                                 {statusBio && <span className="bio-status-msg">{statusBio}</span>}
                             </div>
-                            <button 
-                                className="btn-salvar-bio"
-                                onClick={handleSalvarBio}
-                                type="button"
-                            >
-                                Salvar Bio
-                            </button>
-                        </div>
+                        )}
                     </div>
 
                     {/* Mascote (Tabela 'itens') */}
                     {usuario.mascoteUrl && (
-                        <img 
-                            className="pet-accessory" 
-                            src={usuario.mascoteUrl} 
-                            alt="Mascote de Companhia" 
+                        <img
+                            className="pet-accessory"
+                            src={usuario.mascoteUrl}
+                            alt="Mascote de Companhia"
                         />
                     )}
                 </section>
@@ -338,8 +398,8 @@ function Usuario() {
 
                     <div className="carousel-wrapper">
                         {/* Botão Anterior */}
-                        <button 
-                            className="carousel-btn carousel-btn-prev" 
+                        <button
+                            className="carousel-btn carousel-btn-prev"
                             onClick={() => rolarCarrossel(favoritosRef, "esquerda")}
                             aria-label="Rolar filmes favoritos para a esquerda"
                             type="button"
@@ -353,10 +413,10 @@ function Usuario() {
                                 <article key={filme.id} className="filme-card">
                                     <a href={`/resenhas?id=${filme.id}`} className="card-link">
                                         <div className="card-poster">
-                                            <img 
-                                                src={filme.poster_url} 
+                                            <img
+                                                src={filme.poster_url}
                                                 alt={`Poster de ${filme.titulo}`}
-                                                className="poster-img" 
+                                                className="poster-img"
                                                 loading="lazy"
                                             />
                                             <div className="card-overlay">
@@ -379,8 +439,8 @@ function Usuario() {
                         </div>
 
                         {/* Botão Próximo */}
-                        <button 
-                            className="carousel-btn carousel-btn-next" 
+                        <button
+                            className="carousel-btn carousel-btn-next"
                             onClick={() => rolarCarrossel(favoritosRef, "direita")}
                             aria-label="Rolar filmes favoritos para a direita"
                             type="button"
@@ -403,8 +463,8 @@ function Usuario() {
 
                     <div className="carousel-wrapper">
                         {/* Botão Anterior */}
-                        <button 
-                            className="carousel-btn carousel-btn-prev" 
+                        <button
+                            className="carousel-btn carousel-btn-prev"
                             onClick={() => rolarCarrossel(assistirMaisTardeRef, "esquerda")}
                             aria-label="Rolar lista assistir mais tarde para a esquerda"
                             type="button"
@@ -418,10 +478,10 @@ function Usuario() {
                                 <article key={filme.id} className="filme-card">
                                     <a href={`/resenhas?id=${filme.id}`} className="card-link">
                                         <div className="card-poster">
-                                            <img 
-                                                src={filme.poster_url} 
+                                            <img
+                                                src={filme.poster_url}
                                                 alt={`Poster de ${filme.titulo}`}
-                                                className="poster-img" 
+                                                className="poster-img"
                                                 loading="lazy"
                                             />
                                             <div className="card-overlay">
@@ -444,8 +504,8 @@ function Usuario() {
                         </div>
 
                         {/* Botão Próximo */}
-                        <button 
-                            className="carousel-btn carousel-btn-next" 
+                        <button
+                            className="carousel-btn carousel-btn-next"
                             onClick={() => rolarCarrossel(assistirMaisTardeRef, "direita")}
                             aria-label="Rolar lista assistir mais tarde para a direita"
                             type="button"
