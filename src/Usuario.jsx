@@ -1,345 +1,524 @@
+import { useState, useRef, useEffect } from "react";
+import Menu from "./components/Menu";
+import Rodape from "./components/Rodape";
+import { supabase } from "./supabse";
 import "./css/index.css";
 import "./css/usuario.css";
 
 function Usuario() {
+    // =========================================================
+    // 1. ESTADOS DO USUÁRIO (Baseados na tabela 'usuario')
+    // =========================================================
+    const [usuario, setUsuario] = useState({
+        id: 15,
+        nome: "They Pro Filmes",
+        username: "THEY_PRO_FILMES",
+        email: "usuario@cineplanner.com",
+        bio: "Amante de ficção científica, cinema clássico e maratonas de fim de semana.",
+        xpTotal: 25400,
+        nivel: 50,
+        // URLs e dados dos itens cosméticos (tabela 'itens')
+        chapeuUrl: "./img/hat-red-dead.png",
+        maoUrl: "./img/acessorio-red-dead.png",
+        mascoteUrl: "./img/pet-red-dead.png",
+        avatarUrl: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=300&q=80"
+    });
+
+    // Estado para o input de edição de bio
+    const [inputBio, setInputBio] = useState(usuario.bio);
+    const [statusBio, setStatusBio] = useState("");
+    const [isEditingBio, setIsEditingBio] = useState(false);
+
+    // =========================================================
+    // 2. SISTEMA DE XP E NÍVEL
+    // =========================================================
+    // XP necessário para o próximo nível (exemplo de regra de negócio: cada nível são 600 XP)
+    const xpPorNivel = 600;
+    const xpAtualNoNivel = usuario.xpTotal % xpPorNivel;
+    const porcentagemXp = Math.min(Math.round((xpAtualNoNivel / xpPorNivel) * 100), 100);
+
+    // =========================================================
+    // 3. ESTADOS DE FILMES (Baseados na tabela 'filmes')
+    // =========================================================
+    const [favoritos, setFavoritos] = useState([
+        {
+            id: 1,
+            titulo: "O Último Horizonte",
+            genero: "Ficção Científica",
+            nota: 9.8,
+            poster_url: "https://placehold.co/300x450/1a1a1a/e50914?text=O+Ultimo+Horizonte"
+        },
+        {
+            id: 2,
+            titulo: "Sombras do Passado",
+            genero: "Drama",
+            nota: 9.5,
+            poster_url: "https://placehold.co/300x450/1a1a1a/e50914?text=Sombras+do+Passado"
+        },
+        {
+            id: 3,
+            titulo: "Era Uma Vez no Caos",
+            genero: "Ação",
+            nota: 9.3,
+            poster_url: "https://placehold.co/300x450/1a1a1a/e50914?text=Era+Uma+Vez+no+Caos"
+        },
+        {
+            id: 4,
+            titulo: "A Queda dos Deuses",
+            genero: "Suspense",
+            nota: 9.1,
+            poster_url: "https://placehold.co/300x450/1a1a1a/e50914?text=A+Queda+dos+Deuses"
+        },
+        {
+            id: 5,
+            titulo: "Nebulosa",
+            genero: "Aventura",
+            nota: 8.9,
+            poster_url: "https://placehold.co/300x450/1a1a1a/e50914?text=Nebulosa"
+        },
+        {
+            id: 6,
+            titulo: "Interestelar Cósmico",
+            genero: "Sci-Fi",
+            nota: 9.7,
+            poster_url: "https://placehold.co/300x450/1a1a1a/e50914?text=Interestelar"
+        },
+        {
+            id: 7,
+            titulo: "Matrix Reborn",
+            genero: "Cyberpunk",
+            nota: 9.4,
+            poster_url: "https://placehold.co/300x450/1a1a1a/e50914?text=Matrix+Reborn"
+        }
+    ]);
+
+    const [assistirMaisTarde, setAssistirMaisTarde] = useState([
+        {
+            id: 8,
+            titulo: "Amor em Câmera Lenta",
+            genero: "Romance",
+            nota: 8.7,
+            poster_url: "https://placehold.co/300x450/1a1a1a/e50914?text=Amor+em+Camera+Lenta"
+        },
+        {
+            id: 9,
+            titulo: "Risadas no Fim do Mundo",
+            genero: "Comédia",
+            nota: 8.5,
+            poster_url: "https://placehold.co/300x450/1a1a1a/e50914?text=Risadas+no+Fim"
+        },
+        {
+            id: 10,
+            titulo: "Gritos na Escuridão",
+            genero: "Horror",
+            nota: 8.2,
+            poster_url: "https://placehold.co/300x450/1a1a1a/e50914?text=Gritos+na+Escuridao"
+        },
+        {
+            id: 11,
+            titulo: "Mundo Paralelo",
+            genero: "Animação",
+            nota: 8.0,
+            poster_url: "https://placehold.co/300x450/1a1a1a/e50914?text=Mundo+Paralelo"
+        },
+        {
+            id: 12,
+            titulo: "O Preço da Glória",
+            genero: "Drama",
+            nota: 7.8,
+            poster_url: "https://placehold.co/300x450/1a1a1a/e50914?text=O+Preco+da+Gloria"
+        },
+        {
+            id: 13,
+            titulo: "O Código Perdido",
+            genero: "Mistério",
+            nota: 8.6,
+            poster_url: "https://placehold.co/300x450/1a1a1a/e50914?text=O+Codigo+Perdido"
+        }
+    ]);
+
+    // =========================================================
+    // 4. CONTROLE DOS CARROSSÉIS (Refs e Funções de Rolagem)
+    // =========================================================
+    const favoritosRef = useRef(null);
+    const assistirMaisTardeRef = useRef(null);
+
+    const rolarCarrossel = (ref, direcao) => {
+        if (ref.current) {
+            const distancia = 440; // Distância de rolagem em pixels (~2 cards)
+            ref.current.scrollBy({
+                left: direcao === "esquerda" ? -distancia : distancia,
+                behavior: "smooth"
+            });
+        }
+    };
+
+    // =========================================================
+    // 5. ATUALIZAÇÃO DA BIO (Local + Ponto para Supabase)
+    // =========================================================
+    const handleSalvarBio = async () => {
+        setUsuario(prev => ({ ...prev, bio: inputBio }));
+        setIsEditingBio(false);
+        setStatusBio("Bio atualizada com sucesso!");
+
+        setTimeout(() => setStatusBio(""), 3000);
+
+        // =====================================================
+        // SUPABASE: SALVAR BIO NO BANCO
+        // =====================================================
+        if (supabase) {
+            try {
+                const { error } = await supabase
+                    .from('usuario')
+                    .update({ bio: inputBio })
+                    .eq('id', usuario.id);
+
+                if (error) {
+                    console.error("Erro ao atualizar bio no Supabase:", error);
+                }
+            } catch (err) {
+                console.warn("Erro ao comunicar com Supabase ao salvar bio:", err);
+            }
+        }
+    };
+
+    // =========================================================
+    // 6. INTEGRAÇÃO COM O BANCO DE DADOS (SUPABASE)
+    // =========================================================
+    useEffect(() => {
+        async function carregarDadosDoBanco() {
+            try {
+                if (!supabase) return;
+
+                // A) Buscar dados do Usuário (ID atual) e seus itens cosméticos
+                const { data: dadosUsuario, error: erroUsuario } = await supabase
+                    .from('usuario')
+                    .select('*, id_item_chapeu(*), id_item_mao(*), id_item_mascote(*)')
+                    .eq('id', usuario.id)
+                    .maybeSingle();
+
+                if (dadosUsuario && !erroUsuario) {
+                    setUsuario(prev => ({
+                        ...prev,
+                        id: dadosUsuario.id,
+                        nome: dadosUsuario.nome || prev.nome,
+                        username: dadosUsuario.username || prev.username,
+                        email: dadosUsuario.email || prev.email,
+                        bio: dadosUsuario.bio || prev.bio,
+                        xpTotal: dadosUsuario.xp_total ?? prev.xpTotal,
+                        nivel: dadosUsuario.nivel ?? prev.nivel,
+                        avatarUrl: dadosUsuario.url_img || dadosUsuario.avatar_url || prev.avatarUrl,
+                        chapeuUrl: dadosUsuario.id_item_chapeu?.url_imagem || prev.chapeuUrl,
+                        maoUrl: dadosUsuario.id_item_mao?.url_imagem || prev.maoUrl,
+                        mascoteUrl: dadosUsuario.id_item_mascote?.url_imagem || prev.mascoteUrl
+                    }));
+                    setInputBio(dadosUsuario.bio || "");
+                }
+
+                // B) Buscar Filmes do Usuários (se existir tabela de vinculo usuario_filmes)
+                const { data: dadosRelacao } = await supabase
+                    .from('usuario_filmes')
+                    .select('*, filmes(*)')
+                    .eq('id_usuario', usuario.id);
+
+                if (dadosRelacao && dadosRelacao.length > 0) {
+                    const favs = dadosRelacao
+                        .filter(item => item.tipo === 'favorito')
+                        .map(item => item.filmes);
+                    const watchLater = dadosRelacao
+                        .filter(item => item.tipo === 'assistir_mais_tarde')
+                        .map(item => item.filmes);
+
+                    if (favs.length > 0) setFavoritos(favs);
+                    if (watchLater.length > 0) setAssistirMaisTarde(watchLater);
+                } else {
+                    // Fallback: Busca geral de filmes caso a tabela usuario_filmes ainda não esteja populada
+                    const { data: dadosFilmes, error: erroFilmes } = await supabase
+                        .from('filmes')
+                        .select('*');
+
+                    if (dadosFilmes && dadosFilmes.length > 0 && !erroFilmes) {
+                        const metade = Math.ceil(dadosFilmes.length / 2);
+                        setFavoritos(dadosFilmes.slice(0, metade));
+                        setAssistirMaisTarde(dadosFilmes.slice(metade));
+                    }
+                }
+
+            } catch (err) {
+                console.warn("Supabase offline ou aguardando dados:", err);
+            }
+        }
+
+        carregarDadosDoBanco();
+    }, []);
+
+    // =========================================================
+    // 7. RENDERIZAÇÃO DA PÁGINA
+    // =========================================================
     return (
-        <div>
-            <nav className="navbar" id="navbar">
-                <div className="navbar-container">
-                    <a href="index.html" className="navbar-logo" id="logo-link">
-                        <span className="logo-text">CiNEPLANNER</span>
-                    </a>
-                    <ul className="navbar-links">
-                        <li><a href="index.html" className="nav-link active">Início</a></li>
-                        <li><a href="#" className="nav-link">Filmes</a></li>
-                        <li><a href="#" className="nav-link">Listas</a></li>
-                        <li><a href="#" className="nav-link">Quiz</a></li>
-                    </ul>
-                    <div className="navbar-actions">
-                        <a href="registro.html" className="btn-login" id="btn-entrar">Entrar</a>
-                    </div>
-                </div>
-            </nav>
+        <div id="pagina-usuario">
+            {/* Componente Navbar / Menu do CiNEPLANNER */}
+            <Menu />
 
+            {/* Conteúdo Principal */}
+            <main className="usuario-main container">
 
-
-            <main className="container">
-
-
-                <section className="xp-section">
-
+                {/* SEÇÃO DE PROGRESSO E XP */}
+                <section className="xp-section" aria-label="Progresso do Usuário">
                     <div className="xp-header">
-                        <span>PROGRESSO</span>
-                        <strong>LEVEL 50</strong>
+                        <div className="xp-title">
+                            <span>PROGRESSO DO PERFIL</span>
+                            <span className="xp-badge">LEVEL {usuario.nivel}</span>
+                        </div>
+                        <div className="xp-stats">
+                            <span className="xp-current">{usuario.xpTotal.toLocaleString()} XP</span>
+                            <span className="xp-target">/ {porcentagemXp}% para o próximo nível</span>
+                        </div>
                     </div>
 
-                    <div className="xp-bar-container">
-
-                        <div className="xp-fill"></div>
-
+                    <div className="xp-bar-container" title={`${porcentagemXp}% concluído`}>
+                        <div
+                            className="xp-fill"
+                            style={{ width: `${porcentagemXp}%` }}
+                        ></div>
                     </div>
-
                 </section>
 
-
-
-                <section className="profile-card">
-
+                {/* CARD DE PERFIL COM AVATAR, ACESSÓRIOS E BIO */}
+                <section className="profile-card" aria-label="Card de Perfil">
                     <div className="avatar-container">
-
-                        <img className="hat-accessory" src="./img/hat-red-dead.png" alt="Chapéu" />
+                        {/* Acessório de Chapéu (Tabela 'itens') */}
+                        {usuario.chapeuUrl && (
+                            <img
+                                className="hat-accessory"
+                                src={usuario.chapeuUrl}
+                                alt="Chapéu do Avatar"
+                            />
+                        )}
 
                         <div className="avatar-circle">
-
-                            <img src="https://adaptcommunitynetwork.org/wp-content/uploads/2023/09/person-placeholder.jpg"
-                                alt="Avatar do Usuário" className="avatar-img" />
-
+                            <img
+                                src={usuario.avatarUrl}
+                                alt={`Avatar de ${usuario.username}`}
+                                className="avatar-img"
+                                onError={(e) => {
+                                    e.target.onerror = null;
+                                    e.target.src = "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=300&q=80";
+                                }}
+                            />
                         </div>
 
-                        <img className="accessory" src="./img/acessorio-red-dead.png" alt="Espada" />
-
+                        {/* Acessório de Mão/Item (Tabela 'itens') */}
+                        {usuario.maoUrl && (
+                            <img
+                                className="accessory"
+                                src={usuario.maoUrl}
+                                alt="Acessório do Avatar"
+                            />
+                        )}
                     </div>
-
 
                     <div className="user-info">
-
-                        <span className="username-label">
-                            USUÁRIO
-                        </span>
-
-                        <h1 className="username">
-                            THEY_PRO_FILMES
-                        </h1>
-
-                        <div className="bio-box">
-
-                            <input type="text" className="bio-text" placeholder="Escreva sua bio aqui..." />
-
+                        <div className="username-header">
+                            <span className="username-label">USUÁRIO</span>
+                            <span className="user-email">{usuario.email}</span>
                         </div>
 
+                        <h1 className="username">{usuario.username}</h1>
+
+                        {isEditingBio ? (
+                            <div className="bio-box editing">
+                                <div className="bio-input-wrapper">
+                                    <textarea
+                                        className="bio-text"
+                                        placeholder="Escreva sua bio aqui..."
+                                        value={inputBio}
+                                        onChange={(e) => setInputBio(e.target.value)}
+                                        rows={3}
+                                    />
+                                    {statusBio && <span className="bio-status-msg">{statusBio}</span>}
+                                </div>
+                                <div className="bio-actions">
+                                    <button
+                                        className="btn-salvar-bio"
+                                        onClick={handleSalvarBio}
+                                        type="button"
+                                    >
+                                        Salvar Bio
+                                    </button>
+                                    <button
+                                        className="btn-cancelar-bio"
+                                        onClick={() => {
+                                            setInputBio(usuario.bio);
+                                            setIsEditingBio(false);
+                                        }}
+                                        type="button"
+                                    >
+                                        Cancelar
+                                    </button>
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="bio-box display">
+                                <p className="bio-text-display">
+                                    {usuario.bio ? usuario.bio : "Nenhuma bio informada."}
+                                </p>
+                                <button
+                                    className="btn-editar-bio"
+                                    onClick={() => setIsEditingBio(true)}
+                                    type="button"
+                                >
+                                    Editar Bio
+                                </button>
+                                {statusBio && <span className="bio-status-msg">{statusBio}</span>}
+                            </div>
+                        )}
                     </div>
 
-
-                    <img className="pet-accessory" src="./img/pet-red-dead.png" alt="Mascote" />
-
+                    {/* Mascote (Tabela 'itens') */}
+                    {usuario.mascoteUrl && (
+                        <img
+                            className="pet-accessory"
+                            src={usuario.mascoteUrl}
+                            alt="Mascote de Companhia"
+                        />
+                    )}
                 </section>
 
-
-
-                <div className="divider"></div>
-
-
-                <section className="movies-section">
-
+                {/* SEÇÃO 1: FILMES FAVORITOS (COM CARROSSEL) */}
+                <section className="movies-section" aria-label="Filmes Favoritos">
                     <div className="section-header">
-
-                        <h2>
-                            FILMES FAVORITOS
-                        </h2>
-
-                        <span>
-                            05 FILMES
-                        </span>
-
+                        <div className="section-header-left">
+                            <h2>FILMES FAVORITOS</h2>
+                            <span className="movie-count">
+                                {favoritos.length.toString().padStart(2, '0')} FILMES
+                            </span>
+                        </div>
                     </div>
 
-
-                    <div className="movies-grid">
-
-                        <article className="filme-card">
-                            <a href="resenha.html" className="card-link">
-                                <div className="card-poster">
-                                    <img src="https://placehold.co/300x450/1a1a1a/e50914?text=Filme+1" alt="Poster do Filme 1"
-                                        className="poster-img" />
-                                    <div className="card-overlay">
-                                        <span className="card-overlay-text">Ver Detalhes</span>
-                                    </div>
-                                </div>
-                                <div className="card-info">
-                                    <h3 className="card-titulo">O Último Horizonte</h3>
-                                    <span className="card-genero">Ficção Científica</span>
-                                    <div className="card-nota">
-                                        <span className="estrela">★</span>
-                                        <span className="nota-valor">9.8</span>
-                                    </div>
-                                </div>
-                            </a>
-                        </article>
-
-                        <article className="filme-card">
-                            <a href="resenha.html" className="card-link">
-                                <div className="card-poster">
-                                    <img src="https://placehold.co/300x450/1a1a1a/e50914?text=Filme+2" alt="Poster do Filme 2"
-                                        className="poster-img" />
-                                    <div className="card-overlay">
-                                        <span className="card-overlay-text">Ver Detalhes</span>
-                                    </div>
-                                </div>
-                                <div className="card-info">
-                                    <h3 className="card-titulo">Sombras do Passado</h3>
-                                    <span className="card-genero">Drama</span>
-                                    <div className="card-nota">
-                                        <span className="estrela">★</span>
-                                        <span className="nota-valor">9.5</span>
-                                    </div>
-                                </div>
-                            </a>
-                        </article>
-
-                        <article className="filme-card">
-                            <a href="resenha.html" className="card-link">
-                                <div className="card-poster">
-                                    <img src="https://placehold.co/300x450/1a1a1a/e50914?text=Filme+3" alt="Poster do Filme 3"
-                                        className="poster-img" />
-                                    <div className="card-overlay">
-                                        <span className="card-overlay-text">Ver Detalhes</span>
-                                    </div>
-                                </div>
-                                <div className="card-info">
-                                    <h3 className="card-titulo">Era Uma Vez no Caos</h3>
-                                    <span className="card-genero">Ação</span>
-                                    <div className="card-nota">
-                                        <span className="estrela">★</span>
-                                        <span className="nota-valor">9.3</span>
-                                    </div>
-                                </div>
-                            </a>
-                        </article>
-
-                        <article className="filme-card">
-                            <a href="resenha.html" className="card-link">
-                                <div className="card-poster">
-                                    <img src="https://placehold.co/300x450/1a1a1a/e50914?text=Filme+4" alt="Poster do Filme 4"
-                                        className="poster-img" />
-                                    <div className="card-overlay">
-                                        <span className="card-overlay-text">Ver Detalhes</span>
-                                    </div>
-                                </div>
-                                <div className="card-info">
-                                    <h3 className="card-titulo">A Queda dos Deuses</h3>
-                                    <span className="card-genero">Suspense</span>
-                                    <div className="card-nota">
-                                        <span className="estrela">★</span>
-                                        <span className="nota-valor">9.1</span>
-                                    </div>
-                                </div>
-                            </a>
-                        </article>
-
-                        <article className="filme-card">
-                            <a href="resenha.html" className="card-link">
-                                <div className="card-poster">
-                                    <img src="https://placehold.co/300x450/1a1a1a/e50914?text=Filme+5" alt="Poster do Filme 5"
-                                        className="poster-img" />
-                                    <div className="card-overlay">
-                                        <span className="card-overlay-text">Ver Detalhes</span>
-                                    </div>
-                                </div>
-                                <div className="card-info">
-                                    <h3 className="card-titulo">Nebulosa</h3>
-                                    <span className="card-genero">Aventura</span>
-                                    <div className="card-nota">
-                                        <span className="estrela">★</span>
-                                        <span className="nota-valor">8.9</span>
-                                    </div>
-                                </div>
-                            </a>
-                        </article>
-
-                        <button className="btn-ver-mais">
-                            VER MAIS
+                    <div className="carousel-wrapper">
+                        {/* Botão Anterior */}
+                        <button
+                            className="carousel-btn carousel-btn-prev"
+                            onClick={() => rolarCarrossel(favoritosRef, "esquerda")}
+                            aria-label="Rolar filmes favoritos para a esquerda"
+                            type="button"
+                        >
+                            &#8249;
                         </button>
-                    </div>
 
-                </section>
+                        {/* Pista do Carrossel de Favoritos */}
+                        <div className="movies-carousel" ref={favoritosRef}>
+                            {favoritos.map((filme) => (
+                                <article key={filme.id} className="filme-card">
+                                    <a href={`/resenhas?id=${filme.id}`} className="card-link">
+                                        <div className="card-poster">
+                                            <img
+                                                src={filme.poster_url}
+                                                alt={`Poster de ${filme.titulo}`}
+                                                className="poster-img"
+                                                loading="lazy"
+                                            />
+                                            <div className="card-overlay">
+                                                <span className="card-overlay-text">Ver Detalhes</span>
+                                            </div>
+                                        </div>
+                                        <div className="card-info">
+                                            <h3 className="card-titulo">{filme.titulo}</h3>
+                                            <div className="card-meta">
+                                                <span className="card-genero">{filme.genero || filme.classificacao || "Filme"}</span>
+                                                <div className="card-nota">
+                                                    <span className="estrela">★</span>
+                                                    <span className="nota-valor">{filme.nota || "—"}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </a>
+                                </article>
+                            ))}
+                        </div>
 
-
-
-                <section className="movies-section">
-
-                    <div className="section-header">
-
-                        <h2>
-                            ASSISTIR MAIS TARDE
-                        </h2>
-
-                        <span>
-                            05 FILMES
-                        </span>
-
-                    </div>
-
-
-                    <div className="movies-grid">
-
-                        <article className="filme-card">
-                            <a href="resenha.html" className="card-link">
-                                <div className="card-poster">
-                                    <img src="https://placehold.co/300x450/1a1a1a/e50914?text=Filme+6" alt="Poster do Filme 6"
-                                        className="poster-img" />
-                                    <div className="card-overlay">
-                                        <span className="card-overlay-text">Ver Detalhes</span>
-                                    </div>
-                                </div>
-                                <div className="card-info">
-                                    <h3 className="card-titulo">Amor em Câmera Lenta</h3>
-                                    <span className="card-genero">Romance</span>
-                                    <div className="card-nota">
-                                        <span className="estrela">★</span>
-                                        <span className="nota-valor">8.7</span>
-                                    </div>
-                                </div>
-                            </a>
-                        </article>
-
-                        <article className="filme-card">
-                            <a href="resenha.html" className="card-link">
-                                <div className="card-poster">
-                                    <img src="https://placehold.co/300x450/1a1a1a/e50914?text=Filme+7" alt="Poster do Filme 7"
-                                        className="poster-img" />
-                                    <div className="card-overlay">
-                                        <span className="card-overlay-text">Ver Detalhes</span>
-                                    </div>
-                                </div>
-                                <div className="card-info">
-                                    <h3 className="card-titulo">Risadas no Fim do Mundo</h3>
-                                    <span className="card-genero">Comédia</span>
-                                    <div className="card-nota">
-                                        <span className="estrela">★</span>
-                                        <span className="nota-valor">8.5</span>
-                                    </div>
-                                </div>
-                            </a>
-                        </article>
-
-                        <article className="filme-card">
-                            <a href="resenha.html" className="card-link">
-                                <div className="card-poster">
-                                    <img src="https://placehold.co/300x450/1a1a1a/e50914?text=Filme+8" alt="Poster do Filme 8"
-                                        className="poster-img" />
-                                    <div className="card-overlay">
-                                        <span className="card-overlay-text">Ver Detalhes</span>
-                                    </div>
-                                </div>
-                                <div className="card-info">
-                                    <h3 className="card-titulo">Gritos na Escuridão</h3>
-                                    <span className="card-genero">Horror</span>
-                                    <div className="card-nota">
-                                        <span className="estrela">★</span>
-                                        <span className="nota-valor">8.2</span>
-                                    </div>
-                                </div>
-                            </a>
-                        </article>
-
-                        <article className="filme-card">
-                            <a href="resenha.html" className="card-link">
-                                <div className="card-poster">
-                                    <img src="https://placehold.co/300x450/1a1a1a/e50914?text=Filme+9" alt="Poster do Filme 9"
-                                        className="poster-img" />
-                                    <div className="card-overlay">
-                                        <span className="card-overlay-text">Ver Detalhes</span>
-                                    </div>
-                                </div>
-                                <div className="card-info">
-                                    <h3 className="card-titulo">Mundo Paralelo</h3>
-                                    <span className="card-genero">Animação</span>
-                                    <div className="card-nota">
-                                        <span className="estrela">★</span>
-                                        <span className="nota-valor">8.0</span>
-                                    </div>
-                                </div>
-                            </a>
-                        </article>
-
-                        <article className="filme-card">
-                            <a href="resenha.html" className="card-link">
-                                <div className="card-poster">
-                                    <img src="https://placehold.co/300x450/1a1a1a/e50914?text=Filme+10" alt="Poster do Filme 10"
-                                        className="poster-img" />
-                                    <div className="card-overlay">
-                                        <span className="card-overlay-text">Ver Detalhes</span>
-                                    </div>
-                                </div>
-                                <div className="card-info">
-                                    <h3 className="card-titulo">O Preço da Glória</h3>
-                                    <span className="card-genero">Drama</span>
-                                    <div className="card-nota">
-                                        <span className="estrela">★</span>
-                                        <span className="nota-valor">7.8</span>
-                                    </div>
-                                </div>
-                            </a>
-                        </article>
-
-                        <button className="btn-ver-mais">
-                            VER MAIS
+                        {/* Botão Próximo */}
+                        <button
+                            className="carousel-btn carousel-btn-next"
+                            onClick={() => rolarCarrossel(favoritosRef, "direita")}
+                            aria-label="Rolar filmes favoritos para a direita"
+                            type="button"
+                        >
+                            &#8250;
                         </button>
                     </div>
                 </section>
+
+                {/* SEÇÃO 2: ASSISTIR MAIS TARDE (COM CARROSSEL) */}
+                <section className="movies-section" aria-label="Assistir Mais Tarde">
+                    <div className="section-header">
+                        <div className="section-header-left">
+                            <h2>ASSISTIR MAIS TARDE</h2>
+                            <span className="movie-count">
+                                {assistirMaisTarde.length.toString().padStart(2, '0')} FILMES
+                            </span>
+                        </div>
+                    </div>
+
+                    <div className="carousel-wrapper">
+                        {/* Botão Anterior */}
+                        <button
+                            className="carousel-btn carousel-btn-prev"
+                            onClick={() => rolarCarrossel(assistirMaisTardeRef, "esquerda")}
+                            aria-label="Rolar lista assistir mais tarde para a esquerda"
+                            type="button"
+                        >
+                            &#8249;
+                        </button>
+
+                        {/* Pista do Carrossel de Assistir Mais Tarde */}
+                        <div className="movies-carousel" ref={assistirMaisTardeRef}>
+                            {assistirMaisTarde.map((filme) => (
+                                <article key={filme.id} className="filme-card">
+                                    <a href={`/resenhas?id=${filme.id}`} className="card-link">
+                                        <div className="card-poster">
+                                            <img
+                                                src={filme.poster_url}
+                                                alt={`Poster de ${filme.titulo}`}
+                                                className="poster-img"
+                                                loading="lazy"
+                                            />
+                                            <div className="card-overlay">
+                                                <span className="card-overlay-text">Ver Detalhes</span>
+                                            </div>
+                                        </div>
+                                        <div className="card-info">
+                                            <h3 className="card-titulo">{filme.titulo}</h3>
+                                            <div className="card-meta">
+                                                <span className="card-genero">{filme.genero || filme.classificacao || "Filme"}</span>
+                                                <div className="card-nota">
+                                                    <span className="estrela">★</span>
+                                                    <span className="nota-valor">{filme.nota || "—"}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </a>
+                                </article>
+                            ))}
+                        </div>
+
+                        {/* Botão Próximo */}
+                        <button
+                            className="carousel-btn carousel-btn-next"
+                            onClick={() => rolarCarrossel(assistirMaisTardeRef, "direita")}
+                            aria-label="Rolar lista assistir mais tarde para a direita"
+                            type="button"
+                        >
+                            &#8250;
+                        </button>
+                    </div>
+                </section>
+
             </main>
 
-
+            {/* Componente de Rodapé do CiNEPLANNER */}
+            <Rodape />
         </div>
     );
 }
