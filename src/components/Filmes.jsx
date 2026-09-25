@@ -3,7 +3,7 @@ import "../css/index.css";
 import { useEffect, useState } from "react";
 import supabase from "../services/supabase";
 
-function Filmes(props) {
+function Filmes() {
     const [filmes, setFilmes] = useState([]);
 
     useEffect(() => {

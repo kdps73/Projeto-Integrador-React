@@ -227,21 +227,23 @@ function Inicio() {
 
                 <div className="filmes-grid" id="filmes-grid">
 
-                    <Filmes id={1} titulo="O Último Horizonte" genero="Ficção Científica" nota="9.8" img="https://placehold.co/300x450/1a1a1a/e50914?text=Filme+1"/>
-                    <Filmes id={2} titulo="O Último Horizonte" genero="Ficção Científica" nota="9.8" img="https://placehold.co/300x450/1a1a1a/e50914?text=Filme+2"/>
-                    <Filmes id={3} titulo="O Último Horizonte" genero="Ficção Científica" nota="9.8" img="https://placehold.co/300x450/1a1a1a/e50914?text=Filme+3"/>
-                    <Filmes id={4} titulo="O Último Horizonte" genero="Ficção Científica" nota="9.8" img="https://placehold.co/300x450/1a1a1a/e50914?text=Filme+4"/>
-                    <Filmes id={5} titulo="O Último Horizonte" genero="Ficção Científica" nota="9.8" img="https://placehold.co/300x450/1a1a1a/e50914?text=Filme+5"/>
-                    <Filmes id={6} titulo="O Último Horizonte" genero="Ficção Científica" nota="9.8" img="https://placehold.co/300x450/1a1a1a/e50914?text=Filme+6"/>
-                    <Filmes id={7} titulo="O Último Horizonte" genero="Ficção Científica" nota="9.8" img="https://placehold.co/300x450/1a1a1a/e50914?text=Filme+7"/>
-                    <Filmes id={8} titulo="O Último Horizonte" genero="Ficção Científica" nota="9.8" img="https://placehold.co/300x450/1a1a1a/e50914?text=Filme+8"/>
-                    <Filmes id={9} titulo="O Último Horizonte" genero="Ficção Científica" nota="9.8" img="https://placehold.co/300x450/1a1a1a/e50914?text=Filme+9"/>
-                    <Filmes id={10} titulo="O Último Horizonte" genero="Ficção Científica" nota="9.8" img="https://placehold.co/300x450/1a1a1a/e50914?text=Filme+10"/>
-                    <Filmes id={11} titulo="O Último Horizonte" genero="Ficção Científica" nota="9.8" img="https://placehold.co/300x450/1a1a1a/e50914?text=Filme+11"/>
-                    <Filmes id={12} titulo="O Último Horizonte" genero="Ficção Científica" nota="9.8" img="https://placehold.co/300x450/1a1a1a/e50914?text=Filme+12"/>
-                    <Filmes id={13} titulo="O Último Horizonte" genero="Ficção Científica" nota="9.8" img="https://placehold.co/300x450/1a1a1a/e50914?text=Filme+13"/>
-                    <Filmes id={14} titulo="O Último Horizonte" genero="Ficção Científica" nota="9.8" img="https://placehold.co/300x450/1a1a1a/e50914?text=Filme+14"/>
-                    <Filmes id={15} titulo="O Último Horizonte" genero="Ficção Científica" nota="9.8" img="https://placehold.co/300x450/1a1a1a/e50914?text=Filme+15"/>
+                    <Filmes/>
+                    <Filmes/>
+                    <Filmes/>
+                    <Filmes/>
+                    <Filmes/>
+                    <Filmes/>
+                    <Filmes/>
+                    <Filmes/>
+                    <Filmes/>
+                    <Filmes/>
+                    <Filmes/>
+                    <Filmes/>
+                    <Filmes/>
+                    <Filmes/>
+                    <Filmes/>
+                    <Filmes/>
+                    <Filmes/>
 
                 </div>
             </section>
