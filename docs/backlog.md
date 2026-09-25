@@ -29,11 +29,13 @@ Conforme a análise do `docs/contexto.md` e do repositório atual, as seguintes 
 - [x] **Página de Login (`Login.jsx` referente ao `login.html` do contexto):**
   - Formulário contendo os campos exigidos: e-mail, senha e botão de ação.
 
-- [x] **Páginas Extras (Implementadas):**
-  - `Listas.jsx`: Página de listas organizadas.
-  - `Quiz.jsx`: Página iterativa de perguntas sobre o universo cinematográfico.
+- [x] **Página de Perfil do Usuário (`Usuario.jsx`):**
+  - Card de perfil com nível, XP, avatar e acessórios cosméticos (chapéu, item na mão e mascote).
+  - Edição de biografia em tempo real com alternância entre `<textarea>` e parágrafo `<p>`.
+  - Integração com Supabase: Busca dados do usuário (incluindo `url_img` e itens FK) e atualiza a coluna `bio`.
+  - Carrosséis interativos para filmes favoritos e filmes para assistir mais tarde.
 
 ## Próximas Etapas (Ref.: `docs/arquitetura.md`)
-- [ ] **Etapa 2 - Busca na API:** Implementar `useState`, `useEffect` e `map` para puxar e exibir os dados dos filmes na tela, e validar o fluxo de autenticação.
-- [ ] **Etapa 3 - Inserção de Dados:** Fazer a conexão de inputs, validação de campos e lidar com as lógicas de inserção (como novos comentários e avaliações).
+- [/] **Etapa 2 - Busca na API:** Conectada a busca do Supabase na tela de Usuário (perfil, itens e filmes). Faltam conexões completas nas telas de Resenha, Início e Listas.
+- [/] **Etapa 3 - Inserção de Dados:** Inserida atualização de bio no Supabase. Pendente criação da tabela `usuario_filmes` e inserção de novos comentários e avaliações.
 - [ ] **Etapa 4 - Testes e Finalização:** Ajustes de QA, revisão final do build e publicação.
