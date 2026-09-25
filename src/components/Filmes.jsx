@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import "../css/index.css";
 import { useEffect, useState } from "react";
-import supabase from "../services/supabase";
+import { supabase } from "../supabase";
 
 function Filmes() {
     const [filmes, setFilmes] = useState([]);
@@ -24,7 +24,7 @@ function Filmes() {
     }, []);
 
     return (
-        <div className="filmes-grid" id="filmesID">
+        <>
             {filmes.length > 0 ? (
                 filmes.map((filme) => (
                     <article className="filme-card" id={`card-filme-${filme.id}`} key={filme.id}>
@@ -62,7 +62,7 @@ function Filmes() {
             ) : (
                 <p style={{ color: "white", gridColumn: "1 / -1", textAlign: "center" }}>Carregando filmes...</p>
             )}
-        </div>
+        </>
     )
 }
 
