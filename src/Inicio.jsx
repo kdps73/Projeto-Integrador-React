@@ -25,33 +25,33 @@ function Inicio() {
         <>
             <nav className="navbar" id="navbar">
                 <div className="navbar-container">
-                    <a href="Inicio.jsx" className="navbar-logo" id="logo-link">
+                    <a href="index.html" className="navbar-logo" id="logo-link">
                         <span className="logo-text">CiNEPLANNER</span>
                     </a>
                     <ul className="navbar-links">
                         <li>
-                            <a href="Inicio.jsx" className="nav-link active">
+                            <a href="index.html" className="nav-link active">
                                 Início
                             </a>
                         </li>
                         <li>
-                            <a href="#filmesID" className="nav-link">
+                            <a href="#" className="nav-link">
                                 Filmes
                             </a>
                         </li>
                         <li>
-                            <a href="Listas.jsx" className="nav-link">
+                            <a href="#" className="nav-link">
                                 Listas
                             </a>
                         </li>
                         <li>
-                            <a href="Usuario.jsx" className="nav-link">
-                                Usuario
+                            <a href="#" className="nav-link">
+                                Quiz
                             </a>
                         </li>
                     </ul>
                     <div className="navbar-actions">
-                        <a href="Login.jsx" className="btn-login" id="btn-entrar">
+                        <a href="registro.html" className="btn-login" id="btn-entrar">
                             Entrar
                         </a>
                     </div>
@@ -319,14 +319,7 @@ function Inicio() {
                 </div>
             </section>
 
-            <footer className="footer" id="footer">
-                <div className="footer-container">
-                    <span className="footer-logo">CiNEPLANNER</span>
-                    <p className="footer-copy">
-                        &copy; 2026 CiNEPLANNER – Grupo Vermelho · Senac
-                    </p>
-                </div>
-            </footer>
+
         </>
     );
 }

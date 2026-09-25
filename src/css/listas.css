@@ -18,7 +18,7 @@ body {
 
     font-family: Arial, Helvetica, sans-serif;
 
-    overflow-x: auto;
+    overflow-x: hidden;
 }
 
 a {
@@ -239,7 +239,7 @@ a {
 
     margin: 0 auto;
 
-    overflow: auto;
+    overflow: hidden;
 }
 
 /* LINHA DOS CARDS */
@@ -271,7 +271,7 @@ a {
 
     border-radius: 6px;
 
-    overflow: auto;
+    overflow: hidden;
 
     transition:
         transform 0.3s ease,
@@ -331,7 +331,7 @@ a {
 
     white-space: nowrap;
 
-    overflow: auto;
+    overflow: hidden;
 
     text-overflow: ellipsis;
 }
