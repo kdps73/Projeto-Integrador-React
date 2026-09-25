@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import Menu from "./components/Menu";
 import Rodape from "./components/Rodape";
-import { supabase } from "./supabse";
+import { supabase } from "./supabase";
 import "./css/index.css";
 import "./css/usuario.css";
 
