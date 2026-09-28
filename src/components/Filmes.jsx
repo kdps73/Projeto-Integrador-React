@@ -1,34 +1,70 @@
 import { Link } from "react-router-dom";
 import "../css/index.css";
 import { useEffect, useState } from "react";
-import { supabase } from "../supabase";
 
-function Filmes() {
+function Filmes({ fetchUrl, page = 1 }) {
     const [filmes, setFilmes] = useState([]);
+    const [carregando, setCarregando] = useState(true);
+    const API_KEY = '168817e9845280fe6d28f3a939f4bc67';
+
+    // Se a URL mudar (o usuário clicou num filtro), nós resetamos a lista.
+    useEffect(() => {
+        setFilmes([]);
+    }, [fetchUrl]);
 
     useEffect(() => {
-        async function fetchFilmes() {
-            const { data, error } = await supabase
-                .from("filmes")
-                .select("*")
-                .order("id", { ascending: true });
-            
-            if (error) {
-                console.error("Erro ao buscar filmes:", error);
-            } else {
-                setFilmes(data);
+        async function buscarListaDeFilmes() {
+            setCarregando(true);
+            try {
+                // Adiciona o parâmetro de página na requisição
+                const finalUrl = fetchUrl.includes('?') 
+                    ? `${fetchUrl}&page=${page}` 
+                    : `${fetchUrl}?page=${page}`;
+
+                const resp = await fetch(finalUrl);
+                const dados = await resp.json();
+                const listaBasica = dados.results || [];
+
+                const promessasDeDetalhes = listaBasica.map(async (filme) => {
+                    const urlDetalhes = `https://api.themoviedb.org/3/movie/${filme.id}?language=pt-BR&api_key=${API_KEY}`;
+                    const resDetalhes = await fetch(urlDetalhes);
+                    const detalhes = await resDetalhes.json();
+                    
+                    return {
+                        id: detalhes.id,
+                        titulo: detalhes.title,
+                        avaliacao: detalhes.vote_average,
+                        duracao: detalhes.runtime,
+                        sinopse: detalhes.overview,
+                        poster_url: detalhes.poster_path ? `https://image.tmdb.org/t/p/w500${detalhes.poster_path}` : null,
+                        ano_lancamento: detalhes.release_date,
+                        generos: detalhes.genres ? detalhes.genres.map(g => g.name).join(', ') : ''
+                    };
+                });
+
+                const listaCompleta = await Promise.all(promessasDeDetalhes);
+                // Adiciona os novos filmes à lista atual
+                setFilmes(prev => [...prev, ...listaCompleta]);
+            } catch (erro) {
+                console.error("Erro ao buscar a lista de filmes:", erro);
+            } finally {
+                setCarregando(false);
             }
         }
-        
-        fetchFilmes();
-    }, []);
+
+        if (fetchUrl) {
+            buscarListaDeFilmes();
+        }
+    }, [fetchUrl, page]);
 
     return (
         <>
-            {filmes.length > 0 ? (
+            {carregando ? (
+                <p style={{ color: "white", gridColumn: "1 / -1", textAlign: "center" }}>Carregando filmes...</p>
+            ) : filmes.length > 0 ? (
                 filmes.map((filme) => (
                     <article className="filme-card" id={`card-filme-${filme.id}`} key={filme.id}>
-                        <a href="resenha.html" className="card-link">
+                        <Link to={`/resenhas/${filme.id}`} className="card-link">
                             <div className="card-poster">
                                 <img
                                     src={filme.poster_url || "https://placehold.co/300x450/1a1a1a/e50914?text=Sem+Poster"}
@@ -42,12 +78,14 @@ function Filmes() {
                             <div className="card-info">
                                 <h3 className="card-titulo">{filme.titulo}</h3>
                                 <span className="card-genero">
-                                    {filme.classificacao} {filme.franquia ? ` | ${filme.franquia}` : ""}
+                                    {filme.generos}
                                 </span>
                                 <div className="card-nota">
-                                    <span className="estrela" title="Duração">★</span>
+                                    <span className="estrela" title="Avaliação">★</span>
                                     <span className="nota-valor">
-                                        {filme.duracao} min {filme.ano_lancamento ? ` | ${new Date(filme.ano_lancamento).getFullYear()}` : ""}
+                                        {filme.avaliacao ? filme.avaliacao.toFixed(1) : "N/A"}
+                                        {filme.duracao ? ` | ${filme.duracao} min` : ""}
+                                        {filme.ano_lancamento ? ` | ${new Date(filme.ano_lancamento).getFullYear()}` : ""}
                                     </span>
                                 </div>
                                 {filme.sinopse && (
@@ -56,11 +94,11 @@ function Filmes() {
                                     </p>
                                 )}
                             </div>
-                        </a>
+                        </Link>
                     </article>
                 ))
             ) : (
-                <p style={{ color: "white", gridColumn: "1 / -1", textAlign: "center" }}>Carregando filmes...</p>
+                <p style={{ color: "white", gridColumn: "1 / -1", textAlign: "center" }}>Nenhum filme encontrado.</p>
             )}
         </>
     )
