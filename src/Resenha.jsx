@@ -8,7 +8,21 @@ function Resenha() {
     
     const { id } = useParams();
     const [filme, setFilme] = useState(null);
+    
+    // Estados adicionados para os comentários não quebrarem a página
+    const [comentarios, setComentarios] = useState([]);
+    const [novoComentario, setNovoComentario] = useState("");
+    const [usuarioLogado, setUsuarioLogado] = useState(null);
+
     const API_KEY = '168817e9845280fe6d28f3a939f4bc67';
+
+    const handleCurtir = (comentId, jaCurtiu) => {
+        // TODO: Implementar lógica do supabase
+    };
+
+    const handlePublicarComentario = () => {
+        // TODO: Implementar lógica do supabase
+    };
 
     useEffect(() => {
         async function fetchDetalhes() {
@@ -76,42 +90,21 @@ function Resenha() {
                         <p className="filme-sinopse">
                             {filme.overview || 'Sem sinopse disponível.'}
                         </p>
-                        <div className="elenco-bloco">
-                            <h3 className="elenco-titulo">Elenco Principal</h3>
-                            <ul className="elenco-lista">
-                                {elenco.map(ator => (
-                                    <li className="elenco-item" key={ator.id}>
-                                        <img
-                                            src={ator.profile_path ? `https://image.tmdb.org/t/p/w185${ator.profile_path}` : 'https://placehold.co/56x56/2a2a2a/e50914?text=' + ator.name.charAt(0)}
-                                            alt={ator.name}
-                                            className="elenco-foto"
-                                        />
-                                        <div className="elenco-nomes">
-                                            <span className="elenco-ator">{ator.name}</span>
-                                            <span className="elenco-personagem">{ator.character}</span>
-                                        </div>
-                                    </li>
-                                ))}
-                            </ul>
-                        </div>
-                        <p className="filme-sinopse">{filme.sinopse}</p>
                         
                         {elenco && elenco.length > 0 && (
                             <div className="elenco-bloco">
                                 <h3 className="elenco-titulo">Elenco Principal</h3>
                                 <ul className="elenco-lista">
-                                    {elenco.map((ator, index) => (
-                                        <li className="elenco-item" key={index}>
+                                    {elenco.map(ator => (
+                                        <li className="elenco-item" key={ator.id}>
                                             <img
-                                                src={ator.url_img || "https://placehold.co/56x56/2a2a2a/e50914?text=" + ator.ator.charAt(0)}
-                                                alt={ator.ator}
+                                                src={ator.profile_path ? `https://image.tmdb.org/t/p/w185${ator.profile_path}` : 'https://placehold.co/56x56/2a2a2a/e50914?text=' + (ator.name ? ator.name.charAt(0) : '?')}
+                                                alt={ator.name || 'Ator'}
                                                 className="elenco-foto"
                                             />
                                             <div className="elenco-nomes">
-                                                <span className="elenco-ator">{ator.ator}</span>
-                                                <span className="elenco-personagem">
-                                                    {Array.isArray(ator.personagens) ? ator.personagens.join(", ") : ator.personagens}
-                                                </span>
+                                                <span className="elenco-ator">{ator.name}</span>
+                                                <span className="elenco-personagem">{ator.character}</span>
                                             </div>
                                         </li>
                                     ))}
