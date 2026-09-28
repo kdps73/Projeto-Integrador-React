@@ -76,3 +76,41 @@
     box-shadow: 0 0 16px rgba(229, 9, 20, 0.5);
     transform: translateY(-1px);
 }
+
+/* Sugestões de Pesquisa */
+.search-suggestions {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background-color: var(--preto);
+    border: 1px solid var(--vermelho);
+    border-radius: 8px;
+    margin-top: 8px;
+    padding: 0;
+    list-style: none;
+    z-index: 1000;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.5);
+    overflow: hidden;
+}
+
+.suggestion-item {
+    border-bottom: 1px solid #333;
+}
+
+.suggestion-item:last-child {
+    border-bottom: none;
+}
+
+.suggestion-link {
+    display: block;
+    padding: 10px 15px;
+    color: var(--branco);
+    text-decoration: none;
+    font-size: 0.9rem;
+    transition: background-color 0.2s ease-in-out;
+}
+
+.suggestion-link:hover {
+    background-color: var(--vermelho);
+}

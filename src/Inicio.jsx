@@ -1,5 +1,5 @@
-import { Link } from "react-router-dom";
-import { useState } from "react";
+import { Link, useSearchParams } from "react-router-dom";
+import { useState, useEffect } from "react";
 import "./css/index.css";
 import Filmes from "./components/Filmes";
 
@@ -8,10 +8,28 @@ function Inicio() {
     const API_KEY = '168817e9845280fe6d28f3a939f4bc67';
     const BASE_URL = 'https://api.themoviedb.org/3';
     
+    const [searchParams] = useSearchParams();
+    const searchQuery = searchParams.get("search");
+
     const [fetchUrl, setFetchUrl] = useState(`${BASE_URL}/movie/popular?language=pt-BR&api_key=${API_KEY}`);
     const [page, setPage] = useState(1);
     const [tituloSecao, setTituloSecao] = useState("Mais Populares");
     const [subtituloSecao, setSubtituloSecao] = useState("Ordenados por popularidade");
+
+    useEffect(() => {
+        if (searchQuery) {
+            setFetchUrl(`${BASE_URL}/search/movie?query=${encodeURIComponent(searchQuery)}&language=pt-BR&api_key=${API_KEY}`);
+            setTituloSecao(`Resultados para "${searchQuery}"`);
+            setSubtituloSecao("Filmes encontrados");
+            setPage(1);
+        } else {
+            // Restore default if no search
+            setFetchUrl(`${BASE_URL}/movie/popular?language=pt-BR&api_key=${API_KEY}`);
+            setTituloSecao("Mais Populares");
+            setSubtituloSecao("Ordenados por popularidade");
+            setPage(1);
+        }
+    }, [searchQuery]);
 
     const handleFiltro = (e, url, titulo, subtitulo) => {
         e.preventDefault();
