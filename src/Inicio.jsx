@@ -2,8 +2,7 @@ import { Link, useSearchParams } from "react-router-dom";
 import { useState, useEffect } from "react";
 import "./css/index.css";
 import Filmes from "./components/Filmes";
-
-
+import Filtro from "./components/Filtro";
 function Inicio() {
     const API_KEY = '168817e9845280fe6d28f3a939f4bc67';
     const BASE_URL = 'https://api.themoviedb.org/3';
@@ -64,112 +63,48 @@ function Inicio() {
             <section className="filmes-section" id="filmes">
                 <nav className="filtros-navbar" id="filtros-navbar">
                     <div className="filtros-container">
-                        <div className="filtro-dropdown" id="filtro-genero">
-                            <button className="filtro-btn" id="btn-genero">
-                                Gênero
-                                <svg
-                                    className="dropdown-arrow"
-                                    viewBox="0 0 24 24"
-                                    fill="none"
-                                    xmlns="http://www.w3.org/2000/svg"
-                                >
-                                    <path
-                                        d="M6 9L12 15L18 9"
-                                        stroke="currentColor"
-                                        strokeWidth="2"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                    />
-                                </svg>
-                            </button>
-                            <ul className="dropdown-menu" id="menu-genero">
-                                <li><a href="#" className="dropdown-item" onClick={(e) => handleFiltro(e, `${BASE_URL}/discover/movie?with_genres=28&language=pt-BR&api_key=${API_KEY}`, "Ação", "Filmes cheios de adrenalina")}>Ação</a></li>
-                                <li><a href="#" className="dropdown-item" onClick={(e) => handleFiltro(e, `${BASE_URL}/discover/movie?with_genres=12&language=pt-BR&api_key=${API_KEY}`, "Aventura", "Exploração e grandes jornadas")}>Aventura</a></li>
-                                <li><a href="#" className="dropdown-item" onClick={(e) => handleFiltro(e, `${BASE_URL}/discover/movie?with_genres=35&language=pt-BR&api_key=${API_KEY}`, "Comédia", "Para rir sem parar")}>Comédia</a></li>
-                                <li><a href="#" className="dropdown-item" onClick={(e) => handleFiltro(e, `${BASE_URL}/discover/movie?with_genres=18&language=pt-BR&api_key=${API_KEY}`, "Drama", "Histórias envolventes")}>Drama</a></li>
-                                <li><a href="#" className="dropdown-item" onClick={(e) => handleFiltro(e, `${BASE_URL}/discover/movie?with_genres=878&language=pt-BR&api_key=${API_KEY}`, "Ficção Científica", "O futuro e além")}>Ficção Científica</a></li>
-                                <li><a href="#" className="dropdown-item" onClick={(e) => handleFiltro(e, `${BASE_URL}/discover/movie?with_genres=27&language=pt-BR&api_key=${API_KEY}`, "Horror", "Sustos e tensão")}>Horror</a></li>
-                                <li><a href="#" className="dropdown-item" onClick={(e) => handleFiltro(e, `${BASE_URL}/discover/movie?with_genres=1074&language=pt-BR&api_key=${API_KEY}`, "Romance", "Histórias de amor")}>Romance</a></li>
-                                <li><a href="#" className="dropdown-item" onClick={(e) => handleFiltro(e, `${BASE_URL}/discover/movie?with_genres=53&language=pt-BR&api_key=${API_KEY}`, "Suspense", "Mistério do início ao fim")}>Suspense</a></li>
-                                <li><a href="#" className="dropdown-item" onClick={(e) => handleFiltro(e, `${BASE_URL}/discover/movie?with_genres=16&language=pt-BR&api_key=${API_KEY}`, "Animação", "Para todas as idades")}>Animação</a></li>
-                            </ul>
-                        </div>
+                        <Filtro 
+                            nome="Gênero" 
+                            opcoes={[
+                                { label: "Ação", onClick: (e) => handleFiltro(e, `${BASE_URL}/discover/movie?with_genres=28&language=pt-BR&api_key=${API_KEY}`, "Ação", "Filmes cheios de adrenalina") },
+                                { label: "Aventura", onClick: (e) => handleFiltro(e, `${BASE_URL}/discover/movie?with_genres=12&language=pt-BR&api_key=${API_KEY}`, "Aventura", "Exploração e grandes jornadas") },
+                                { label: "Comédia", onClick: (e) => handleFiltro(e, `${BASE_URL}/discover/movie?with_genres=35&language=pt-BR&api_key=${API_KEY}`, "Comédia", "Para rir sem parar") },
+                                { label: "Drama", onClick: (e) => handleFiltro(e, `${BASE_URL}/discover/movie?with_genres=18&language=pt-BR&api_key=${API_KEY}`, "Drama", "Histórias envolventes") },
+                                { label: "Ficção Científica", onClick: (e) => handleFiltro(e, `${BASE_URL}/discover/movie?with_genres=878&language=pt-BR&api_key=${API_KEY}`, "Ficção Científica", "O futuro e além") },
+                                { label: "Horror", onClick: (e) => handleFiltro(e, `${BASE_URL}/discover/movie?with_genres=27&language=pt-BR&api_key=${API_KEY}`, "Horror", "Sustos e tensão") },
+                                { label: "Romance", onClick: (e) => handleFiltro(e, `${BASE_URL}/discover/movie?with_genres=10749&language=pt-BR&api_key=${API_KEY}`, "Romance", "Histórias de amor") },
+                                { label: "Suspense", onClick: (e) => handleFiltro(e, `${BASE_URL}/discover/movie?with_genres=53&language=pt-BR&api_key=${API_KEY}`, "Suspense", "Mistério do início ao fim") },
+                                { label: "Animação", onClick: (e) => handleFiltro(e, `${BASE_URL}/discover/movie?with_genres=16&language=pt-BR&api_key=${API_KEY}`, "Animação", "Para todas as idades") },
+                            ]}
+                        />
+                        
+                        <Filtro 
+                            nome="Mais Popular" 
+                            opcoes={[
+                                { label: "Esta semana", onClick: (e) => handleFiltro(e, `${BASE_URL}/trending/movie/week?language=pt-BR&api_key=${API_KEY}`, "Em Alta Esta Semana", "O que a galera está assistindo") },
+                                { label: "Este mês", onClick: (e) => handleFiltro(e, `${BASE_URL}/movie/popular?language=pt-BR&api_key=${API_KEY}`, "Populares do Mês", "Os queridinhos do momento") },
+                                { label: "Este ano", onClick: (e) => handleFiltro(e, `${BASE_URL}/discover/movie?sort_by=popularity.desc&primary_release_year=2026&language=pt-BR&api_key=${API_KEY}`, "Mais Populares de 2026", "Os melhores do ano") },
+                                { label: "Todos os tempos", onClick: (e) => handleFiltro(e, `${BASE_URL}/movie/top_rated?language=pt-BR&api_key=${API_KEY}`, "Mais Bem Avaliados", "Clássicos aclamados") },
+                            ]}
+                        />
 
-                        <div className="filtro-dropdown" id="filtro-popular">
-                            <button className="filtro-btn" id="btn-popular">
-                                Mais Popular
-                                <svg
-                                    className="dropdown-arrow"
-                                    viewBox="0 0 24 24"
-                                    fill="none"
-                                    xmlns="http://www.w3.org/2000/svg"
-                                >
-                                    <path
-                                        d="M6 9L12 15L18 9"
-                                        stroke="currentColor"
-                                        strokeWidth="2"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                    />
-                                </svg>
-                            </button>
-                            <ul className="dropdown-menu" id="menu-popular">
-                                <li><a href="#" className="dropdown-item" onClick={(e) => handleFiltro(e, `${BASE_URL}/trending/movie/week?language=pt-BR&api_key=${API_KEY}`, "Em Alta Esta Semana", "O que a galera está assistindo")}>Esta semana</a></li>
-                                <li><a href="#" className="dropdown-item" onClick={(e) => handleFiltro(e, `${BASE_URL}/movie/popular?language=pt-BR&api_key=${API_KEY}`, "Populares do Mês", "Os queridinhos do momento")}>Este mês</a></li>
-                                <li><a href="#" className="dropdown-item" onClick={(e) => handleFiltro(e, `${BASE_URL}/discover/movie?sort_by=popularity.desc&primary_release_year=2026&language=pt-BR&api_key=${API_KEY}`, "Mais Populares de 2026", "Os melhores do ano")}>Este ano</a></li>
-                                <li><a href="#" className="dropdown-item" onClick={(e) => handleFiltro(e, `${BASE_URL}/movie/top_rated?language=pt-BR&api_key=${API_KEY}`, "Mais Bem Avaliados", "Clássicos aclamados")}>Todos os tempos</a></li>
-                            </ul>
-                        </div>
+                        <Filtro 
+                            nome="Lançamentos" 
+                            opcoes={[
+                                { label: "2026", onClick: (e) => handleFiltro(e, `${BASE_URL}/discover/movie?primary_release_year=2026&language=pt-BR&api_key=${API_KEY}`, "Lançamentos de 2026", "Filmes recentes deste ano") },
+                                { label: "2025", onClick: (e) => handleFiltro(e, `${BASE_URL}/discover/movie?primary_release_year=2025&language=pt-BR&api_key=${API_KEY}`, "Lançamentos de 2025", "Filmes que marcaram o último ano") },
+                                { label: "2024", onClick: (e) => handleFiltro(e, `${BASE_URL}/discover/movie?primary_release_year=2024&language=pt-BR&api_key=${API_KEY}`, "Lançamentos de 2024", "Os grandes filmes de 2024") },
+                                { label: "2023", onClick: (e) => handleFiltro(e, `${BASE_URL}/discover/movie?primary_release_year=2023&language=pt-BR&api_key=${API_KEY}`, "Lançamentos de 2023", "Retrospectiva 2023") },
+                            ]}
+                        />
 
-                        <div className="filtro-dropdown" id="filtro-lancamentos">
-                            <button className="filtro-btn" id="btn-lancamentos">
-                                Lançamentos
-                                <svg
-                                    className="dropdown-arrow"
-                                    viewBox="0 0 24 24"
-                                    fill="none"
-                                    xmlns="http://www.w3.org/2000/svg"
-                                >
-                                    <path
-                                        d="M6 9L12 15L18 9"
-                                        stroke="currentColor"
-                                        strokeWidth="2"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                    />
-                                </svg>
-                            </button>
-                            <ul className="dropdown-menu" id="menu-lancamentos">
-                                <li><a href="#" className="dropdown-item" onClick={(e) => handleFiltro(e, `${BASE_URL}/discover/movie?primary_release_year=2026&language=pt-BR&api_key=${API_KEY}`, "Lançamentos de 2026", "Filmes recentes deste ano")}>2026</a></li>
-                                <li><a href="#" className="dropdown-item" onClick={(e) => handleFiltro(e, `${BASE_URL}/discover/movie?primary_release_year=2025&language=pt-BR&api_key=${API_KEY}`, "Lançamentos de 2025", "Filmes que marcaram o último ano")}>2025</a></li>
-                                <li><a href="#" className="dropdown-item" onClick={(e) => handleFiltro(e, `${BASE_URL}/discover/movie?primary_release_year=2024&language=pt-BR&api_key=${API_KEY}`, "Lançamentos de 2024", "Os grandes filmes de 2024")}>2024</a></li>
-                                <li><a href="#" className="dropdown-item" onClick={(e) => handleFiltro(e, `${BASE_URL}/discover/movie?primary_release_year=2023&language=pt-BR&api_key=${API_KEY}`, "Lançamentos de 2023", "Retrospectiva 2023")}>2023</a></li>
-                            </ul>
-                        </div>
-
-                        <div className="filtro-dropdown" id="filtro-cartaz">
-                            <button className="filtro-btn" id="btn-cartaz">
-                                Em Cartaz
-                                <svg
-                                    className="dropdown-arrow"
-                                    viewBox="0 0 24 24"
-                                    fill="none"
-                                    xmlns="http://www.w3.org/2000/svg"
-                                >
-                                    <path
-                                        d="M6 9L12 15L18 9"
-                                        stroke="currentColor"
-                                        strokeWidth="2"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                    />
-                                </svg>
-                            </button>
-                            <ul className="dropdown-menu" id="menu-cartaz">
-                                <li><a href="#" className="dropdown-item" onClick={(e) => handleFiltro(e, `${BASE_URL}/movie/now_playing?region=BR&language=pt-BR&api_key=${API_KEY}`, "Em Cartaz", "Veja o que está rolando nos cinemas")}>Cinemas perto de mim</a></li>
-                                <li><a href="#" className="dropdown-item" onClick={(e) => handleFiltro(e, `${BASE_URL}/movie/upcoming?region=BR&language=pt-BR&api_key=${API_KEY}`, "Em Breve", "Próximos lançamentos")}>Pré-venda / Em Breve</a></li>
-                            </ul>
-                        </div>
+                        <Filtro 
+                            nome="Em Cartaz" 
+                            opcoes={[
+                                { label: "Cinemas perto de mim", onClick: (e) => handleFiltro(e, `${BASE_URL}/movie/now_playing?region=BR&language=pt-BR&api_key=${API_KEY}`, "Em Cartaz", "Veja o que está rolando nos cinemas") },
+                                { label: "Pré-venda / Em Breve", onClick: (e) => handleFiltro(e, `${BASE_URL}/movie/upcoming?region=BR&language=pt-BR&api_key=${API_KEY}`, "Em Breve", "Próximos lançamentos") },
+                            ]}
+                        />
                     </div>
                 </nav>
 
