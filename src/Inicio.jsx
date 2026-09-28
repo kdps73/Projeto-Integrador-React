@@ -54,7 +54,7 @@ function Inicio() {
                                 { label: "Drama", onClick: (e) => handleFiltro(e, `${BASE_URL}/discover/movie?with_genres=18&language=pt-BR&api_key=${API_KEY}`, "Drama", "Histórias envolventes") },
                                 { label: "Ficção Científica", onClick: (e) => handleFiltro(e, `${BASE_URL}/discover/movie?with_genres=878&language=pt-BR&api_key=${API_KEY}`, "Ficção Científica", "O futuro e além") },
                                 { label: "Horror", onClick: (e) => handleFiltro(e, `${BASE_URL}/discover/movie?with_genres=27&language=pt-BR&api_key=${API_KEY}`, "Horror", "Sustos e tensão") },
-                                { label: "Romance", onClick: (e) => handleFiltro(e, `${BASE_URL}/discover/movie?with_genres=1074&language=pt-BR&api_key=${API_KEY}`, "Romance", "Histórias de amor") },
+                                { label: "Romance", onClick: (e) => handleFiltro(e, `${BASE_URL}/discover/movie?with_genres=10749&language=pt-BR&api_key=${API_KEY}`, "Romance", "Histórias de amor") },
                                 { label: "Suspense", onClick: (e) => handleFiltro(e, `${BASE_URL}/discover/movie?with_genres=53&language=pt-BR&api_key=${API_KEY}`, "Suspense", "Mistério do início ao fim") },
                                 { label: "Animação", onClick: (e) => handleFiltro(e, `${BASE_URL}/discover/movie?with_genres=16&language=pt-BR&api_key=${API_KEY}`, "Animação", "Para todas as idades") },
                             ]}
