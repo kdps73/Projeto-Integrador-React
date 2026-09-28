@@ -1,46 +1,28 @@
-import { useState, useEffect } from "react";
-import { supabase } from "./supabse";
+import { Link } from "react-router-dom";
+import { useState } from "react";
 import "./css/index.css";
+import Filmes from "./components/Filmes";
+
 
 function Inicio() {
+    const API_KEY = '168817e9845280fe6d28f3a939f4bc67';
+    const BASE_URL = 'https://api.themoviedb.org/3';
     
+    const [fetchUrl, setFetchUrl] = useState(`${BASE_URL}/movie/popular?language=pt-BR&api_key=${API_KEY}`);
+    const [page, setPage] = useState(1);
+    const [tituloSecao, setTituloSecao] = useState("Mais Populares");
+    const [subtituloSecao, setSubtituloSecao] = useState("Ordenados por popularidade");
+
+    const handleFiltro = (e, url, titulo, subtitulo) => {
+        e.preventDefault();
+        setFetchUrl(url);
+        setPage(1);
+        setTituloSecao(titulo);
+        setSubtituloSecao(subtitulo);
+    };
+
     return (
         <>
-            <nav className="navbar" id="navbar">
-                <div className="navbar-container">
-                    <a href="Inicio.jsx" className="navbar-logo" id="logo-link">
-                        <span className="logo-text">CiNEPLANNER</span>
-                    </a>
-                    <ul className="navbar-links">
-                        <li>
-                            <a href="Inicio.jsx" className="nav-link active">
-                                Início
-                            </a>
-                        </li>
-                        <li>
-                            <a href="#filmesID" className="nav-link">
-                                Filmes
-                            </a>
-                        </li>
-                        <li>
-                            <a href="Listas.jsx" className="nav-link">
-                                Listas
-                            </a>
-                        </li>
-                        <li>
-                            <a href="Usuario.jsx" className="nav-link">
-                                Usuario
-                            </a>
-                        </li>
-                    </ul>
-                    <div className="navbar-actions">
-                        <a href="Login.jsx" className="btn-login" id="btn-entrar">
-                            Entrar
-                        </a>
-                    </div>
-                </div>
-            </nav>
-
             <header className="hero" id="hero">
                 <div className="hero-overlay"></div>
                 <div className="hero-content">
@@ -83,51 +65,15 @@ function Inicio() {
                                 </svg>
                             </button>
                             <ul className="dropdown-menu" id="menu-genero">
-                                <li>
-                                    <a href="#" className="dropdown-item">
-                                        Ação
-                                    </a>
-                                </li>
-                                <li>
-                                    <a href="#" className="dropdown-item">
-                                        Aventura
-                                    </a>
-                                </li>
-                                <li>
-                                    <a href="#" className="dropdown-item">
-                                        Comédia
-                                    </a>
-                                </li>
-                                <li>
-                                    <a href="#" className="dropdown-item">
-                                        Drama
-                                    </a>
-                                </li>
-                                <li>
-                                    <a href="#" className="dropdown-item">
-                                        Ficção Científica
-                                    </a>
-                                </li>
-                                <li>
-                                    <a href="#" className="dropdown-item">
-                                        Horror
-                                    </a>
-                                </li>
-                                <li>
-                                    <a href="#" className="dropdown-item">
-                                        Romance
-                                    </a>
-                                </li>
-                                <li>
-                                    <a href="#" className="dropdown-item">
-                                        Suspense
-                                    </a>
-                                </li>
-                                <li>
-                                    <a href="#" className="dropdown-item">
-                                        Animação
-                                    </a>
-                                </li>
+                                <li><a href="#" className="dropdown-item" onClick={(e) => handleFiltro(e, `${BASE_URL}/discover/movie?with_genres=28&language=pt-BR&api_key=${API_KEY}`, "Ação", "Filmes cheios de adrenalina")}>Ação</a></li>
+                                <li><a href="#" className="dropdown-item" onClick={(e) => handleFiltro(e, `${BASE_URL}/discover/movie?with_genres=12&language=pt-BR&api_key=${API_KEY}`, "Aventura", "Exploração e grandes jornadas")}>Aventura</a></li>
+                                <li><a href="#" className="dropdown-item" onClick={(e) => handleFiltro(e, `${BASE_URL}/discover/movie?with_genres=35&language=pt-BR&api_key=${API_KEY}`, "Comédia", "Para rir sem parar")}>Comédia</a></li>
+                                <li><a href="#" className="dropdown-item" onClick={(e) => handleFiltro(e, `${BASE_URL}/discover/movie?with_genres=18&language=pt-BR&api_key=${API_KEY}`, "Drama", "Histórias envolventes")}>Drama</a></li>
+                                <li><a href="#" className="dropdown-item" onClick={(e) => handleFiltro(e, `${BASE_URL}/discover/movie?with_genres=878&language=pt-BR&api_key=${API_KEY}`, "Ficção Científica", "O futuro e além")}>Ficção Científica</a></li>
+                                <li><a href="#" className="dropdown-item" onClick={(e) => handleFiltro(e, `${BASE_URL}/discover/movie?with_genres=27&language=pt-BR&api_key=${API_KEY}`, "Horror", "Sustos e tensão")}>Horror</a></li>
+                                <li><a href="#" className="dropdown-item" onClick={(e) => handleFiltro(e, `${BASE_URL}/discover/movie?with_genres=1074&language=pt-BR&api_key=${API_KEY}`, "Romance", "Histórias de amor")}>Romance</a></li>
+                                <li><a href="#" className="dropdown-item" onClick={(e) => handleFiltro(e, `${BASE_URL}/discover/movie?with_genres=53&language=pt-BR&api_key=${API_KEY}`, "Suspense", "Mistério do início ao fim")}>Suspense</a></li>
+                                <li><a href="#" className="dropdown-item" onClick={(e) => handleFiltro(e, `${BASE_URL}/discover/movie?with_genres=16&language=pt-BR&api_key=${API_KEY}`, "Animação", "Para todas as idades")}>Animação</a></li>
                             </ul>
                         </div>
 
@@ -150,26 +96,10 @@ function Inicio() {
                                 </svg>
                             </button>
                             <ul className="dropdown-menu" id="menu-popular">
-                                <li>
-                                    <a href="#" className="dropdown-item">
-                                        Esta semana
-                                    </a>
-                                </li>
-                                <li>
-                                    <a href="#" className="dropdown-item">
-                                        Este mês
-                                    </a>
-                                </li>
-                                <li>
-                                    <a href="#" className="dropdown-item">
-                                        Este ano
-                                    </a>
-                                </li>
-                                <li>
-                                    <a href="#" className="dropdown-item">
-                                        Todos os tempos
-                                    </a>
-                                </li>
+                                <li><a href="#" className="dropdown-item" onClick={(e) => handleFiltro(e, `${BASE_URL}/trending/movie/week?language=pt-BR&api_key=${API_KEY}`, "Em Alta Esta Semana", "O que a galera está assistindo")}>Esta semana</a></li>
+                                <li><a href="#" className="dropdown-item" onClick={(e) => handleFiltro(e, `${BASE_URL}/movie/popular?language=pt-BR&api_key=${API_KEY}`, "Populares do Mês", "Os queridinhos do momento")}>Este mês</a></li>
+                                <li><a href="#" className="dropdown-item" onClick={(e) => handleFiltro(e, `${BASE_URL}/discover/movie?sort_by=popularity.desc&primary_release_year=2026&language=pt-BR&api_key=${API_KEY}`, "Mais Populares de 2026", "Os melhores do ano")}>Este ano</a></li>
+                                <li><a href="#" className="dropdown-item" onClick={(e) => handleFiltro(e, `${BASE_URL}/movie/top_rated?language=pt-BR&api_key=${API_KEY}`, "Mais Bem Avaliados", "Clássicos aclamados")}>Todos os tempos</a></li>
                             </ul>
                         </div>
 
@@ -192,26 +122,10 @@ function Inicio() {
                                 </svg>
                             </button>
                             <ul className="dropdown-menu" id="menu-lancamentos">
-                                <li>
-                                    <a href="#" className="dropdown-item">
-                                        2026
-                                    </a>
-                                </li>
-                                <li>
-                                    <a href="#" className="dropdown-item">
-                                        2025
-                                    </a>
-                                </li>
-                                <li>
-                                    <a href="#" className="dropdown-item">
-                                        2024
-                                    </a>
-                                </li>
-                                <li>
-                                    <a href="#" className="dropdown-item">
-                                        2023
-                                    </a>
-                                </li>
+                                <li><a href="#" className="dropdown-item" onClick={(e) => handleFiltro(e, `${BASE_URL}/discover/movie?primary_release_year=2026&language=pt-BR&api_key=${API_KEY}`, "Lançamentos de 2026", "Filmes recentes deste ano")}>2026</a></li>
+                                <li><a href="#" className="dropdown-item" onClick={(e) => handleFiltro(e, `${BASE_URL}/discover/movie?primary_release_year=2025&language=pt-BR&api_key=${API_KEY}`, "Lançamentos de 2025", "Filmes que marcaram o último ano")}>2025</a></li>
+                                <li><a href="#" className="dropdown-item" onClick={(e) => handleFiltro(e, `${BASE_URL}/discover/movie?primary_release_year=2024&language=pt-BR&api_key=${API_KEY}`, "Lançamentos de 2024", "Os grandes filmes de 2024")}>2024</a></li>
+                                <li><a href="#" className="dropdown-item" onClick={(e) => handleFiltro(e, `${BASE_URL}/discover/movie?primary_release_year=2023&language=pt-BR&api_key=${API_KEY}`, "Lançamentos de 2023", "Retrospectiva 2023")}>2023</a></li>
                             </ul>
                         </div>
 
@@ -234,46 +148,30 @@ function Inicio() {
                                 </svg>
                             </button>
                             <ul className="dropdown-menu" id="menu-cartaz">
-                                <li>
-                                    <a href="#" className="dropdown-item">
-                                        Cinemas perto de mim
-                                    </a>
-                                </li>
-                                <li>
-                                    <a href="#" className="dropdown-item">
-                                        Pré-venda
-                                    </a>
-                                </li>
-                                <li>
-                                    <a href="#" className="dropdown-item">
-                                        Estreias da semana
-                                    </a>
-                                </li>
+                                <li><a href="#" className="dropdown-item" onClick={(e) => handleFiltro(e, `${BASE_URL}/movie/now_playing?region=BR&language=pt-BR&api_key=${API_KEY}`, "Em Cartaz", "Veja o que está rolando nos cinemas")}>Cinemas perto de mim</a></li>
+                                <li><a href="#" className="dropdown-item" onClick={(e) => handleFiltro(e, `${BASE_URL}/movie/upcoming?region=BR&language=pt-BR&api_key=${API_KEY}`, "Em Breve", "Próximos lançamentos")}>Pré-venda / Em Breve</a></li>
                             </ul>
                         </div>
                     </div>
                 </nav>
 
                 <div className="section-header">
-                    <h2 className="section-title">Melhores Avaliados</h2>
+                    <h2 className="section-title">{tituloSecao}</h2>
                     <span className="section-subtitle">
-                        Ordenados por nota · do maior para o menor
+                        {subtituloSecao}
                     </span>
                 </div>
 
-                <div className="filmes-grid" id="filmesID">
-                    
+                <div className="filmes-grid" id="filmes-grid">
+                    <Filmes fetchUrl={fetchUrl} page={page} />
+                </div>
+
+                <div style={{ textAlign: "center", marginTop: "2rem", marginBottom: "4rem" }}>
+                    <button className="hero-btn" onClick={() => setPage(p => p + 1)}>
+                        Ver Mais
+                    </button>
                 </div>
             </section>
-
-            <footer className="footer" id="footer">
-                <div className="footer-container">
-                    <span className="footer-logo">CiNEPLANNER</span>
-                    <p className="footer-copy">
-                        &copy; 2026 CiNEPLANNER – Grupo Vermelho · Senac
-                    </p>
-                </div>
-            </footer>
         </>
     );
 }
