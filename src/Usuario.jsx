@@ -1,7 +1,107 @@
 import "./css/index.css";
 import "./css/usuario.css";
+import { useEffect, useState } from "react";
+import { createClient } from "@supabase/supabase-js";
+const supabaseUrl = "SUA_URL_DO_SUPABASE";
+const supabaseAnonKey = "SUA_ANON_KEY";
+const supabase = createClient(
+    supabaseUrl,
+    supabaseAnonKey
+);
 
 function Usuario() {
+     const [usuario, setUsuario] = useState(null);
+    const [carregando, setCarregando] = useState(true);
+
+    useEffect(() => {
+
+        async function carregarUsuario() {
+
+            // 1. Pega a sessão atual
+            const {
+                data: { session },
+                error: sessionError
+            } = await supabase.auth.getSession();
+
+            if (sessionError) {
+                console.error(sessionError);
+                setCarregando(false);
+                return;
+            }
+
+            // 2. Não existe usuário logado
+            if (!session) {
+                window.location.href = "/login";
+                return;
+            }
+
+            // 3. ID do usuário do Supabase Auth
+            const authUserId = session.user.id;
+
+            // 4. Busca os dados na tabela public.usuario
+            const {
+                data,
+                error
+            } = await supabase
+                .from("usuario")
+                .select("*")
+                .eq("auth_user_id", authUserId)
+                .single();
+
+            if (error) {
+
+                console.error(
+                    "Erro ao buscar usuário:",
+                    error
+                );
+
+                setCarregando(false);
+                return;
+            }
+
+            // 5. Guarda os dados no estado
+            setUsuario(data);
+
+            setCarregando(false);
+        }
+
+        carregarUsuario();
+
+    }, []);
+
+
+    // Enquanto busca os dados
+    if (carregando) {
+        return (
+            <div>
+                Carregando usuário...
+            </div>
+        );
+    }
+
+
+    // Caso não encontre usuário
+    if (!usuario) {
+        return (
+            <div>
+                Usuário não encontrado.
+            </div>
+        );
+    }
+
+
+    // Logout
+    async function sair() {
+
+        const { error } = await supabase.auth.signOut();
+
+        if (error) {
+            console.error(error);
+            return;
+        }
+
+        window.location.href = "/login";
+    }
     return (
         <div>
             <nav className="navbar" id="navbar">
@@ -30,7 +130,7 @@ function Usuario() {
 
                     <div className="xp-header">
                         <span>PROGRESSO</span>
-                        <strong>LEVEL 50</strong>
+                        <strong>LEVEL {usuario.nivel ?? 1}</strong>
                     </div>
 
                     <div className="xp-bar-container">

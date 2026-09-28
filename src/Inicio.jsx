@@ -1,43 +1,9 @@
 import "./css/index.css";
 
+
 function Inicio() {
     return (
         <>
-            <nav className="navbar" id="navbar">
-                <div className="navbar-container">
-                    <a href="Inicio.jsx" className="navbar-logo" id="logo-link">
-                        <span className="logo-text">CiNEPLANNER</span>
-                    </a>
-                    <ul className="navbar-links">
-                        <li>
-                            <a href="Inicio.jsx" className="nav-link active">
-                                Início
-                            </a>
-                        </li>
-                        <li>
-                            <a href="#filmesID" className="nav-link">
-                                Filmes
-                            </a>
-                        </li>
-                        <li>
-                            <a href="Listas.jsx" className="nav-link">
-                                Listas
-                            </a>
-                        </li>
-                        <li>
-                            <a href="Usuario.jsx" className="nav-link">
-                                Usuario
-                            </a>
-                        </li>
-                    </ul>
-                    <div className="navbar-actions">
-                        <a href="Login.jsx" className="btn-login" id="btn-entrar">
-                            Entrar
-                        </a>
-                    </div>
-                </div>
-            </nav>
-
             <header className="hero" id="hero">
                 <div className="hero-overlay"></div>
                 <div className="hero-content">

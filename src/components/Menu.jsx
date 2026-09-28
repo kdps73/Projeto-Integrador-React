@@ -1,42 +1,44 @@
 import "../css/menu.css"
+import { Link } from "react-router-dom";
 function Menu() {
     return ( 
         <div>
             <nav className="navbar" id="navbar">
                 <div className="navbar-container">
-                    <a href="frontend/index.html" className="navbar-logo" id="logo-link">
+                    <a href="/index.html" className="navbar-logo" id="logo-link">
                         <span className="logo-text">CiNEPLANNER</span>
                     </a>
                     <ul className="navbar-links">
                         <li>
-                            <a href="frontend/index.html" className="nav-link">
+                            <Link to="/Inicio" className="nav-link">
                                 Início
-                            </a>
+                            </Link>
                         </li>
                         <li>
-                            <a href="#" className="nav-link">
+                            <Link to="/" className="nav-link">
                                 Filmes
-                            </a>
+                            </Link>
                         </li>
+                       
                         <li>
-                            <a href="listas.jsx" className="nav-link active">
+                            <Link to="/listas" className="nav-link active">
                                 Listas
-                            </a>
+                            </Link>
                         </li>
                         <li>
-                            <a href="frontend/quiz.html" className="nav-link">
+                            <Link to="/usuario" className="nav-link">
                                 Usuário
-                            </a>
+                            </Link>
                         </li>
                     </ul>
                     <div className="navbar-actions">
-                        <a
-                            href="frontend/registro.html"
+                        <Link
+                            to="Login.jsx"
                             className="btn-login"
                             id="btn-entrar"
                         >
                             Entrar
-                        </a>
+                        </Link>
                     </div>
                 </div>
             </nav>

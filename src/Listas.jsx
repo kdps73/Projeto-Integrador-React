@@ -11,9 +11,9 @@ function Lista() {
                     </a>
                     <ul className="navbar-links">
                         <li>
-                            <a href="frontend/index.html" className="nav-link">
+                            <Link to="/Inicio" className="nav-link">
                                 Início
-                            </a>
+                            </Link>
                         </li>
                         <li>
                             <a href="#" className="nav-link">
