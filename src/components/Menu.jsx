@@ -179,7 +179,7 @@ function Menu() {
                             </Link>
                         ) : (
                             <Link
-                                to="Login.jsx"
+                                to="/login"
                                 className="btn-login"
                                 id="btn-entrar"
                                 style={{ marginLeft: '10px' }}
