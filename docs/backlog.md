@@ -34,6 +34,12 @@ Conforme a análise do `docs/contexto.md` e do repositório atual, as seguintes 
   - `Quiz.jsx`: Página iterativa de perguntas sobre o universo cinematográfico.
 
 ## Próximas Etapas (Ref.: `docs/arquitetura.md`)
-- [ ] **Etapa 2 - Busca na API:** Implementar `useState`, `useEffect` e `map` para puxar e exibir os dados dos filmes na tela, e validar o fluxo de autenticação.
+- [x] **Etapa 2 - Busca na API (Parcialmente Concluído):**
+  - Integração da API do TMDB configurada em `Inicio.jsx` e `Filmes.jsx`.
+  - Botão de "Ver mais" implementado em `Inicio.jsx` e suporte a paginação no `Filmes.jsx`.
+  - Filtros da tela inicial agora puxam dados dinâmicos utilizando Endpoints do TMDB (Lançamentos, Gêneros, Populares e Em Cartaz).
+  - Componente `Resenha.jsx` atualizado para buscar dados do filme por ID dinamicamente (pôster, sinopse, elenco, detalhes).
+  - Rota de `/resenhas` em `App.jsx` adaptada para `/resenhas/:id`.
+  - *Falta implementar e validar o fluxo de autenticação nesta etapa.*
 - [ ] **Etapa 3 - Inserção de Dados:** Fazer a conexão de inputs, validação de campos e lidar com as lógicas de inserção (como novos comentários e avaliações).
 - [ ] **Etapa 4 - Testes e Finalização:** Ajustes de QA, revisão final do build e publicação.

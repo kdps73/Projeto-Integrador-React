@@ -2,6 +2,7 @@ import { Link } from "react-router-dom"
 import "../css/index.css"
 
 function Filtro(props) {
+    
     return (
         <div className="filtro-dropdown" id="filtro-genero">
             <button className="filtro-btn" id="btn-genero">
