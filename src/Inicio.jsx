@@ -3,6 +3,7 @@ import { useState } from "react";
 import "./css/index.css";
 import Filmes from "./components/Filmes";
 
+
 function Inicio() {
     const API_KEY = '168817e9845280fe6d28f3a939f4bc67';
     const BASE_URL = 'https://api.themoviedb.org/3';
