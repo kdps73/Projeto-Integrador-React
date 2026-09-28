@@ -7,7 +7,6 @@ import Listas from "./Listas";
 import Login from "./Login";
 import Registro from "./Registro";
 import Resenha from "./Resenha";
-
 function App() {
     return (
         <BrowserRouter>
