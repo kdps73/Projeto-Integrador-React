@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import "./css/index.css";
 import "./css/resenha.css";
-import { supabase } from "./supabse";
+import { supabase } from "./supabase";
 
 function Resenha() {
     const [filme, setFilme] = useState(null);
