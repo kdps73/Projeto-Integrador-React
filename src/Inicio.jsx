@@ -7,6 +7,12 @@ function Inicio() {
     return (
         <>
             <header className="hero" id="hero">
+                <h1>OI EU SEOU A RAISASA</h1>
+                <h1>OI EU SEOU A RAISASA</h1>
+                <h1>OI EU SEOU A RAISASA</h1>
+                <h1>OI EU SEOU A RAISASA</h1>
+                <h1>OI EU SEOU A RAISASA</h1>
+                <h1>OI EU SEOU A RAISASA</h1>
                 <div className="hero-overlay"></div>
                 <div className="hero-content">
                     <h1 className="hero-title">CiNEPLANNER</h1>
