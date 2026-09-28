@@ -6,8 +6,6 @@ import "./css/listas.css";
 function Lista() {
     return (
         <>
-
-
             <main className="container">
                 <section className="page-heading">
                     <h1>LISTAS</h1>

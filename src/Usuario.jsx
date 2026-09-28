@@ -3,6 +3,14 @@ import Menu from "./components/Menu";
 import { supabase } from "./supabase";
 import "./css/index.css";
 import "./css/usuario.css";
+import { useEffect, useState } from "react";
+import { createClient } from "@supabase/supabase-js";
+const supabaseUrl = "SUA_URL_DO_SUPABASE";
+const supabaseAnonKey = "SUA_ANON_KEY";
+const supabase = createClient(
+    supabaseUrl,
+    supabaseAnonKey
+);
 
 function Usuario() {
     // =========================================================
