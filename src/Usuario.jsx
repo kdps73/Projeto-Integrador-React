@@ -17,7 +17,7 @@ async function buscarDetalhesFilme(id) {
         const urlDetalhes = `${BASE_URL}/movie/${id}?language=pt-BR&api_key=${API_KEY}`;
         const resDetalhes = await fetch(urlDetalhes);
         const detalhes = await resDetalhes.json();
-        
+
         return {
             id: detalhes.id,
             titulo: detalhes.title,
@@ -358,24 +358,10 @@ function Usuario() {
                         </div>
 
                         {/* NAVEGAÇÃO: BOTÃO DE ADICIONAR FILME (Leva para a página de filmes/catálogo) */}
-                        <Link 
-                            to="/" 
+                        <Link
+                            to="/"
                             className="btn-adicionar-filme"
                             title="Navegar para catálogo para adicionar filmes"
-                            style={{
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                gap: '6px',
-                                padding: '6px 14px',
-                                backgroundColor: '#e50914',
-                                color: '#ffffff',
-                                borderRadius: '6px',
-                                fontSize: '0.8rem',
-                                fontWeight: '600',
-                                textDecoration: 'none',
-                                transition: 'all 0.2s ease',
-                                boxShadow: '0 2px 8px rgba(229, 9, 20, 0.3)'
-                            }}
                         >
                             + Adicionar Filme
                         </Link>
@@ -384,20 +370,9 @@ function Usuario() {
                     {carregandoFilmes ? (
                         <div className="empty-list">Carregando filmes favoritos...</div>
                     ) : favoritos.length === 0 ? (
-                        <div className="empty-list" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
+                        <div className="empty-list">
                             <span>Você ainda não possui filmes favoritos na sua lista.</span>
-                            <Link 
-                                to="/"
-                                style={{
-                                    padding: '8px 16px',
-                                    backgroundColor: '#e50914',
-                                    color: '#ffffff',
-                                    borderRadius: '6px',
-                                    fontSize: '0.85rem',
-                                    fontWeight: 'bold',
-                                    textDecoration: 'none'
-                                }}
-                            >
+                            <Link to="/" className="btn-explorar-catalogo">
                                 Explorar Catálogo de Filmes
                             </Link>
                         </div>
@@ -440,7 +415,7 @@ function Usuario() {
                                                     </span>
                                                 </div>
                                                 {filme.sinopse && (
-                                                    <p className="card-sinopse" style={{ fontSize: '0.8rem', marginTop: '8px', color: '#bbb', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                                    <p className="card-sinopse">
                                                         {filme.sinopse}
                                                     </p>
                                                 )}
@@ -448,30 +423,15 @@ function Usuario() {
                                         </Link>
 
                                         {/* BOTÕES LADO A LADO: CORAÇÃO (FAVORITOS) À ESQUERDA E PLAYLIST À DIREITA */}
-                                        <div style={{ padding: '0 10px 10px', display: 'flex', gap: '6px', justifyContent: 'space-between' }}>
+                                        <div className="card-actions">
                                             {/* BOTÃO CORAÇÃO (FAVORITOS) */}
                                             <button
                                                 onClick={() => toggleFavorito(filme)}
                                                 type="button"
                                                 title={eFavorito(filme.id) ? "Remover dos Favoritos" : "Adicionar aos Favoritos"}
-                                                style={{
-                                                    flex: 1,
-                                                    display: 'inline-flex',
-                                                    alignItems: 'center',
-                                                    justifyContent: 'center',
-                                                    gap: '4px',
-                                                    padding: '5px 6px',
-                                                    background: eFavorito(filme.id) ? 'rgba(229, 9, 20, 0.2)' : '#222',
-                                                    border: eFavorito(filme.id) ? '1px solid #e50914' : '1px solid #333',
-                                                    color: eFavorito(filme.id) ? '#e50914' : '#888',
-                                                    borderRadius: '4px',
-                                                    fontSize: '0.72rem',
-                                                    fontWeight: '600',
-                                                    cursor: 'pointer',
-                                                    transition: 'all 0.2s ease'
-                                                }}
+                                                className={`btn-card-action favorito ${eFavorito(filme.id) ? 'ativo' : ''}`}
                                             >
-                                                <span style={{ fontSize: '0.9rem', color: eFavorito(filme.id) ? '#e50914' : '#888' }}>
+                                                <span className="btn-card-icon">
                                                     {eFavorito(filme.id) ? '♥' : '♡'}
                                                 </span>
                                                 <span>Favorito</span>
@@ -482,24 +442,9 @@ function Usuario() {
                                                 onClick={() => toggleAssistirMaisTarde(filme)}
                                                 type="button"
                                                 title={naWatchlist(filme.id) ? "Remover da Playlist" : "Adicionar à Playlist"}
-                                                style={{
-                                                    flex: 1,
-                                                    display: 'inline-flex',
-                                                    alignItems: 'center',
-                                                    justifyContent: 'center',
-                                                    gap: '4px',
-                                                    padding: '5px 6px',
-                                                    background: naWatchlist(filme.id) ? 'rgba(59, 130, 246, 0.2)' : '#222',
-                                                    border: naWatchlist(filme.id) ? '1px solid #3b82f6' : '1px solid #333',
-                                                    color: naWatchlist(filme.id) ? '#60a5fa' : '#888',
-                                                    borderRadius: '4px',
-                                                    fontSize: '0.72rem',
-                                                    fontWeight: '600',
-                                                    cursor: 'pointer',
-                                                    transition: 'all 0.2s ease'
-                                                }}
+                                                className={`btn-card-action playlist ${naWatchlist(filme.id) ? 'ativo' : ''}`}
                                             >
-                                                <span style={{ fontSize: '0.9rem', color: naWatchlist(filme.id) ? '#60a5fa' : '#888' }}>
+                                                <span className="btn-card-icon">
                                                     {naWatchlist(filme.id) ? '🔖' : '📑'}
                                                 </span>
                                                 <span>Playlist</span>
@@ -532,24 +477,10 @@ function Usuario() {
                         </div>
 
                         {/* NAVEGAÇÃO: BOTÃO DE ADICIONAR FILME */}
-                        <Link 
-                            to="/" 
+                        <Link
+                            to="/"
                             className="btn-adicionar-filme"
                             title="Navegar para catálogo para adicionar filmes"
-                            style={{
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                gap: '6px',
-                                padding: '6px 14px',
-                                backgroundColor: '#e50914',
-                                color: '#ffffff',
-                                borderRadius: '6px',
-                                fontSize: '0.8rem',
-                                fontWeight: '600',
-                                textDecoration: 'none',
-                                transition: 'all 0.2s ease',
-                                boxShadow: '0 2px 8px rgba(229, 9, 20, 0.3)'
-                            }}
                         >
                             + Adicionar Filme
                         </Link>
@@ -558,20 +489,9 @@ function Usuario() {
                     {carregandoFilmes ? (
                         <div className="empty-list">Carregando lista de assistir mais tarde...</div>
                     ) : assistirMaisTarde.length === 0 ? (
-                        <div className="empty-list" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
+                        <div className="empty-list">
                             <span>Sua lista de assistir mais tarde está vazia.</span>
-                            <Link 
-                                to="/"
-                                style={{
-                                    padding: '8px 16px',
-                                    backgroundColor: '#e50914',
-                                    color: '#ffffff',
-                                    borderRadius: '6px',
-                                    fontSize: '0.85rem',
-                                    fontWeight: 'bold',
-                                    textDecoration: 'none'
-                                }}
-                            >
+                            <Link to="/" className="btn-explorar-catalogo">
                                 Explorar Catálogo de Filmes
                             </Link>
                         </div>
@@ -614,7 +534,7 @@ function Usuario() {
                                                     </span>
                                                 </div>
                                                 {filme.sinopse && (
-                                                    <p className="card-sinopse" style={{ fontSize: '0.8rem', marginTop: '8px', color: '#bbb', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                                    <p className="card-sinopse">
                                                         {filme.sinopse}
                                                     </p>
                                                 )}
@@ -622,30 +542,15 @@ function Usuario() {
                                         </Link>
 
                                         {/* BOTÕES LADO A LADO: CORAÇÃO (FAVORITOS) À ESQUERDA E PLAYLIST À DIREITA */}
-                                        <div style={{ padding: '0 10px 10px', display: 'flex', gap: '6px', justifyContent: 'space-between' }}>
+                                        <div className="card-actions">
                                             {/* BOTÃO CORAÇÃO (FAVORITOS) */}
                                             <button
                                                 onClick={() => toggleFavorito(filme)}
                                                 type="button"
                                                 title={eFavorito(filme.id) ? "Remover dos Favoritos" : "Adicionar aos Favoritos"}
-                                                style={{
-                                                    flex: 1,
-                                                    display: 'inline-flex',
-                                                    alignItems: 'center',
-                                                    justifyContent: 'center',
-                                                    gap: '4px',
-                                                    padding: '5px 6px',
-                                                    background: eFavorito(filme.id) ? 'rgba(229, 9, 20, 0.2)' : '#222',
-                                                    border: eFavorito(filme.id) ? '1px solid #e50914' : '1px solid #333',
-                                                    color: eFavorito(filme.id) ? '#e50914' : '#888',
-                                                    borderRadius: '4px',
-                                                    fontSize: '0.72rem',
-                                                    fontWeight: '600',
-                                                    cursor: 'pointer',
-                                                    transition: 'all 0.2s ease'
-                                                }}
+                                                className={`btn-card-action favorito ${eFavorito(filme.id) ? 'ativo' : ''}`}
                                             >
-                                                <span style={{ fontSize: '0.9rem', color: eFavorito(filme.id) ? '#e50914' : '#888' }}>
+                                                <span className="btn-card-icon">
                                                     {eFavorito(filme.id) ? '♥' : '♡'}
                                                 </span>
                                                 <span>Favorito</span>
@@ -656,24 +561,9 @@ function Usuario() {
                                                 onClick={() => toggleAssistirMaisTarde(filme)}
                                                 type="button"
                                                 title={naWatchlist(filme.id) ? "Remover da Playlist" : "Adicionar à Playlist"}
-                                                style={{
-                                                    flex: 1,
-                                                    display: 'inline-flex',
-                                                    alignItems: 'center',
-                                                    justifyContent: 'center',
-                                                    gap: '4px',
-                                                    padding: '5px 6px',
-                                                    background: naWatchlist(filme.id) ? 'rgba(59, 130, 246, 0.2)' : '#222',
-                                                    border: naWatchlist(filme.id) ? '1px solid #3b82f6' : '1px solid #333',
-                                                    color: naWatchlist(filme.id) ? '#60a5fa' : '#888',
-                                                    borderRadius: '4px',
-                                                    fontSize: '0.72rem',
-                                                    fontWeight: '600',
-                                                    cursor: 'pointer',
-                                                    transition: 'all 0.2s ease'
-                                                }}
+                                                className={`btn-card-action playlist ${naWatchlist(filme.id) ? 'ativo' : ''}`}
                                             >
-                                                <span style={{ fontSize: '0.9rem', color: naWatchlist(filme.id) ? '#60a5fa' : '#888' }}>
+                                                <span className="btn-card-icon">
                                                     {naWatchlist(filme.id) ? '🔖' : '📑'}
                                                 </span>
                                                 <span>Playlist</span>

@@ -605,6 +605,107 @@
     border-radius: 10px;
     color: #777777;
     width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+}
+
+#pagina-usuario .btn-adicionar-filme {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    background-color: #e50914;
+    color: #ffffff;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 8px rgba(229, 9, 20, 0.3);
+}
+
+#pagina-usuario .btn-adicionar-filme:hover {
+    background-color: #b30710;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(229, 9, 20, 0.5);
+}
+
+#pagina-usuario .btn-explorar-catalogo {
+    padding: 8px 16px;
+    background-color: #e50914;
+    color: #ffffff;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-weight: bold;
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+#pagina-usuario .btn-explorar-catalogo:hover {
+    background-color: #b30710;
+    transform: translateY(-1px);
+}
+
+#pagina-usuario .card-sinopse {
+    font-size: 0.8rem;
+    margin-top: 8px;
+    color: #bbb;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+#pagina-usuario .card-actions {
+    padding: 0 10px 10px;
+    display: flex;
+    gap: 6px;
+    justify-content: space-between;
+}
+
+#pagina-usuario .btn-card-action {
+    flex: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    padding: 5px 6px;
+    background: #222;
+    border: 1px solid #333;
+    color: #888;
+    border-radius: 4px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+#pagina-usuario .btn-card-action.favorito.ativo {
+    background: rgba(229, 9, 20, 0.2);
+    border-color: #e50914;
+    color: #e50914;
+}
+
+#pagina-usuario .btn-card-action.playlist.ativo {
+    background: rgba(59, 130, 246, 0.2);
+    border-color: #3b82f6;
+    color: #60a5fa;
+}
+
+#pagina-usuario .btn-card-icon {
+    font-size: 0.9rem;
+    color: #888;
+}
+
+#pagina-usuario .btn-card-action.favorito.ativo .btn-card-icon {
+    color: #e50914;
+}
+
+#pagina-usuario .btn-card-action.playlist.ativo .btn-card-icon {
+    color: #60a5fa;
 }
 
 /* =========================================================
