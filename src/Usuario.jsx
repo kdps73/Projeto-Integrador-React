@@ -39,7 +39,7 @@ function Usuario() {
     // 1. ESTADOS DO USUÁRIO (Perfil, XP, Bio e Acessórios)
     // =========================================================
     const [usuario, setUsuario] = useState({
-        id: 15,
+        id: 11,
         nome: "They Pro Filmes",
         username: "THEY_PRO_FILMES",
         email: "usuario@cineplanner.com",
@@ -62,11 +62,17 @@ function Usuario() {
     const porcentagemXp = Math.min(Math.round((xpAtualNoNivel / xpPorNivel) * 100), 100);
 
     // =========================================================
-    // 2. ESTADOS DE FILMES (Favoritos e Assistir Mais Tarde)
+    // 2. ESTADOS DE FILMES E PLAYLISTS PERSONALIZADAS
     // =========================================================
     const [favoritos, setFavoritos] = useState([]);
     const [assistirMaisTarde, setAssistirMaisTarde] = useState([]);
+    const [playlists, setPlaylists] = useState([]);
     const [carregandoFilmes, setCarregandoFilmes] = useState(true);
+
+    // Estados para criação de playlist e modal
+    const [isCriandoPlaylist, setIsCriandoPlaylist] = useState(false);
+    const [novaPlaylistNome, setNovaPlaylistNome] = useState("");
+    const [filmeParaModal, setFilmeParaModal] = useState(null);
 
     // Controladores dos Carrosséis
     const favoritosRef = useRef(null);
@@ -76,6 +82,17 @@ function Usuario() {
         if (ref.current) {
             const distancia = 440;
             ref.current.scrollBy({
+                left: direcao === "esquerda" ? -distancia : distancia,
+                behavior: "smooth"
+            });
+        }
+    };
+
+    const rolarCarrosselPorId = (elementId, direcao) => {
+        const el = document.getElementById(elementId);
+        if (el) {
+            const distancia = 440;
+            el.scrollBy({
                 left: direcao === "esquerda" ? -distancia : distancia,
                 behavior: "smooth"
             });
@@ -95,12 +112,22 @@ function Usuario() {
         localStorage.setItem("cineplanner_watchlist", JSON.stringify(novaLista));
     };
 
+    const salvarPlaylists = (novasPlaylists) => {
+        setPlaylists(novasPlaylists);
+        localStorage.setItem("cineplanner_custom_playlists", JSON.stringify(novasPlaylists));
+    };
+
     // Verificadores de estado
     const eFavorito = (id) => favoritos.some(f => f.id === id);
     const naWatchlist = (id) => assistirMaisTarde.some(f => f.id === id);
 
+    // Verificador se o filme está em alguma playlist (Assistir Mais Tarde ou qualquer Playlist Personalizada)
+    const estaEmAlgumaPlaylist = (id) => {
+        if (naWatchlist(id)) return true;
+        return playlists.some(p => p.filmes && p.filmes.some(f => f.id === id));
+    };
+
     // Toggle para o Botão Coração (Favoritos)
-    // Quando o filme já estiver nos favoritos (coração vermelho), clicar deseleciona e remove dos favoritos.
     const toggleFavorito = (filme) => {
         if (eFavorito(filme.id)) {
             const novaLista = favoritos.filter(f => f.id !== filme.id);
@@ -111,7 +138,6 @@ function Usuario() {
     };
 
     // Toggle para o Botão Playlist (Assistir Mais Tarde)
-    // Quando o filme já estiver na playlist, clicar deseleciona e remove da playlist.
     const toggleAssistirMaisTarde = (filme) => {
         if (naWatchlist(filme.id)) {
             const novaLista = assistirMaisTarde.filter(f => f.id !== filme.id);
@@ -119,6 +145,74 @@ function Usuario() {
         } else {
             salvarWatchlist([filme, ...assistirMaisTarde]);
         }
+    };
+
+    // Criar uma nova playlist personalizada no Supabase
+    const handleCriarPlaylist = async (e) => {
+        e.preventDefault();
+        if (!novaPlaylistNome.trim()) return;
+
+        const novaPlaylist = {
+            id: Date.now(),
+            id_usuario: usuario.id,
+            nome: novaPlaylistNome.trim(),
+            filmes: []
+        };
+
+        if (supabase) {
+            try {
+                const { data, error } = await supabase
+                    .from('playlists')
+                    .insert([{ id_usuario: usuario.id, nome: novaPlaylistNome.trim(), filmes: [] }])
+                    .select()
+                    .single();
+
+                if (!error && data) {
+                    novaPlaylist.id = data.id;
+                }
+            } catch (err) {
+                console.warn("Erro ao salvar playlist no Supabase:", err);
+            }
+        }
+
+        salvarPlaylists([...playlists, novaPlaylist]);
+        setNovaPlaylistNome("");
+        setIsCriandoPlaylist(false);
+    };
+
+    // Excluir playlist criada do Supabase
+    const handleDeletarPlaylist = async (playlistId) => {
+        if (window.confirm("Deseja realmente excluir esta playlist personalizada?")) {
+            if (supabase) {
+                try {
+                    await supabase.from('playlists').delete().eq('id', playlistId);
+                } catch (err) {
+                    console.warn("Erro ao deletar playlist no Supabase:", err);
+                }
+            }
+            salvarPlaylists(playlists.filter(p => p.id !== playlistId));
+        }
+    };
+
+    // Adicionar/remover filme de uma playlist personalizada no Supabase
+    const toggleFilmeEmPlaylist = async (playlistId, filme) => {
+        const novasPlaylists = playlists.map(p => {
+            if (p.id === playlistId) {
+                const jaExiste = p.filmes && p.filmes.some(f => f.id === filme.id);
+                const novosFilmes = jaExiste
+                    ? p.filmes.filter(f => f.id !== filme.id)
+                    : [filme, ...(p.filmes || [])];
+
+                if (supabase) {
+                    supabase.from('playlists').update({ filmes: novosFilmes }).eq('id', playlistId).then().catch(err => console.warn(err));
+                }
+
+                return { ...p, filmes: novosFilmes };
+            }
+            return p;
+        });
+
+        salvarPlaylists(novasPlaylists);
     };
 
     // =========================================================
@@ -155,7 +249,31 @@ function Usuario() {
                     }
                 }
 
-                // B) Verificar LocalStorage
+                // B) Buscar Playlists no Supabase usando id_usuario
+                if (supabase) {
+                    try {
+                        const { data: dadosPlaylists, error: errPlaylists } = await supabase
+                            .from('playlists')
+                            .select('*')
+                            .eq('id_usuario', usuario.id);
+
+                        if (!errPlaylists && dadosPlaylists && dadosPlaylists.length > 0) {
+                            setPlaylists(dadosPlaylists);
+                            localStorage.setItem("cineplanner_custom_playlists", JSON.stringify(dadosPlaylists));
+                        } else {
+                            const localPlaylists = localStorage.getItem("cineplanner_custom_playlists");
+                            if (localPlaylists) setPlaylists(JSON.parse(localPlaylists));
+                        }
+                    } catch (e) {
+                        const localPlaylists = localStorage.getItem("cineplanner_custom_playlists");
+                        if (localPlaylists) setPlaylists(JSON.parse(localPlaylists));
+                    }
+                } else {
+                    const localPlaylists = localStorage.getItem("cineplanner_custom_playlists");
+                    if (localPlaylists) setPlaylists(JSON.parse(localPlaylists));
+                }
+
+                // C) Verificar LocalStorage de favoritos e watchlist
                 const localFavs = localStorage.getItem("cineplanner_favoritos");
                 const localWatch = localStorage.getItem("cineplanner_watchlist");
 
@@ -422,7 +540,7 @@ function Usuario() {
                                             </div>
                                         </Link>
 
-                                        {/* BOTÕES LADO A LADO: CORAÇÃO (FAVORITOS) À ESQUERDA E PLAYLIST À DIREITA */}
+                                        {/* BOTÕES LADO A LADO: CORAÇÃO (FAVORITOS) E PLAYLIST */}
                                         <div className="card-actions">
                                             {/* BOTÃO CORAÇÃO (FAVORITOS) */}
                                             <button
@@ -432,22 +550,33 @@ function Usuario() {
                                                 className={`btn-card-action favorito ${eFavorito(filme.id) ? 'ativo' : ''}`}
                                             >
                                                 <span className="btn-card-icon">
-                                                    {eFavorito(filme.id) ? '♥' : '♡'}
+                                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18" fill={eFavorito(filme.id) ? "#e50914" : "currentColor"}>
+                                                        <path d="M16.792 3.904A4.989 4.989 0 0 1 21.5 9.122c0 3.072-2.652 4.959-5.197 7.222-2.512 2.243-3.865 3.469-4.303 3.752-.477-.309-2.143-1.823-4.303-3.752C5.141 14.072 2.5 12.167 2.5 9.122a4.989 4.989 0 0 1 4.708-5.218 4.21 4.21 0 0 1 3.675 1.941c.84 1.175.98 1.763 1.12 1.763s.278-.588 1.11-1.766a4.17 4.17 0 0 1 3.679-1.938m0-2a6.04 6.04 0 0 0-4.797 2.127 6.052 6.052 0 0 0-4.787-2.127A6.985 6.985 0 0 0 .5 9.122c0 3.61 2.55 5.827 5.015 7.97.283.246.569.494.853.747l1.027.918a44.998 44.998 0 0 0 3.518 3.018 2 2 0 0 0 2.174 0 45.263 45.263 0 0 0 3.626-3.115l.922-.824c.293-.26.59-.519.885-.774 2.334-2.025 4.98-4.32 4.98-7.94a6.985 6.985 0 0 0-6.708-7.218Z" />
+                                                    </svg>
                                                 </span>
-                                                <span>Favorito</span>
                                             </button>
 
-                                            {/* BOTÃO PLAYLIST (ASSISTIR MAIS TARDE) */}
+                                            {/* BOTÃO PLAYLIST (ABRE O MODAL COM ASSISTIR MAIS TARDE E OUTRAS PLAYLISTS) */}
                                             <button
-                                                onClick={() => toggleAssistirMaisTarde(filme)}
+                                                onClick={() => setFilmeParaModal(filme)}
                                                 type="button"
-                                                title={naWatchlist(filme.id) ? "Remover da Playlist" : "Adicionar à Playlist"}
-                                                className={`btn-card-action playlist ${naWatchlist(filme.id) ? 'ativo' : ''}`}
+                                                title="Adicionar ou remover de playlists"
+                                                className={`btn-card-action playlist ${estaEmAlgumaPlaylist(filme.id) ? 'ativo' : ''}`}
                                             >
                                                 <span className="btn-card-icon">
-                                                    {naWatchlist(filme.id) ? '🔖' : '📑'}
+                                                    {estaEmAlgumaPlaylist(filme.id) ? (
+                                                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 48 48">
+                                                            <path fill="#c8e6c9" d="M44,24c0,11.045-8.955,20-20,20S4,35.045,4,24S12.955,4,24,4S44,12.955,44,24z"></path>
+                                                            <path fill="#4caf50" d="M34.586,14.586l-13.57,13.586l-5.602-5.586l-2.828,2.828l8.434,8.414l16.395-16.414L34.586,14.586z"></path>
+                                                        </svg>
+                                                    ) : (
+                                                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 48 48" fill="none">
+                                                            <circle cx="24" cy="24" r="20" stroke="currentColor" strokeWidth="3" />
+                                                            <line x1="24" y1="14" x2="24" y2="34" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" />
+                                                            <line x1="14" y1="24" x2="34" y2="24" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" />
+                                                        </svg>
+                                                    )}
                                                 </span>
-                                                <span>Playlist</span>
                                             </button>
                                         </div>
                                     </article>
@@ -541,7 +670,7 @@ function Usuario() {
                                             </div>
                                         </Link>
 
-                                        {/* BOTÕES LADO A LADO: CORAÇÃO (FAVORITOS) À ESQUERDA E PLAYLIST À DIREITA */}
+                                        {/* BOTÕES LADO A LADO: CORAÇÃO (FAVORITOS) E PLAYLIST */}
                                         <div className="card-actions">
                                             {/* BOTÃO CORAÇÃO (FAVORITOS) */}
                                             <button
@@ -551,22 +680,33 @@ function Usuario() {
                                                 className={`btn-card-action favorito ${eFavorito(filme.id) ? 'ativo' : ''}`}
                                             >
                                                 <span className="btn-card-icon">
-                                                    {eFavorito(filme.id) ? '♥' : '♡'}
+                                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18" fill={eFavorito(filme.id) ? "#e50914" : "currentColor"}>
+                                                        <path d="M16.792 3.904A4.989 4.989 0 0 1 21.5 9.122c0 3.072-2.652 4.959-5.197 7.222-2.512 2.243-3.865 3.469-4.303 3.752-.477-.309-2.143-1.823-4.303-3.752C5.141 14.072 2.5 12.167 2.5 9.122a4.989 4.989 0 0 1 4.708-5.218 4.21 4.21 0 0 1 3.675 1.941c.84 1.175.98 1.763 1.12 1.763s.278-.588 1.11-1.766a4.17 4.17 0 0 1 3.679-1.938m0-2a6.04 6.04 0 0 0-4.797 2.127 6.052 6.052 0 0 0-4.787-2.127A6.985 6.985 0 0 0 .5 9.122c0 3.61 2.55 5.827 5.015 7.97.283.246.569.494.853.747l1.027.918a44.998 44.998 0 0 0 3.518 3.018 2 2 0 0 0 2.174 0 45.263 45.263 0 0 0 3.626-3.115l.922-.824c.293-.26.59-.519.885-.774 2.334-2.025 4.98-4.32 4.98-7.94a6.985 6.985 0 0 0-6.708-7.218Z" />
+                                                    </svg>
                                                 </span>
-                                                <span>Favorito</span>
                                             </button>
 
-                                            {/* BOTÃO PLAYLIST (ASSISTIR MAIS TARDE) */}
+                                            {/* BOTÃO PLAYLIST (ABRE O MODAL) */}
                                             <button
-                                                onClick={() => toggleAssistirMaisTarde(filme)}
+                                                onClick={() => setFilmeParaModal(filme)}
                                                 type="button"
-                                                title={naWatchlist(filme.id) ? "Remover da Playlist" : "Adicionar à Playlist"}
-                                                className={`btn-card-action playlist ${naWatchlist(filme.id) ? 'ativo' : ''}`}
+                                                title="Adicionar ou remover de playlists"
+                                                className={`btn-card-action playlist ${estaEmAlgumaPlaylist(filme.id) ? 'ativo' : ''}`}
                                             >
                                                 <span className="btn-card-icon">
-                                                    {naWatchlist(filme.id) ? '🔖' : '📑'}
+                                                    {estaEmAlgumaPlaylist(filme.id) ? (
+                                                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 48 48">
+                                                            <path fill="#c8e6c9" d="M44,24c0,11.045-8.955,20-20,20S4,35.045,4,24S12.955,4,24,4S44,12.955,44,24z"></path>
+                                                            <path fill="#4caf50" d="M34.586,14.586l-13.57,13.586l-5.602-5.586l-2.828,2.828l8.434,8.414l16.395-16.414L34.586,14.586z"></path>
+                                                        </svg>
+                                                    ) : (
+                                                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 48 48" fill="none">
+                                                            <circle cx="24" cy="24" r="20" stroke="currentColor" strokeWidth="3" />
+                                                            <line x1="24" y1="14" x2="24" y2="34" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" />
+                                                            <line x1="14" y1="24" x2="34" y2="24" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" />
+                                                        </svg>
+                                                    )}
                                                 </span>
-                                                <span>Playlist</span>
                                             </button>
                                         </div>
                                     </article>
@@ -585,7 +725,222 @@ function Usuario() {
                     )}
                 </section>
 
+                {/* SEÇÃO 3: SUAS PLAYLISTS PERSONALIZADAS (ABAIXO DE ASSISTIR MAIS TARDE) */}
+                <section className="movies-section custom-playlists-wrapper" aria-label="Minhas Playlists Personalizadas">
+                    <div className="section-header">
+                        <div className="section-header-left">
+                            <h2>PLAYLISTS PERSONALIZADAS</h2>
+                            <span className="movie-count">
+                                {playlists.length.toString().padStart(2, '0')} PLAYLISTS
+                            </span>
+                        </div>
+
+
+                    </div>
+
+                    {/* FORMULÁRIO PARA CRIAR NOVA PLAYLIST */}
+                    {isCriandoPlaylist && (
+                        <form onSubmit={handleCriarPlaylist} className="form-criar-playlist">
+                            <input
+                                type="text"
+                                placeholder="Digite o nome da playlist..."
+                                value={novaPlaylistNome}
+                                onChange={(e) => setNovaPlaylistNome(e.target.value)}
+                                autoFocus
+                                className="input-nome-playlist"
+                            />
+                            <div className="form-criar-actions">
+                                <button type="submit" className="btn-confirmar-criar">Criar Playlist</button>
+                                <button type="button" className="btn-cancelar-criar" onClick={() => setIsCriandoPlaylist(false)}>Cancelar</button>
+                            </div>
+                        </form>
+                    )}
+
+                    {playlists.length === 0 ? (
+                        <div className="empty-list">
+                            <span>Você ainda não criou nenhuma playlist personalizada.</span>
+
+                        </div>
+                    ) : (
+                        playlists.map((pl) => (
+                            <div key={pl.id} className="custom-playlist-block">
+                                <div className="custom-playlist-header">
+                                    <h3>{pl.nome}</h3>
+                                    <div className="canto-direito">
+                                        <span className="movie-count">
+                                            {(pl.filmes ? pl.filmes.length : 0).toString().padStart(2, '0')} FILMES
+                                        </span>
+                                        <button
+                                            type="button"
+                                            className="btn-deletar-playlist"
+                                            onClick={() => handleDeletarPlaylist(pl.id)}
+                                            title="Excluir esta playlist"
+                                        >
+                                            <svg xmlns="http://www.w3.org/2000/svg" id="Layer_1" data-name="Layer 1" viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
+                                                <path d="m19.5,0H4.5C2.019,0,0,2.019,0,4.5v15c0,2.481,2.019,4.5,4.5,4.5h15c2.481,0,4.5-2.019,4.5-4.5V4.5c0-2.481-2.019-4.5-4.5-4.5Zm3.5,19.5c0,1.93-1.57,3.5-3.5,3.5H4.5c-1.93,0-3.5-1.57-3.5-3.5V4.5c0-1.93,1.57-3.5,3.5-3.5h15c1.93,0,3.5,1.57,3.5,3.5v15Zm-4.122-14.673l-6.216,7.173,6.216,7.173c.181.208.158.524-.051.705-.095.082-.211.122-.327.122-.14,0-.279-.059-.378-.173l-6.122-7.064-6.122,7.064c-.099.114-.238.173-.378.173-.116,0-.232-.04-.327-.122-.209-.181-.231-.497-.051-.705l6.216-7.173-6.216-7.173c-.181-.208-.158-.524.051-.705.208-.18.524-.159.705.051l6.122,7.064,6.122-7.064c.181-.21.496-.23.705-.051.209.181.231.497.051.705Z" />
+                                            </svg>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {(!pl.filmes || pl.filmes.length === 0) ? (
+                                    <div className="empty-list mini-empty">
+                                        <span>Nenhum filme adicionado a esta playlist ainda. Clique no botão de playlist dos filmes para adicionar!</span>
+
+                                    </div>
+
+                                ) : (
+                                    <div className="carousel-wrapper">
+                                        <button
+                                            className="carousel-btn carousel-btn-prev"
+                                            onClick={() => rolarCarrosselPorId(`carousel-pl-${pl.id}`, "esquerda")}
+                                            aria-label="Rolar playlist para a esquerda"
+                                            type="button"
+                                        >
+                                            &#8249;
+                                        </button>
+
+                                        <div className="movies-carousel" id={`carousel-pl-${pl.id}`}>
+                                            {pl.filmes.map((filme) => (
+                                                <article className="filme-card" id={`card-filme-pl-${pl.id}-${filme.id}`} key={filme.id}>
+                                                    <Link to={`/resenhas/${filme.id}`} className="card-link">
+                                                        <div className="card-poster">
+                                                            <img
+                                                                src={filme.poster_url || "https://placehold.co/300x450/1a1a1a/e50914?text=Sem+Poster"}
+                                                                alt={`Poster do Filme ${filme.titulo}`}
+                                                                className="poster-img"
+                                                                loading="lazy"
+                                                            />
+                                                            <div className="card-overlay">
+                                                                <span className="card-overlay-text">Ver Detalhes</span>
+                                                            </div>
+                                                        </div>
+                                                        <div className="card-info">
+                                                            <h3 className="card-titulo">{filme.titulo}</h3>
+                                                            <span className="card-genero">{filme.generos || "Filme"}</span>
+                                                            <div className="card-nota">
+                                                                <span className="estrela" title="Avaliação">★</span>
+                                                                <span className="nota-valor">
+                                                                    {filme.avaliacao ? (typeof filme.avaliacao === 'number' ? filme.avaliacao.toFixed(1) : filme.avaliacao) : "N/A"}
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                    </Link>
+
+                                                    <div className="card-actions">
+                                                        <button
+                                                            onClick={() => toggleFavorito(filme)}
+                                                            type="button"
+                                                            title={eFavorito(filme.id) ? "Remover dos Favoritos" : "Adicionar aos Favoritos"}
+                                                            className={`btn-card-action favorito ${eFavorito(filme.id) ? 'ativo' : ''}`}
+                                                        >
+                                                            <span className="btn-card-icon">
+                                                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18" fill={eFavorito(filme.id) ? "#e50914" : "currentColor"}>
+                                                                    <path d="M16.792 3.904A4.989 4.989 0 0 1 21.5 9.122c0 3.072-2.652 4.959-5.197 7.222-2.512 2.243-3.865 3.469-4.303 3.752-.477-.309-2.143-1.823-4.303-3.752C5.141 14.072 2.5 12.167 2.5 9.122a4.989 4.989 0 0 1 4.708-5.218 4.21 4.21 0 0 1 3.675 1.941c.84 1.175.98 1.763 1.12 1.763s.278-.588 1.11-1.766a4.17 4.17 0 0 1 3.679-1.938m0-2a6.04 6.04 0 0 0-4.797 2.127 6.052 6.052 0 0 0-4.787-2.127A6.985 6.985 0 0 0 .5 9.122c0 3.61 2.55 5.827 5.015 7.97.283.246.569.494.853.747l1.027.918a44.998 44.998 0 0 0 3.518 3.018 2 2 0 0 0 2.174 0 45.263 45.263 0 0 0 3.626-3.115l.922-.824c.293-.26.59-.519.885-.774 2.334-2.025 4.98-4.32 4.98-7.94a6.985 6.985 0 0 0-6.708-7.218Z" />
+                                                                </svg>
+                                                            </span>
+                                                        </button>
+
+                                                        <button
+                                                            onClick={() => toggleFilmeEmPlaylist(pl.id, filme)}
+                                                            type="button"
+                                                            title="Remover filme desta playlist"
+                                                            className="btn-card-action remover-playlist"
+                                                        >
+                                                            <span className="btn-card-icon">✕</span>
+                                                        </button>
+                                                    </div>
+                                                </article>
+                                            ))}
+                                        </div>
+
+                                        <button
+                                            className="carousel-btn carousel-btn-next"
+                                            onClick={() => rolarCarrosselPorId(`carousel-pl-${pl.id}`, "direita")}
+                                            aria-label="Rolar playlist para a direita"
+                                            type="button"
+                                        >
+                                            &#8250;
+                                        </button>
+                                    </div>
+                                )}
+
+
+                            </div>
+                        ))
+                    )}
+
+                    <button
+                        type="button"
+                        className="btn-explorar-catalogo"
+                        onClick={() => setIsCriandoPlaylist(true)}
+                    >
+                        + Crie Sua Playlist
+                    </button>
+                </section>
+
             </main>
+
+            {/* MODAL PARA SELECIONAR E ADICIONAR FILME A PLAYLISTS (ASSISTIR MAIS TARDE OU PERSONALIZADAS) */}
+            {filmeParaModal && (
+                <div className="modal-overlay" onClick={() => setFilmeParaModal(null)}>
+                    <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+                        <div className="modal-header">
+                            <h3>Adicionar às Playlists</h3>
+                            <button type="button" className="btn-close-modal" onClick={() => setFilmeParaModal(null)}>✕</button>
+                        </div>
+                        <p className="modal-sub">Filme: <strong>{filmeParaModal.titulo}</strong></p>
+
+                        <div className="modal-playlists-list">
+                            {/* PLAYLIST PADRÃO: ASSISTIR MAIS TARDE */}
+                            <button
+                                type="button"
+                                className={`modal-playlist-item ${naWatchlist(filmeParaModal.id) ? 'selecionada' : ''}`}
+                                onClick={() => toggleAssistirMaisTarde(filmeParaModal)}
+                            >
+                                <span className="modal-item-nome">🔖 Assistir Mais Tarde</span>
+                                <span className="modal-item-status">{naWatchlist(filmeParaModal.id) ? '✓ Adicionado' : '+ Adicionar'}</span>
+                            </button>
+
+                            {/* PLAYLISTS PERSONALIZADAS CRIADAS PELO USUÁRIO */}
+                            {playlists.map((pl) => {
+                                const jaPertence = pl.filmes && pl.filmes.some(f => f.id === filmeParaModal.id);
+                                return (
+                                    <button
+                                        key={pl.id}
+                                        type="button"
+                                        className={`modal-playlist-item ${jaPertence ? 'selecionada' : ''}`}
+                                        onClick={() => toggleFilmeEmPlaylist(pl.id, filmeParaModal)}
+                                    >
+                                        <span className="modal-item-nome">📁 {pl.nome}</span>
+                                        <span className="modal-item-status">{jaPertence ? '✓ Adicionado' : '+ Adicionar'}</span>
+                                    </button>
+                                );
+                            })}
+                        </div>
+
+                        <div className="modal-footer">
+                            <button
+                                type="button"
+                                className="btn-modal-criar"
+                                onClick={() => {
+                                    setFilmeParaModal(null);
+                                    setIsCriandoPlaylist(true);
+                                }}
+                            >
+                                + Criar Nova Playlist
+                            </button>
+                            <button
+                                type="button"
+                                className="btn-modal-fechar"
+                                onClick={() => setFilmeParaModal(null)}
+                            >
+                                Concluído
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
