@@ -121,7 +121,7 @@ function Login() {
 
         <p className="divider">ou</p>
         <p className="register-link">
-          Não tem uma conta? <a href="registro.html">Cadastrar</a>
+          Não tem uma conta? <a href="/cadastro">Cadastrar</a>
         </p>
       </div>
     </>

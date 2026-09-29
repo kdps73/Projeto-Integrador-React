@@ -183,7 +183,7 @@ function Registro() {
 
         <p className="divider">ou</p>
         <p className="login-link">
-          Já tem uma conta? <a href="login.html">Entrar</a>
+          Já tem uma conta? <a href="/login">Entrar</a>
         </p>
       </div>
     </>
