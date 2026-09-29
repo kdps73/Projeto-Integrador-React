@@ -844,6 +844,56 @@
     width: 100%;
 }
 
+#pagina-usuario .custom-playlist-title-container {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+#pagina-usuario .btn-playlist-visibilidade {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid #333333;
+    border-radius: 8px;
+    padding: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: #aaaaaa;
+    transition: all 0.25s ease;
+}
+
+#pagina-usuario .btn-playlist-visibilidade:hover {
+    background: rgba(255, 255, 255, 0.12);
+    border-color: #555555;
+    color: #ffffff;
+    transform: scale(1.05);
+}
+
+#pagina-usuario .btn-playlist-visibilidade.publica {
+    color: #4caf50;
+    border-color: rgba(76, 175, 80, 0.35);
+    background: rgba(76, 175, 80, 0.08);
+}
+
+#pagina-usuario .btn-playlist-visibilidade.publica:hover {
+    border-color: #4caf50;
+    background: rgba(76, 175, 80, 0.18);
+    color: #66bb6a;
+}
+
+#pagina-usuario .btn-playlist-visibilidade.privada {
+    color: #ff9800;
+    border-color: rgba(255, 152, 0, 0.35);
+    background: rgba(255, 152, 0, 0.08);
+}
+
+#pagina-usuario .btn-playlist-visibilidade.privada:hover {
+    border-color: #ff9800;
+    background: rgba(255, 152, 0, 0.18);
+    color: #ffa726;
+}
+
 #pagina-usuario .custom-playlist-header h3 {
     font-size: 1.15rem;
     font-weight: 700;

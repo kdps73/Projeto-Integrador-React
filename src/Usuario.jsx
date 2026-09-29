@@ -103,19 +103,40 @@ function Usuario() {
     // =========================================================
     // 3. PERSISTÊNCIA DAS LISTAS E FUNÇÕES TOGGLE
     // =========================================================
-    const salvarFavoritos = (novaLista) => {
+    const salvarFavoritos = async (novaLista) => {
         setFavoritos(novaLista);
-        localStorage.setItem("cineplanner_favoritos", JSON.stringify(novaLista));
+
+        if (supabase && usuario?.id) {
+            try {
+                await supabase
+                    .from('playlists')
+                    .update({ filmes: novaLista })
+                    .eq('id_usuario', usuario.id)
+                    .eq('nome', 'Favoritos');
+            } catch (err) {
+                console.warn("Erro ao salvar favoritos no Supabase:", err);
+            }
+        }
     };
 
-    const salvarWatchlist = (novaLista) => {
+    const salvarWatchlist = async (novaLista) => {
         setAssistirMaisTarde(novaLista);
-        localStorage.setItem("cineplanner_watchlist", JSON.stringify(novaLista));
+
+        if (supabase && usuario?.id) {
+            try {
+                await supabase
+                    .from('playlists')
+                    .update({ filmes: novaLista })
+                    .eq('id_usuario', usuario.id)
+                    .eq('nome', 'Assistir Mais Tarde');
+            } catch (err) {
+                console.warn("Erro ao salvar watchlist no Supabase:", err);
+            }
+        }
     };
 
     const salvarPlaylists = (novasPlaylists) => {
         setPlaylists(novasPlaylists);
-        localStorage.setItem("cineplanner_custom_playlists", JSON.stringify(novasPlaylists));
     };
 
     // Verificadores de estado
@@ -157,6 +178,7 @@ function Usuario() {
             id: Date.now(),
             id_usuario: usuario.id,
             nome: novaPlaylistNome.trim(),
+            publica: true,
             filmes: []
         };
 
@@ -164,12 +186,13 @@ function Usuario() {
             try {
                 const { data, error } = await supabase
                     .from('playlists')
-                    .insert([{ id_usuario: usuario.id, nome: novaPlaylistNome.trim(), filmes: [] }])
+                    .insert([{ id_usuario: usuario.id, nome: novaPlaylistNome.trim(), publica: true, filmes: [] }])
                     .select()
                     .single();
 
                 if (!error && data) {
                     novaPlaylist.id = data.id;
+                    novaPlaylist.publica = data.publica ?? true;
                 }
             } catch (err) {
                 console.warn("Erro ao salvar playlist no Supabase:", err);
@@ -179,6 +202,32 @@ function Usuario() {
         salvarPlaylists([...playlists, novaPlaylist]);
         setNovaPlaylistNome("");
         setIsCriandoPlaylist(false);
+    };
+
+    // Alternar visibilidade pública/privada da playlist
+    const togglePublicaPlaylist = async (playlistId) => {
+        const playlistAtual = playlists.find(p => p.id === playlistId);
+        const novoStatus = !(playlistAtual?.publica ?? true);
+
+        const novasPlaylists = playlists.map(p => {
+            if (p.id === playlistId) {
+                return { ...p, publica: novoStatus };
+            }
+            return p;
+        });
+
+        salvarPlaylists(novasPlaylists);
+
+        if (supabase) {
+            try {
+                await supabase
+                    .from('playlists')
+                    .update({ publica: novoStatus })
+                    .eq('id', playlistId);
+            } catch (err) {
+                console.warn("Erro ao atualizar visibilidade da playlist no Supabase:", err);
+            }
+        }
     };
 
     // Excluir playlist criada do Supabase
@@ -250,67 +299,55 @@ function Usuario() {
                     }
                 }
 
-                // B) Buscar Playlists no Supabase usando id_usuario
-                if (supabase) {
+                // B) Sincronizar Playlists (Favoritos, Assistir Mais Tarde e Personalizadas) direto do Supabase
+                if (supabase && usuario?.id) {
                     try {
                         const { data: dadosPlaylists, error: errPlaylists } = await supabase
                             .from('playlists')
                             .select('*')
                             .eq('id_usuario', usuario.id);
 
-                        if (!errPlaylists && dadosPlaylists && dadosPlaylists.length > 0) {
-                            setPlaylists(dadosPlaylists);
-                            localStorage.setItem("cineplanner_custom_playlists", JSON.stringify(dadosPlaylists));
-                        } else {
-                            const localPlaylists = localStorage.getItem("cineplanner_custom_playlists");
-                            if (localPlaylists) setPlaylists(JSON.parse(localPlaylists));
+                        if (!errPlaylists && dadosPlaylists) {
+                            let favPlaylist = dadosPlaylists.find(p => p.nome === "Favoritos");
+                            let watchPlaylist = dadosPlaylists.find(p => p.nome === "Assistir Mais Tarde");
+
+                            // Se não existir playlist "Favoritos" para o usuário, cria no banco
+                            if (!favPlaylist) {
+                                const { data: novaFav } = await supabase
+                                    .from('playlists')
+                                    .insert([{ id_usuario: usuario.id, nome: "Favoritos", filmes: [], publica: true }])
+                                    .select()
+                                    .single();
+                                if (novaFav) favPlaylist = novaFav;
+                            }
+
+                            // Se não existir playlist "Assistir Mais Tarde" para o usuário, cria no banco
+                            if (!watchPlaylist) {
+                                const { data: novaWatch } = await supabase
+                                    .from('playlists')
+                                    .insert([{ id_usuario: usuario.id, nome: "Assistir Mais Tarde", filmes: [], publica: false }])
+                                    .select()
+                                    .single();
+                                if (novaWatch) watchPlaylist = novaWatch;
+                            }
+
+                            // Carrega os filmes do Supabase para os estados
+                            setFavoritos(favPlaylist?.filmes || []);
+                            setAssistirMaisTarde(watchPlaylist?.filmes || []);
+
+                            // Playlists personalizadas são aquelas diferentes das 2 fixas
+                            const personalizadas = dadosPlaylists.filter(
+                                p => p.nome !== "Favoritos" && p.nome !== "Assistir Mais Tarde"
+                            );
+                            setPlaylists(personalizadas);
                         }
                     } catch (e) {
-                        const localPlaylists = localStorage.getItem("cineplanner_custom_playlists");
-                        if (localPlaylists) setPlaylists(JSON.parse(localPlaylists));
+                        console.warn("Erro ao carregar playlists do Supabase:", e);
                     }
-                } else {
-                    const localPlaylists = localStorage.getItem("cineplanner_custom_playlists");
-                    if (localPlaylists) setPlaylists(JSON.parse(localPlaylists));
-                }
-
-                // C) Verificar LocalStorage de favoritos e watchlist
-                const localFavs = localStorage.getItem("cineplanner_favoritos");
-                const localWatch = localStorage.getItem("cineplanner_watchlist");
-
-                let listFavs = localFavs ? JSON.parse(localFavs) : [];
-                let listWatch = localWatch ? JSON.parse(localWatch) : [];
-
-                // C) Se vazio, carregar filmes reais do TMDB usando a mesma estrutura de Inicio.jsx
-                if (listFavs.length === 0 || listWatch.length === 0) {
-                    const [resPopular, resTop] = await Promise.all([
-                        fetch(`${BASE_URL}/movie/popular?language=pt-BR&api_key=${API_KEY}`),
-                        fetch(`${BASE_URL}/movie/top_rated?language=pt-BR&api_key=${API_KEY}`)
-                    ]);
-
-                    const dataPopular = await resPopular.json();
-                    const dataTop = await resTop.json();
-
-                    if (listFavs.length === 0 && dataTop.results) {
-                        const idsTop = dataTop.results.slice(0, 6).map(f => f.id);
-                        const detalhesTop = await Promise.all(idsTop.map(id => buscarDetalhesFilme(id)));
-                        listFavs = detalhesTop.filter(Boolean);
-                        salvarFavoritos(listFavs);
-                    }
-
-                    if (listWatch.length === 0 && dataPopular.results) {
-                        const idsPop = dataPopular.results.slice(6, 12).map(f => f.id);
-                        const detalhesPop = await Promise.all(idsPop.map(id => buscarDetalhesFilme(id)));
-                        listWatch = detalhesPop.filter(Boolean);
-                        salvarWatchlist(listWatch);
-                    }
-                } else {
-                    setFavoritos(listFavs);
-                    setAssistirMaisTarde(listWatch);
                 }
 
             } catch (err) {
-                console.error("Erro ao carregar filmes no formato TMDB:", err);
+                console.error("Erro ao carregar dados do usuário:", err);
             } finally {
                 setCarregandoFilmes(false);
             }
@@ -766,7 +803,32 @@ function Usuario() {
                         playlists.map((pl) => (
                             <div key={pl.id} className="custom-playlist-block">
                                 <div className="custom-playlist-header">
-                                    <h3>{pl.nome}</h3>
+                                    <div className="custom-playlist-title-container">
+                                        {/* BOTÃO TOGGLE PÚBLICA / PRIVADA À ESQUERDA DO TÍTULO */}
+                                        <button
+                                            type="button"
+                                            onClick={() => togglePublicaPlaylist(pl.id)}
+                                            className={`btn-playlist-visibilidade ${(pl.publica ?? true) ? 'publica' : 'privada'}`}
+                                            title={(pl.publica ?? true) ? "Playlist Pública (Clique para tornar Privada)" : "Playlist Privada (Clique para tornar Pública)"}
+                                            aria-label={(pl.publica ?? true) ? "Playlist Pública" : "Playlist Privada"}
+                                        >
+                                            {(pl.publica ?? true) ? (
+                                                /* SVG DE GLOBO (PÚBLICA) */
+                                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                    <circle cx="12" cy="12" r="10" />
+                                                    <line x1="2" y1="12" x2="22" y2="12" />
+                                                    <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+                                                </svg>
+                                            ) : (
+                                                /* SVG DE CADEADO (PRIVADA) */
+                                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                                                    <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                                                </svg>
+                                            )}
+                                        </button>
+                                        <h3>{pl.nome}</h3>
+                                    </div>
                                     <div className="canto-direito">
                                         <span className="movie-count">
                                             {(pl.filmes ? pl.filmes.length : 0).toString().padStart(2, '0')} FILMES
