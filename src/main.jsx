@@ -7,6 +7,5 @@ import Rodape from "./components/Rodape.jsx";
 createRoot(document.getElementById("root")).render(
   <StrictMode>
     <App />
-    <Rodape/>
-  </StrictMode>,
+    </StrictMode>,
 );

@@ -8,7 +8,7 @@ function Menu() {
     const [searchTerm, setSearchTerm] = useState("");
     const [suggestions, setSuggestions] = useState([]);
     const [showSuggestions, setShowSuggestions] = useState(false);
-    
+
     const navigate = useNavigate();
     const searchTimeoutRef = useRef(null);
 
@@ -41,7 +41,7 @@ function Menu() {
             try {
                 const res = await fetch(`${BASE_URL}/search/movie?query=${encodeURIComponent(value.trim())}&language=pt-BR&api_key=${API_KEY}`);
                 const data = await res.json();
-                
+
                 if (data.results && data.results.length > 0) {
                     setSuggestions(data.results.slice(0, 5)); // Mostra no máximo 5 sugestões
                     setShowSuggestions(true);
@@ -78,17 +78,17 @@ function Menu() {
     const avatarUrl = user?.user_metadata?.avatar_url;
     const userName = user?.user_metadata?.name || user?.user_metadata?.full_name || user?.email?.split('@')[0] || "Usuário";
 
-    return ( 
+    return (
         <div>
             <nav className="navbar" id="navbar">
                 <div className="navbar-container" style={{ display: 'flex', alignItems: 'center', width: '100%' }}>
                     <a href="/index.html" className="navbar-logo" id="logo-link">
                         <span className="logo-text">CiNEPLANNER</span>
                     </a>
-                    
+
                     <ul className="navbar-links" style={{ display: 'flex', alignItems: 'center', margin: 0, padding: 0 }}>
                         <li>
-                            <Link to="/Inicio" className="nav-link">
+                            <Link to="/" className="nav-link">
                                 Início
                             </Link>
                         </li>
@@ -113,32 +113,32 @@ function Menu() {
 
                     {/* Barra de pesquisa */}
                     <div style={{ flex: 1, display: 'flex', justifyContent: 'center', padding: '0 20px', position: 'relative' }}>
-                        <div style={{ 
-                            display: 'flex', 
-                            alignItems: 'center', 
-                            backgroundColor: '#111', 
-                            borderRadius: '20px', 
-                            padding: '4px 12px', 
-                            border: '1px solid #dc2626', 
-                            width: '100%', 
+                        <div style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            backgroundColor: '#111',
+                            borderRadius: '20px',
+                            padding: '4px 12px',
+                            border: '1px solid #dc2626',
+                            width: '100%',
                             maxWidth: '300px',
                             boxShadow: '0 0 5px rgba(220, 38, 38, 0.3)',
                             position: 'relative'
                         }}>
                             <span style={{ color: '#dc2626', marginRight: '8px', fontSize: '1rem' }}>🔍</span>
-                            <input 
-                                type="text" 
-                                placeholder="Pesquisar filmes..." 
+                            <input
+                                type="text"
+                                placeholder="Pesquisar filmes..."
                                 value={searchTerm}
                                 onChange={handleSearchChange}
                                 onKeyDown={handleSearchKeyDown}
                                 onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
-                                onFocus={() => { if(suggestions.length > 0) setShowSuggestions(true); }}
-                                style={{ 
-                                    backgroundColor: 'transparent', 
-                                    border: 'none', 
-                                    color: '#fff', 
-                                    outline: 'none', 
+                                onFocus={() => { if (suggestions.length > 0) setShowSuggestions(true); }}
+                                style={{
+                                    backgroundColor: 'transparent',
+                                    border: 'none',
+                                    color: '#fff',
+                                    outline: 'none',
                                     width: '100%',
                                     fontSize: '0.9rem'
                                 }}
@@ -148,8 +148,8 @@ function Menu() {
                                 <ul className="search-suggestions">
                                     {suggestions.map((filme) => (
                                         <li key={filme.id} className="suggestion-item">
-                                            <Link 
-                                                to={`/resenhas/${filme.id}`} 
+                                            <Link
+                                                to={`/resenhas/${filme.id}`}
                                                 className="suggestion-link"
                                                 onClick={() => {
                                                     setShowSuggestions(false);
@@ -191,7 +191,7 @@ function Menu() {
                 </div>
             </nav>
         </div>
-     );
+    );
 }
 
 export default Menu;
