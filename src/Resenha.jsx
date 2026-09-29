@@ -5,10 +5,10 @@ import "./css/resenha.css";
 import { supabase } from "./supabase";
 
 function Resenha() {
-    
+
     const { id } = useParams();
     const [filme, setFilme] = useState(null);
-    
+
     // Estados adicionados para os comentários não quebrarem a página
     const [comentarios, setComentarios] = useState([]);
     const [novoComentario, setNovoComentario] = useState("");
@@ -116,7 +116,7 @@ function Resenha() {
         }
     }, [id]);
 
-    if (!filme) return <p style={{color: 'white', textAlign: 'center', marginTop: '100px'}}>Carregando...</p>;
+    if (!filme) return <p style={{ color: 'white', textAlign: 'center', marginTop: '100px' }}>Carregando...</p>;
 
     const certificacaoBR = filme.release_dates?.results?.find(r => r.iso_3166_1 === 'BR')?.release_dates[0]?.certification || '14+';
     const elenco = filme.credits?.cast?.slice(0, 4) || [];
@@ -127,46 +127,6 @@ function Resenha() {
 
     return (
         <>
-            <style>
-                {`
-                @keyframes slideInUpFadeOut {
-                    0% { transform: translateY(100px); opacity: 0; }
-                    10% { transform: translateY(0); opacity: 1; }
-                    80% { transform: translateY(0); opacity: 1; }
-                    100% { transform: translateY(0); opacity: 0; }
-                }
-                .toast-xp {
-                    position: fixed;
-                    bottom: 30px;
-                    right: 30px;
-                    padding: 15px 25px;
-                    border-radius: 8px;
-                    color: white;
-                    font-weight: bold;
-                    font-size: 16px;
-                    display: flex;
-                    align-items: center;
-                    gap: 12px;
-                    box-shadow: 0 4px 12px rgba(0,0,0,0.5);
-                    z-index: 9999;
-                    animation: slideInUpFadeOut 3s ease-in-out forwards;
-                }
-                .toast-xp.positivo {
-                    background-color: #e50914; /* Vermelho destaque do contexto.md */
-                }
-                .toast-xp.negativo {
-                    background-color: #111; /* Preto para padrão do contexto.md */
-                    border: 1px solid #333;
-                }
-                `}
-            </style>
-
-            {toastXP && (
-                <div className={`toast-xp ${toastXP.xp > 0 ? 'positivo' : 'negativo'}`}>
-                    {toastXP.msg}
-                </div>
-            )}
-
             <section className="filme-hero" id="filme-hero" style={{ backgroundImage: backdropUrl ? `url(${backdropUrl})` : 'none', backgroundSize: 'cover', backgroundPosition: 'center' }}>
                 <div className="filme-hero-inner">
                     <div className="poster-col">
@@ -180,8 +140,8 @@ function Resenha() {
                         </div>
                         <div className="poster-rating" id="poster-rating">
                             <div className="stars-row">
-                                {[5,4,3,2,1].map(num => (
-                                    <span key={num} style={{display:'inline-flex', flexDirection:'row-reverse'}}>
+                                {[5, 4, 3, 2, 1].map(num => (
+                                    <span key={num} style={{ display: 'inline-flex', flexDirection: 'row-reverse' }}>
                                         <input type="radio" name="avaliacao" id={`star${num}`} value={num} className="star-input" />
                                         <label htmlFor={`star${num}`} className="star-label" title={`${num} estrelas`}>★</label>
                                     </span>
@@ -209,7 +169,7 @@ function Resenha() {
                         <p className="filme-sinopse">
                             {filme.overview || 'Sem sinopse disponível.'}
                         </p>
-                        
+
                         {elenco && elenco.length > 0 && (
                             <div className="elenco-bloco">
                                 <h3 className="elenco-titulo">Elenco Principal</h3>
@@ -245,7 +205,7 @@ function Resenha() {
                     </h2>
 
                     {comentarios.length === 0 ? (
-                        <p style={{color: '#888', marginBottom: '30px'}}>Nenhum comentário ainda. Seja o primeiro a comentar!</p>
+                        <p style={{ color: '#888', marginBottom: '30px' }}>Nenhum comentário ainda. Seja o primeiro a comentar!</p>
                     ) : (
                         comentarios.map((coment, index) => {
                             const jaCurtiu = usuarioLogado && coment.curtidas?.some(c => Number(c.id_usuario) === Number(usuarioLogado.id));
@@ -331,7 +291,7 @@ function Resenha() {
                                 </div>
                             </div>
                         ) : (
-                            <p style={{color: '#888'}}>Você precisa estar logado para comentar. <Link to="/login" style={{color: '#e50914'}}>Entrar</Link></p>
+                         <p style={{color: '#888'}}>Você precisa estar logado para comentar. <a href="login.html" style={{color: '#e50914'}}>Entrar</a></p>
                         )}
                     </div>
                 </div>
