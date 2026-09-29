@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { Link } from "react-router-dom";
 import Menu from "./components/Menu";
 import { supabase } from "./supabase";
+import playlistIcon from "./assets/playlist_icon.svg";
 import "./css/index.css";
 import "./css/usuario.css";
 
@@ -898,7 +899,9 @@ function Usuario() {
                                 className={`modal-playlist-item ${naWatchlist(filmeParaModal.id) ? 'selecionada' : ''}`}
                                 onClick={() => toggleAssistirMaisTarde(filmeParaModal)}
                             >
-                                <span className="modal-item-nome">🔖 Assistir Mais Tarde</span>
+                                <span className="modal-item-nome">
+                                    <img src={playlistIcon} alt="Playlist" className="modal-item-icon" /> Assistir Mais Tarde
+                                </span>
                                 <span className="modal-item-status">{naWatchlist(filmeParaModal.id) ? '✓ Adicionado' : '+ Adicionar'}</span>
                             </button>
 
@@ -912,7 +915,9 @@ function Usuario() {
                                         className={`modal-playlist-item ${jaPertence ? 'selecionada' : ''}`}
                                         onClick={() => toggleFilmeEmPlaylist(pl.id, filmeParaModal)}
                                     >
-                                        <span className="modal-item-nome">📁 {pl.nome}</span>
+                                        <span className="modal-item-nome">
+                                            <img src={playlistIcon} alt="Playlist" className="modal-item-icon" /> {pl.nome}
+                                        </span>
                                         <span className="modal-item-status">{jaPertence ? '✓ Adicionado' : '+ Adicionar'}</span>
                                     </button>
                                 );

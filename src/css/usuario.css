@@ -1008,6 +1008,24 @@
     color: #4caf50;
 }
 
+#pagina-usuario .modal-item-nome {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+#pagina-usuario .modal-item-icon {
+    width: 18px;
+    height: 18px;
+    object-fit: contain;
+    filter: brightness(0) invert(0.9);
+    transition: filter 0.2s ease;
+}
+
+#pagina-usuario .modal-playlist-item.selecionada .modal-item-icon {
+    filter: brightness(0) saturate(100%) invert(60%) sepia(61%) saturate(541%) hue-rotate(81deg) brightness(96%) contrast(88%);
+}
+
 #pagina-usuario .modal-item-status {
     font-size: 0.8rem;
     font-weight: 700;
