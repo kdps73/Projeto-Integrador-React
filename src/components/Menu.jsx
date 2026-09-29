@@ -88,7 +88,7 @@ function Menu() {
                     
                     <ul className="navbar-links" style={{ display: 'flex', alignItems: 'center', margin: 0, padding: 0 }}>
                         <li>
-                            <Link to="/Inicio" className="nav-link">
+                            <Link to="/" className="nav-link">
                                 Início
                             </Link>
                         </li>
