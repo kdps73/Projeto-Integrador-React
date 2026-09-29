@@ -16,6 +16,7 @@ function Inicio() {
     const [tituloSecao, setTituloSecao] = useState("Mais Populares");
     const [subtituloSecao, setSubtituloSecao] = useState("Ordenados por popularidade");
 
+
     useEffect(() => {
         if (searchQuery) {
             setFetchUrl(`${BASE_URL}/search/movie?query=${encodeURIComponent(searchQuery)}&language=pt-BR&api_key=${API_KEY}`);
