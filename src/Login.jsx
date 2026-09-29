@@ -1,6 +1,46 @@
+import { useState } from "react";
+import { useNavigate, Link } from "react-router-dom";
+import { supabase } from "./supabase";
 import "./css/login.css";
 
 function Login() {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
+
+  const navigate = useNavigate();
+
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    setErrorMsg("");
+    setLoading(true);
+
+    try {
+      const { data, error } = await supabase
+        .from("usuario")
+        .select("*")
+        .eq("email", email)
+        .eq("senha_hash", password)
+        .single();
+
+      if (error || !data) {
+        throw new Error("E-mail ou senha incorretos.");
+      }
+
+      // Salva os dados no localStorage e avisa o Menu.jsx na mesma aba
+      localStorage.setItem("user", JSON.stringify(data));
+      window.dispatchEvent(new Event("authChanged"));
+      
+      // Redireciona para a página inicial
+      navigate("/");
+    } catch (error) {
+      setErrorMsg(error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <>
       <div className="carousel-bg">
@@ -61,7 +101,9 @@ function Login() {
         <h2>Entrar</h2>
         <p className="subtitle">Faça login para acessar sua conta</p>
 
-        <form id="loginForm">
+        {errorMsg && <p style={{ color: "red", textAlign: "center", marginBottom: "10px" }}>{errorMsg}</p>}
+
+        <form id="loginForm" onSubmit={handleLogin}>
           <div className="input-group">
             <svg
               className="input-icon"
@@ -86,7 +128,14 @@ function Login() {
                 fill="none"
               />
             </svg>
-            <input type="email" id="email" placeholder="E-mail" required />
+            <input 
+              type="email" 
+              id="email" 
+              placeholder="E-mail" 
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required 
+            />
           </div>
 
           <div className="input-group">
@@ -113,15 +162,24 @@ function Login() {
                 fill="none"
               />
             </svg>
-            <input type="password" id="password" placeholder="Senha" required />
+            <input 
+              type="password" 
+              id="password" 
+              placeholder="Senha" 
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required 
+            />
           </div>
 
-          <button type="submit">Entrar</button>
+          <button type="submit" disabled={loading}>
+            {loading ? "Entrando..." : "Entrar"}
+          </button>
         </form>
 
         <p className="divider">ou</p>
         <p className="register-link">
-          Não tem uma conta? <a href="registro.html">Cadastrar</a>
+          Não tem uma conta? <Link to="/cadastro">Cadastrar</Link>
         </p>
       </div>
     </>

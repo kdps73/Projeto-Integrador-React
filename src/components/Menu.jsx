@@ -4,7 +4,13 @@ import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "../supabase";
 
 function Menu() {
-    const [user, setUser] = useState(null);
+    const [user, setUser] = useState(() => {
+        const userStr = localStorage.getItem("user");
+        if (userStr) {
+            try { return JSON.parse(userStr); } catch (e) { return null; }
+        }
+        return null;
+    });
     const [searchTerm, setSearchTerm] = useState("");
     const [suggestions, setSuggestions] = useState([]);
     const [showSuggestions, setShowSuggestions] = useState(false);
@@ -56,27 +62,37 @@ function Menu() {
     };
 
     useEffect(() => {
-        const getSession = async () => {
-            const { data: { session } } = await supabase.auth.getSession();
-            setUser(session?.user ?? null);
+        const checkUser = () => {
+            const userStr = localStorage.getItem("user");
+            if (userStr) {
+                try {
+                    setUser(JSON.parse(userStr));
+                } catch (e) {
+                    setUser(null);
+                }
+            } else {
+                setUser(null);
+            }
         };
-        getSession();
 
-        const { data: authListener } = supabase.auth.onAuthStateChange(
-            (event, session) => {
-                setUser(session?.user ?? null);
-            }
-        );
-
+        window.addEventListener("storage", checkUser);
+        window.addEventListener("authChanged", checkUser);
+        
         return () => {
-            if (authListener && authListener.subscription) {
-                authListener.subscription.unsubscribe();
-            }
+            window.removeEventListener("storage", checkUser);
+            window.removeEventListener("authChanged", checkUser);
         };
     }, []);
 
-    const avatarUrl = user?.user_metadata?.avatar_url;
-    const userName = user?.user_metadata?.name || user?.user_metadata?.full_name || user?.email?.split('@')[0] || "Usuário";
+    const handleLogout = () => {
+        localStorage.removeItem("user");
+        setUser(null);
+        window.dispatchEvent(new Event("authChanged"));
+        navigate("/login");
+    };
+
+    const avatarUrl = user?.url_img;
+    const userName = user?.nome || user?.username || user?.email?.split('@')[0] || "Usuário";
 
     return (
         <div>
@@ -167,19 +183,24 @@ function Menu() {
 
                     <div className="navbar-actions" style={{ display: 'flex', alignItems: 'center', marginLeft: 'auto' }}>
                         {user ? (
-                            <Link to="/usuario" style={{ display: 'flex', alignItems: 'center', textDecoration: 'none', color: '#fff', gap: '10px' }}>
-                                {avatarUrl ? (
-                                    <img src={avatarUrl} alt="Avatar" style={{ width: '32px', height: '32px', borderRadius: '50%', objectFit: 'cover', border: '2px solid #dc2626' }} />
-                                ) : (
-                                    <div style={{ width: '32px', height: '32px', borderRadius: '50%', backgroundColor: '#dc2626', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 'bold', fontSize: '1rem' }}>
-                                        {userName.charAt(0).toUpperCase()}
-                                    </div>
-                                )}
-                                <span style={{ fontWeight: '500', fontSize: '0.9rem' }}>{userName}</span>
-                            </Link>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+                                <Link to="/usuario" style={{ display: 'flex', alignItems: 'center', textDecoration: 'none', color: '#fff', gap: '10px' }}>
+                                    {avatarUrl ? (
+                                        <img src={avatarUrl} alt="Avatar" style={{ width: '32px', height: '32px', borderRadius: '50%', objectFit: 'cover', border: '2px solid #dc2626' }} />
+                                    ) : (
+                                        <div style={{ width: '32px', height: '32px', borderRadius: '50%', backgroundColor: '#dc2626', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 'bold', fontSize: '1rem' }}>
+                                            {userName.charAt(0).toUpperCase()}
+                                        </div>
+                                    )}
+                                    <span style={{ fontWeight: '500', fontSize: '0.9rem' }}>{userName}</span>
+                                </Link>
+                                <button onClick={handleLogout} style={{ background: 'transparent', border: 'none', color: '#dc2626', cursor: 'pointer', fontWeight: 'bold' }}>
+                                    Sair
+                                </button>
+                            </div>
                         ) : (
                             <Link
-                                to="Login.jsx"
+                                to="/login"
                                 className="btn-login"
                                 id="btn-entrar"
                                 style={{ marginLeft: '10px' }}
