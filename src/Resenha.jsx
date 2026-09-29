@@ -12,20 +12,94 @@ function Resenha() {
     // Estados adicionados para os comentários não quebrarem a página
     const [comentarios, setComentarios] = useState([]);
     const [novoComentario, setNovoComentario] = useState("");
-    const [usuarioLogado, setUsuarioLogado] = useState(null);
+    const [toastXP, setToastXP] = useState(null);
+    const usuarioLogado = localStorage.getItem("user") ? JSON.parse(localStorage.getItem("user")) : null;
 
     const API_KEY = '168817e9845280fe6d28f3a939f4bc67';
 
-    const handleCurtir = (comentId, jaCurtiu) => {
-        // TODO: Implementar lógica do supabase
+    async function handleCurtir(comentId, jaCurtiu) {
+        if (!usuarioLogado) {
+            alert("Você precisa estar logado para curtir.");
+            return;
+        }
+
+        const curtida = {
+            id_usuario: Number(usuarioLogado.id),
+            id_comentario: Number(comentId)
+        };
+
+        if (jaCurtiu) {
+            const { error } = await supabase.from("curtidas").delete().match(curtida);
+            if (!error) {
+                fetchComentarios()
+                ganhaXP(-5)
+            }
+            else console.error("Erro ao remover curtida:", error);
+        } else {
+            const { error } = await supabase.from("curtidas").insert(curtida);
+            if (!error) {
+                fetchComentarios()
+                ganhaXP(5)
+            }
+            else console.error("Erro ao adicionar curtida:", error);
+        }
+    }
+
+    async function handlePublicarComentario(){
+        const filmeData = {
+            id: Number(id),
+            titulo: filme.title
+        };
+
+        const { error: errorFilme } = await supabase.from("filmes").upsert(filmeData);
+        
+        if(errorFilme) {
+            console.error("Erro ao inserir/atualizar filme:", errorFilme);
+        }
+
+        const comentario = {
+            id_filme: Number(id),
+            id_usuario: Number(usuarioLogado.id),
+            conteudo: novoComentario
+        }
+
+        const {error} = await supabase.from("comentarios").insert(comentario);
+
+        if(error == null){
+            alert("Comentário publicado com sucesso!")
+            setNovoComentario("")
+            fetchComentarios()
+            ganhaXP(15)
+        }else{
+            alert("Erro ao publicar comentário. Tente novamente.")
+            console.log(error)
+        }
     };
 
-    const handlePublicarComentario = () => {
-        // TODO: Implementar lógica do supabase
-    };
+    async function ganhaXP(xp) {
+        const { error } = await supabase.from("usuario").update({xp_total: Number(usuarioLogado.xp_total) + xp}).eq("id", usuarioLogado.id);
+        if(error == null){
+            console.log("XP adicionado com sucesso!");
+            localStorage.setItem("user", JSON.stringify({ ...usuarioLogado, xp_total: Number(usuarioLogado.xp_total) + xp }));
+            
+            // Ativa o toast e programa para sumir logo após o fim da animação de 3 segundos
+            setToastXP({ xp, msg: xp > 0 ? `+${xp} XP Ganhos!` : `${xp} XP Perdidos` });
+            setTimeout(() => setToastXP(null), 3100);
+        }else{
+            console.error(`Erro ao ganhar xp: ${error}`);
+        }
+    }
 
-    useEffect(() => {
-        async function fetchDetalhes() {
+    async function fetchComentarios() {
+        const {data, error} = await supabase.from("comentarios").select("*, usuario!comentarios_id_usuario_fkey(*), curtidas(*)").eq("id_filme", id).order("id", { ascending: false });
+        if(error == null){
+            setComentarios(JSON.parse(JSON.stringify(data)))
+        }else{
+            console.log(error)
+        }
+    }
+    
+    async function fetchDetalhes() {
             try {
                 const res = await fetch(`https://api.themoviedb.org/3/movie/${id}?language=pt-BR&append_to_response=credits,release_dates&api_key=${API_KEY}`);
                 const data = await res.json();
@@ -34,7 +108,12 @@ function Resenha() {
                 console.error(err);
             }
         }
-        if (id) fetchDetalhes();
+
+    useEffect(() => {
+        if(id) {
+            fetchDetalhes()
+            fetchComentarios()
+        }
     }, [id]);
 
     if (!filme) return <p style={{ color: 'white', textAlign: 'center', marginTop: '100px' }}>Carregando...</p>;
@@ -48,6 +127,46 @@ function Resenha() {
 
     return (
         <>
+            <style>
+                {`
+                @keyframes slideInUpFadeOut {
+                    0% { transform: translateY(100px); opacity: 0; }
+                    10% { transform: translateY(0); opacity: 1; }
+                    80% { transform: translateY(0); opacity: 1; }
+                    100% { transform: translateY(0); opacity: 0; }
+                }
+                .toast-xp {
+                    position: fixed;
+                    bottom: 30px;
+                    right: 30px;
+                    padding: 15px 25px;
+                    border-radius: 8px;
+                    color: white;
+                    font-weight: bold;
+                    font-size: 16px;
+                    display: flex;
+                    align-items: center;
+                    gap: 12px;
+                    box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+                    z-index: 9999;
+                    animation: slideInUpFadeOut 3s ease-in-out forwards;
+                }
+                .toast-xp.positivo {
+                    background-color: #e50914; /* Vermelho destaque do contexto.md */
+                }
+                .toast-xp.negativo {
+                    background-color: #111; /* Preto para padrão do contexto.md */
+                    border: 1px solid #333;
+                }
+                `}
+            </style>
+
+            {toastXP && (
+                <div className={`toast-xp ${toastXP.xp > 0 ? 'positivo' : 'negativo'}`}>
+                    {toastXP.msg}
+                </div>
+            )}
+
             <section className="filme-hero" id="filme-hero" style={{ backgroundImage: backdropUrl ? `url(${backdropUrl})` : 'none', backgroundSize: 'cover', backgroundPosition: 'center' }}>
                 <div className="filme-hero-inner">
                     <div className="poster-col">
