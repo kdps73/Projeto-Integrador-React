@@ -1,6 +1,46 @@
+import { useState } from "react";
+import { useNavigate, Link } from "react-router-dom";
+import { supabase } from "./supabase";
 import "./css/registro.css";
 
 function Registro() {
+  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
+  
+  const navigate = useNavigate();
+
+  const handleRegister = async (e) => {
+    e.preventDefault();
+    setErrorMsg("");
+
+    if (password !== confirmPassword) {
+      setErrorMsg("As senhas não coincidem.");
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const { data, error } = await supabase
+        .from("usuario")
+        .insert([{ username, email, senha_hash: password }]);
+
+      if (error) {
+        throw error;
+      }
+
+      navigate("/login");
+    } catch (error) {
+      setErrorMsg("Erro ao cadastrar: " + error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <>
       <div className="carousel-bg">
@@ -61,7 +101,9 @@ function Registro() {
         <h2>Criar conta</h2>
         <p className="subtitle">Preencha os campos para se registrar</p>
 
-        <form id="registerForm">
+        {errorMsg && <p style={{ color: "red", textAlign: "center", marginBottom: "10px" }}>{errorMsg}</p>}
+
+        <form id="registerForm" onSubmit={handleRegister}>
           <div className="input-group">
             <svg
               className="input-icon"
@@ -88,6 +130,8 @@ function Registro() {
               type="text"
               id="username"
               placeholder="Nome de usuário"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
               required
             />
           </div>
@@ -116,7 +160,14 @@ function Registro() {
                 fill="none"
               />
             </svg>
-            <input type="email" id="email" placeholder="E-mail" required />
+            <input 
+              type="email" 
+              id="email" 
+              placeholder="E-mail" 
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required 
+            />
           </div>
 
           <div className="input-group">
@@ -143,7 +194,14 @@ function Registro() {
                 fill="none"
               />
             </svg>
-            <input type="password" id="password" placeholder="Senha" required />
+            <input 
+              type="password" 
+              id="password" 
+              placeholder="Senha" 
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required 
+            />
           </div>
 
           <div className="input-group">
@@ -174,16 +232,20 @@ function Registro() {
               type="password"
               id="confirmPassword"
               placeholder="Confirmar senha"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
               required
             />
           </div>
 
-          <button type="submit">Cadastrar</button>
+          <button type="submit" disabled={loading}>
+            {loading ? "Cadastrando..." : "Cadastrar"}
+          </button>
         </form>
 
         <p className="divider">ou</p>
         <p className="login-link">
-          Já tem uma conta? <a href="/login">Entrar</a>
+          Já tem uma conta? <Link to="/login">Entrar</Link>
         </p>
       </div>
     </>
