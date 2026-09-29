@@ -5,10 +5,10 @@ import "./css/resenha.css";
 import { supabase } from "./supabase";
 
 function Resenha() {
-    
+
     const { id } = useParams();
     const [filme, setFilme] = useState(null);
-    
+
     // Estados adicionados para os comentários não quebrarem a página
     const [comentarios, setComentarios] = useState([]);
     const [novoComentario, setNovoComentario] = useState("");
@@ -116,7 +116,7 @@ function Resenha() {
         }
     }, [id]);
 
-    if (!filme) return <p style={{color: 'white', textAlign: 'center', marginTop: '100px'}}>Carregando...</p>;
+    if (!filme) return <p style={{ color: 'white', textAlign: 'center', marginTop: '100px' }}>Carregando...</p>;
 
     const certificacaoBR = filme.release_dates?.results?.find(r => r.iso_3166_1 === 'BR')?.release_dates[0]?.certification || '14+';
     const elenco = filme.credits?.cast?.slice(0, 4) || [];
@@ -180,8 +180,8 @@ function Resenha() {
                         </div>
                         <div className="poster-rating" id="poster-rating">
                             <div className="stars-row">
-                                {[5,4,3,2,1].map(num => (
-                                    <span key={num} style={{display:'inline-flex', flexDirection:'row-reverse'}}>
+                                {[5, 4, 3, 2, 1].map(num => (
+                                    <span key={num} style={{ display: 'inline-flex', flexDirection: 'row-reverse' }}>
                                         <input type="radio" name="avaliacao" id={`star${num}`} value={num} className="star-input" />
                                         <label htmlFor={`star${num}`} className="star-label" title={`${num} estrelas`}>★</label>
                                     </span>
@@ -209,7 +209,7 @@ function Resenha() {
                         <p className="filme-sinopse">
                             {filme.overview || 'Sem sinopse disponível.'}
                         </p>
-                        
+
                         {elenco && elenco.length > 0 && (
                             <div className="elenco-bloco">
                                 <h3 className="elenco-titulo">Elenco Principal</h3>
@@ -245,7 +245,7 @@ function Resenha() {
                     </h2>
 
                     {comentarios.length === 0 ? (
-                        <p style={{color: '#888', marginBottom: '30px'}}>Nenhum comentário ainda. Seja o primeiro a comentar!</p>
+                        <p style={{ color: '#888', marginBottom: '30px' }}>Nenhum comentário ainda. Seja o primeiro a comentar!</p>
                     ) : (
                         comentarios.map((coment, index) => {
                             const jaCurtiu = usuarioLogado && coment.curtidas?.some(c => Number(c.id_usuario) === Number(usuarioLogado.id));
@@ -331,7 +331,7 @@ function Resenha() {
                                 </div>
                             </div>
                         ) : (
-                            <p style={{color: '#888'}}>Você precisa estar logado para comentar. <Link to="/login" style={{color: '#e50914'}}>Entrar</Link></p>
+                            <p style={{ color: '#888' }}>Você precisa estar logado para comentar. <a href="login.html" style={{ color: '#e50914' }}>Entrar</a></p>
                         )}
                     </div>
                 </div>

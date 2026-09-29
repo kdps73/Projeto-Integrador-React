@@ -1,150 +1,87 @@
 import { useState, useRef, useEffect } from "react";
+import { Link } from "react-router-dom";
 import Menu from "./components/Menu";
 import { supabase } from "./supabase";
+import playlistIcon from "./assets/playlist_icon.svg";
 import "./css/index.css";
 import "./css/usuario.css";
 
+// =========================================================
+// PADRÃO DE REQUISIÇÃO DA API TMDB (Mesmo de Inicio.jsx e Filmes.jsx)
+// =========================================================
+const API_KEY = '168817e9845280fe6d28f3a939f4bc67';
+const BASE_URL = 'https://api.themoviedb.org/3';
+
+// Função utilitária para buscar detalhes no mesmo formato do Filmes.jsx
+async function buscarDetalhesFilme(id) {
+    try {
+        const urlDetalhes = `${BASE_URL}/movie/${id}?language=pt-BR&api_key=${API_KEY}`;
+        const resDetalhes = await fetch(urlDetalhes);
+        const detalhes = await resDetalhes.json();
+
+        return {
+            id: detalhes.id,
+            titulo: detalhes.title,
+            avaliacao: detalhes.vote_average,
+            duracao: detalhes.runtime,
+            sinopse: detalhes.overview,
+            poster_url: detalhes.poster_path ? `https://image.tmdb.org/t/p/w500${detalhes.poster_path}` : null,
+            ano_lancamento: detalhes.release_date,
+            generos: detalhes.genres ? detalhes.genres.map(g => g.name).join(', ') : ''
+        };
+    } catch (erro) {
+        console.error(`Erro ao buscar detalhes do filme ID ${id}:`, erro);
+        return null;
+    }
+}
+
 function Usuario() {
     // =========================================================
-    // 1. ESTADOS DO USUÁRIO (Baseados na tabela 'usuario')
+    // 1. ESTADOS DO USUÁRIO (Perfil, XP, Bio e Acessórios)
     // =========================================================
     const [usuario, setUsuario] = useState({
-        id: 15,
+        id: 11,
         nome: "They Pro Filmes",
         username: "THEY_PRO_FILMES",
         email: "usuario@cineplanner.com",
         bio: "Amante de ficção científica, cinema clássico e maratonas de fim de semana.",
         xpTotal: 25400,
         nivel: 50,
-        // URLs e dados dos itens cosméticos (tabela 'itens')
         chapeuUrl: "./img/hat-red-dead.png",
         maoUrl: "./img/acessorio-red-dead.png",
         mascoteUrl: "./img/pet-red-dead.png",
         avatarUrl: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=300&q=80"
     });
 
-    // Estado para o input de edição de bio
     const [inputBio, setInputBio] = useState(usuario.bio);
     const [statusBio, setStatusBio] = useState("");
     const [isEditingBio, setIsEditingBio] = useState(false);
 
-    // =========================================================
-    // 2. SISTEMA DE XP E NÍVEL
-    // =========================================================
-    // XP necessário para o próximo nível (exemplo de regra de negócio: cada nível são 600 XP)
+    // Sistema de XP e Nível
     const xpPorNivel = 600;
     const xpAtualNoNivel = usuario.xpTotal % xpPorNivel;
     const porcentagemXp = Math.min(Math.round((xpAtualNoNivel / xpPorNivel) * 100), 100);
 
     // =========================================================
-    // 3. ESTADOS DE FILMES (Baseados na tabela 'filmes')
+    // 2. ESTADOS DE FILMES E PLAYLISTS PERSONALIZADAS
     // =========================================================
-    const [favoritos, setFavoritos] = useState([
-        {
-            id: 1,
-            titulo: "O Último Horizonte",
-            genero: "Ficção Científica",
-            nota: 9.8,
-            poster_url: "https://placehold.co/300x450/1a1a1a/e50914?text=O+Ultimo+Horizonte"
-        },
-        {
-            id: 2,
-            titulo: "Sombras do Passado",
-            genero: "Drama",
-            nota: 9.5,
-            poster_url: "https://placehold.co/300x450/1a1a1a/e50914?text=Sombras+do+Passado"
-        },
-        {
-            id: 3,
-            titulo: "Era Uma Vez no Caos",
-            genero: "Ação",
-            nota: 9.3,
-            poster_url: "https://placehold.co/300x450/1a1a1a/e50914?text=Era+Uma+Vez+no+Caos"
-        },
-        {
-            id: 4,
-            titulo: "A Queda dos Deuses",
-            genero: "Suspense",
-            nota: 9.1,
-            poster_url: "https://placehold.co/300x450/1a1a1a/e50914?text=A+Queda+dos+Deuses"
-        },
-        {
-            id: 5,
-            titulo: "Nebulosa",
-            genero: "Aventura",
-            nota: 8.9,
-            poster_url: "https://placehold.co/300x450/1a1a1a/e50914?text=Nebulosa"
-        },
-        {
-            id: 6,
-            titulo: "Interestelar Cósmico",
-            genero: "Sci-Fi",
-            nota: 9.7,
-            poster_url: "https://placehold.co/300x450/1a1a1a/e50914?text=Interestelar"
-        },
-        {
-            id: 7,
-            titulo: "Matrix Reborn",
-            genero: "Cyberpunk",
-            nota: 9.4,
-            poster_url: "https://placehold.co/300x450/1a1a1a/e50914?text=Matrix+Reborn"
-        }
-    ]);
+    const [favoritos, setFavoritos] = useState([]);
+    const [assistirMaisTarde, setAssistirMaisTarde] = useState([]);
+    const [playlists, setPlaylists] = useState([]);
+    const [carregandoFilmes, setCarregandoFilmes] = useState(true);
 
-    const [assistirMaisTarde, setAssistirMaisTarde] = useState([
-        {
-            id: 8,
-            titulo: "Amor em Câmera Lenta",
-            genero: "Romance",
-            nota: 8.7,
-            poster_url: "https://placehold.co/300x450/1a1a1a/e50914?text=Amor+em+Camera+Lenta"
-        },
-        {
-            id: 9,
-            titulo: "Risadas no Fim do Mundo",
-            genero: "Comédia",
-            nota: 8.5,
-            poster_url: "https://placehold.co/300x450/1a1a1a/e50914?text=Risadas+no+Fim"
-        },
-        {
-            id: 10,
-            titulo: "Gritos na Escuridão",
-            genero: "Horror",
-            nota: 8.2,
-            poster_url: "https://placehold.co/300x450/1a1a1a/e50914?text=Gritos+na+Escuridao"
-        },
-        {
-            id: 11,
-            titulo: "Mundo Paralelo",
-            genero: "Animação",
-            nota: 8.0,
-            poster_url: "https://placehold.co/300x450/1a1a1a/e50914?text=Mundo+Paralelo"
-        },
-        {
-            id: 12,
-            titulo: "O Preço da Glória",
-            genero: "Drama",
-            nota: 7.8,
-            poster_url: "https://placehold.co/300x450/1a1a1a/e50914?text=O+Preco+da+Gloria"
-        },
-        {
-            id: 13,
-            titulo: "O Código Perdido",
-            genero: "Mistério",
-            nota: 8.6,
-            poster_url: "https://placehold.co/300x450/1a1a1a/e50914?text=O+Codigo+Perdido"
-        }
-    ]);
+    // Estados para criação de playlist e modal
+    const [isCriandoPlaylist, setIsCriandoPlaylist] = useState(false);
+    const [novaPlaylistNome, setNovaPlaylistNome] = useState("");
+    const [filmeParaModal, setFilmeParaModal] = useState(null);
 
-    // =========================================================
-    // 4. CONTROLE DOS CARROSSÉIS (Refs e Funções de Rolagem)
-    // =========================================================
+    // Controladores dos Carrosséis
     const favoritosRef = useRef(null);
     const assistirMaisTardeRef = useRef(null);
 
     const rolarCarrossel = (ref, direcao) => {
         if (ref.current) {
-            const distancia = 440; // Distância de rolagem em pixels (~2 cards)
+            const distancia = 440;
             ref.current.scrollBy({
                 left: direcao === "esquerda" ? -distancia : distancia,
                 behavior: "smooth"
@@ -152,114 +89,299 @@ function Usuario() {
         }
     };
 
+    const rolarCarrosselPorId = (elementId, direcao) => {
+        const el = document.getElementById(elementId);
+        if (el) {
+            const distancia = 440;
+            el.scrollBy({
+                left: direcao === "esquerda" ? -distancia : distancia,
+                behavior: "smooth"
+            });
+        }
+    };
+
     // =========================================================
-    // 5. ATUALIZAÇÃO DA BIO (Local + Ponto para Supabase)
+    // 3. PERSISTÊNCIA DAS LISTAS E FUNÇÕES TOGGLE
+    // =========================================================
+    const salvarFavoritos = async (novaLista) => {
+        setFavoritos(novaLista);
+
+        if (supabase && usuario?.id) {
+            try {
+                await supabase
+                    .from('playlists')
+                    .update({ filmes: novaLista })
+                    .eq('id_usuario', usuario.id)
+                    .eq('nome', 'Favoritos');
+            } catch (err) {
+                console.warn("Erro ao salvar favoritos no Supabase:", err);
+            }
+        }
+    };
+
+    const salvarWatchlist = async (novaLista) => {
+        setAssistirMaisTarde(novaLista);
+
+        if (supabase && usuario?.id) {
+            try {
+                await supabase
+                    .from('playlists')
+                    .update({ filmes: novaLista })
+                    .eq('id_usuario', usuario.id)
+                    .eq('nome', 'Assistir Mais Tarde');
+            } catch (err) {
+                console.warn("Erro ao salvar watchlist no Supabase:", err);
+            }
+        }
+    };
+
+    const salvarPlaylists = (novasPlaylists) => {
+        setPlaylists(novasPlaylists);
+    };
+
+    // Verificadores de estado
+    const eFavorito = (id) => favoritos.some(f => f.id === id);
+    const naWatchlist = (id) => assistirMaisTarde.some(f => f.id === id);
+
+    // Verificador se o filme está em alguma playlist (Assistir Mais Tarde ou qualquer Playlist Personalizada)
+    const estaEmAlgumaPlaylist = (id) => {
+        if (naWatchlist(id)) return true;
+        return playlists.some(p => p.filmes && p.filmes.some(f => f.id === id));
+    };
+
+    // Toggle para o Botão Coração (Favoritos)
+    const toggleFavorito = (filme) => {
+        if (eFavorito(filme.id)) {
+            const novaLista = favoritos.filter(f => f.id !== filme.id);
+            salvarFavoritos(novaLista);
+        } else {
+            salvarFavoritos([filme, ...favoritos]);
+        }
+    };
+
+    // Toggle para o Botão Playlist (Assistir Mais Tarde)
+    const toggleAssistirMaisTarde = (filme) => {
+        if (naWatchlist(filme.id)) {
+            const novaLista = assistirMaisTarde.filter(f => f.id !== filme.id);
+            salvarWatchlist(novaLista);
+        } else {
+            salvarWatchlist([filme, ...assistirMaisTarde]);
+        }
+    };
+
+    // Criar uma nova playlist personalizada no Supabase
+    const handleCriarPlaylist = async (e) => {
+        e.preventDefault();
+        if (!novaPlaylistNome.trim()) return;
+
+        const novaPlaylist = {
+            id: Date.now(),
+            id_usuario: usuario.id,
+            nome: novaPlaylistNome.trim(),
+            publica: true,
+            filmes: []
+        };
+
+        if (supabase) {
+            try {
+                const { data, error } = await supabase
+                    .from('playlists')
+                    .insert([{ id_usuario: usuario.id, nome: novaPlaylistNome.trim(), publica: true, filmes: [] }])
+                    .select()
+                    .single();
+
+                if (!error && data) {
+                    novaPlaylist.id = data.id;
+                    novaPlaylist.publica = data.publica ?? true;
+                }
+            } catch (err) {
+                console.warn("Erro ao salvar playlist no Supabase:", err);
+            }
+        }
+
+        salvarPlaylists([...playlists, novaPlaylist]);
+        setNovaPlaylistNome("");
+        setIsCriandoPlaylist(false);
+    };
+
+    // Alternar visibilidade pública/privada da playlist
+    const togglePublicaPlaylist = async (playlistId) => {
+        const playlistAtual = playlists.find(p => p.id === playlistId);
+        const novoStatus = !(playlistAtual?.publica ?? true);
+
+        const novasPlaylists = playlists.map(p => {
+            if (p.id === playlistId) {
+                return { ...p, publica: novoStatus };
+            }
+            return p;
+        });
+
+        salvarPlaylists(novasPlaylists);
+
+        if (supabase) {
+            try {
+                await supabase
+                    .from('playlists')
+                    .update({ publica: novoStatus })
+                    .eq('id', playlistId);
+            } catch (err) {
+                console.warn("Erro ao atualizar visibilidade da playlist no Supabase:", err);
+            }
+        }
+    };
+
+    // Excluir playlist criada do Supabase
+    const handleDeletarPlaylist = async (playlistId) => {
+        if (window.confirm("Deseja realmente excluir esta playlist personalizada?")) {
+            if (supabase) {
+                try {
+                    await supabase.from('playlists').delete().eq('id', playlistId);
+                } catch (err) {
+                    console.warn("Erro ao deletar playlist no Supabase:", err);
+                }
+            }
+            salvarPlaylists(playlists.filter(p => p.id !== playlistId));
+        }
+    };
+
+    // Adicionar/remover filme de uma playlist personalizada no Supabase
+    const toggleFilmeEmPlaylist = async (playlistId, filme) => {
+        const novasPlaylists = playlists.map(p => {
+            if (p.id === playlistId) {
+                const jaExiste = p.filmes && p.filmes.some(f => f.id === filme.id);
+                const novosFilmes = jaExiste
+                    ? p.filmes.filter(f => f.id !== filme.id)
+                    : [filme, ...(p.filmes || [])];
+
+                if (supabase) {
+                    supabase.from('playlists').update({ filmes: novosFilmes }).eq('id', playlistId).then().catch(err => console.warn(err));
+                }
+
+                return { ...p, filmes: novosFilmes };
+            }
+            return p;
+        });
+
+        salvarPlaylists(novasPlaylists);
+    };
+
+    // =========================================================
+    // 4. CARREGAMENTO COM O MESMO PADRÃO DE Filmes.jsx / Inicio.jsx
+    // =========================================================
+    useEffect(() => {
+        async function carregarFilmesUsuario() {
+            setCarregandoFilmes(true);
+            try {
+                // A) Buscar Perfil no Supabase se disponível
+                if (supabase) {
+                    const { data: dadosUsuario } = await supabase
+                        .from('usuario')
+                        .select('*, id_item_chapeu(*), id_item_mao(*), id_item_mascote(*)')
+                        .eq('id', usuario.id)
+                        .maybeSingle();
+
+                    if (dadosUsuario) {
+                        setUsuario(prev => ({
+                            ...prev,
+                            id: dadosUsuario.id,
+                            nome: dadosUsuario.nome || prev.nome,
+                            username: dadosUsuario.username || prev.username,
+                            email: dadosUsuario.email || prev.email,
+                            bio: dadosUsuario.bio || prev.bio,
+                            xpTotal: dadosUsuario.xp_total ?? prev.xpTotal,
+                            nivel: dadosUsuario.nivel ?? prev.nivel,
+                            avatarUrl: dadosUsuario.url_img || dadosUsuario.avatar_url || prev.avatarUrl,
+                            chapeuUrl: dadosUsuario.id_item_chapeu?.url_imagem || prev.chapeuUrl,
+                            maoUrl: dadosUsuario.id_item_mao?.url_imagem || prev.maoUrl,
+                            mascoteUrl: dadosUsuario.id_item_mascote?.url_imagem || prev.mascoteUrl
+                        }));
+                        setInputBio(dadosUsuario.bio || "");
+                    }
+                }
+
+                // B) Sincronizar Playlists (Favoritos, Assistir Mais Tarde e Personalizadas) direto do Supabase
+                if (supabase && usuario?.id) {
+                    try {
+                        const { data: dadosPlaylists, error: errPlaylists } = await supabase
+                            .from('playlists')
+                            .select('*')
+                            .eq('id_usuario', usuario.id);
+
+                        if (!errPlaylists && dadosPlaylists) {
+                            let favPlaylist = dadosPlaylists.find(p => p.nome === "Favoritos");
+                            let watchPlaylist = dadosPlaylists.find(p => p.nome === "Assistir Mais Tarde");
+
+                            // Se não existir playlist "Favoritos" para o usuário, cria no banco
+                            if (!favPlaylist) {
+                                const { data: novaFav } = await supabase
+                                    .from('playlists')
+                                    .insert([{ id_usuario: usuario.id, nome: "Favoritos", filmes: [], publica: true }])
+                                    .select()
+                                    .single();
+                                if (novaFav) favPlaylist = novaFav;
+                            }
+
+                            // Se não existir playlist "Assistir Mais Tarde" para o usuário, cria no banco
+                            if (!watchPlaylist) {
+                                const { data: novaWatch } = await supabase
+                                    .from('playlists')
+                                    .insert([{ id_usuario: usuario.id, nome: "Assistir Mais Tarde", filmes: [], publica: false }])
+                                    .select()
+                                    .single();
+                                if (novaWatch) watchPlaylist = novaWatch;
+                            }
+
+                            // Carrega os filmes do Supabase para os estados
+                            setFavoritos(favPlaylist?.filmes || []);
+                            setAssistirMaisTarde(watchPlaylist?.filmes || []);
+
+                            // Playlists personalizadas são aquelas diferentes das 2 fixas
+                            const personalizadas = dadosPlaylists.filter(
+                                p => p.nome !== "Favoritos" && p.nome !== "Assistir Mais Tarde"
+                            );
+                            setPlaylists(personalizadas);
+                        }
+                    } catch (e) {
+                        console.warn("Erro ao carregar playlists do Supabase:", e);
+                    }
+                }
+
+            } catch (err) {
+                console.error("Erro ao carregar dados do usuário:", err);
+            } finally {
+                setCarregandoFilmes(false);
+            }
+        }
+
+        carregarFilmesUsuario();
+    }, []);
+
+    // =========================================================
+    // 5. ATUALIZAÇÃO DA BIO
     // =========================================================
     const handleSalvarBio = async () => {
         setUsuario(prev => ({ ...prev, bio: inputBio }));
         setIsEditingBio(false);
         setStatusBio("Bio atualizada com sucesso!");
-
         setTimeout(() => setStatusBio(""), 3000);
 
-        // =====================================================
-        // SUPABASE: SALVAR BIO NO BANCO
-        // =====================================================
         if (supabase) {
             try {
-                const { error } = await supabase
-                    .from('usuario')
-                    .update({ bio: inputBio })
-                    .eq('id', usuario.id);
-
-                if (error) {
-                    console.error("Erro ao atualizar bio no Supabase:", error);
-                }
+                await supabase.from('usuario').update({ bio: inputBio }).eq('id', usuario.id);
             } catch (err) {
-                console.warn("Erro ao comunicar com Supabase ao salvar bio:", err);
+                console.warn("Erro ao salvar bio no Supabase:", err);
             }
         }
     };
 
     // =========================================================
-    // 6. INTEGRAÇÃO COM O BANCO DE DADOS (SUPABASE)
-    // =========================================================
-    useEffect(() => {
-        async function carregarDadosDoBanco() {
-            try {
-                if (!supabase) return;
-
-                // A) Buscar dados do Usuário (ID atual) e seus itens cosméticos
-                const { data: dadosUsuario, error: erroUsuario } = await supabase
-                    .from('usuario')
-                    .select('*, id_item_chapeu(*), id_item_mao(*), id_item_mascote(*)')
-                    .eq('id', usuario.id)
-                    .maybeSingle();
-
-                if (dadosUsuario && !erroUsuario) {
-                    setUsuario(prev => ({
-                        ...prev,
-                        id: dadosUsuario.id,
-                        nome: dadosUsuario.nome || prev.nome,
-                        username: dadosUsuario.username || prev.username,
-                        email: dadosUsuario.email || prev.email,
-                        bio: dadosUsuario.bio || prev.bio,
-                        xpTotal: dadosUsuario.xp_total ?? prev.xpTotal,
-                        nivel: dadosUsuario.nivel ?? prev.nivel,
-                        avatarUrl: dadosUsuario.url_img || dadosUsuario.avatar_url || prev.avatarUrl,
-                        chapeuUrl: dadosUsuario.id_item_chapeu?.url_imagem || prev.chapeuUrl,
-                        maoUrl: dadosUsuario.id_item_mao?.url_imagem || prev.maoUrl,
-                        mascoteUrl: dadosUsuario.id_item_mascote?.url_imagem || prev.mascoteUrl
-                    }));
-                    setInputBio(dadosUsuario.bio || "");
-                }
-
-                // B) Buscar Filmes do Usuários (se existir tabela de vinculo usuario_filmes)
-                const { data: dadosRelacao } = await supabase
-                    .from('usuario_filmes')
-                    .select('*, filmes(*)')
-                    .eq('id_usuario', usuario.id);
-
-                if (dadosRelacao && dadosRelacao.length > 0) {
-                    const favs = dadosRelacao
-                        .filter(item => item.tipo === 'favorito')
-                        .map(item => item.filmes);
-                    const watchLater = dadosRelacao
-                        .filter(item => item.tipo === 'assistir_mais_tarde')
-                        .map(item => item.filmes);
-
-                    if (favs.length > 0) setFavoritos(favs);
-                    if (watchLater.length > 0) setAssistirMaisTarde(watchLater);
-                } else {
-                    // Fallback: Busca geral de filmes caso a tabela usuario_filmes ainda não esteja populada
-                    const { data: dadosFilmes, error: erroFilmes } = await supabase
-                        .from('filmes')
-                        .select('*');
-
-                    if (dadosFilmes && dadosFilmes.length > 0 && !erroFilmes) {
-                        const metade = Math.ceil(dadosFilmes.length / 2);
-                        setFavoritos(dadosFilmes.slice(0, metade));
-                        setAssistirMaisTarde(dadosFilmes.slice(metade));
-                    }
-                }
-
-            } catch (err) {
-                console.warn("Supabase offline ou aguardando dados:", err);
-            }
-        }
-
-        carregarDadosDoBanco();
-    }, []);
-
-    // =========================================================
-    // 7. RENDERIZAÇÃO DA PÁGINA
+    // 6. RENDERIZAÇÃO DA PÁGINA
     // =========================================================
     return (
         <div id="pagina-usuario">
-            {/* Componente Navbar / Menu do CiNEPLANNER */}
+            {/* Componente Navbar principal do CiNEPLANNER */}
             <Menu />
 
-            {/* Conteúdo Principal */}
             <main className="usuario-main container">
 
                 {/* SEÇÃO DE PROGRESSO E XP */}
@@ -283,10 +405,9 @@ function Usuario() {
                     </div>
                 </section>
 
-                {/* CARD DE PERFIL COM AVATAR, ACESSÓRIOS E BIO */}
+                {/* CARD DE PERFIL DO USUÁRIO */}
                 <section className="profile-card" aria-label="Card de Perfil">
                     <div className="avatar-container">
-                        {/* Acessório de Chapéu (Tabela 'itens') */}
                         {usuario.chapeuUrl && (
                             <img
                                 className="hat-accessory"
@@ -307,7 +428,6 @@ function Usuario() {
                             />
                         </div>
 
-                        {/* Acessório de Mão/Item (Tabela 'itens') */}
                         {usuario.maoUrl && (
                             <img
                                 className="accessory"
@@ -374,7 +494,6 @@ function Usuario() {
                         )}
                     </div>
 
-                    {/* Mascote (Tabela 'itens') */}
                     {usuario.mascoteUrl && (
                         <img
                             className="pet-accessory"
@@ -384,7 +503,7 @@ function Usuario() {
                     )}
                 </section>
 
-                {/* SEÇÃO 1: FILMES FAVORITOS (COM CARROSSEL) */}
+                {/* SEÇÃO 1: FILMES FAVORITOS */}
                 <section className="movies-section" aria-label="Filmes Favoritos">
                     <div className="section-header">
                         <div className="section-header-left">
@@ -393,63 +512,128 @@ function Usuario() {
                                 {favoritos.length.toString().padStart(2, '0')} FILMES
                             </span>
                         </div>
+
+                        {/* NAVEGAÇÃO: BOTÃO DE ADICIONAR FILME (Leva para a página de filmes/catálogo) */}
+                        <Link
+                            to="/"
+                            className="btn-adicionar-filme"
+                            title="Navegar para catálogo para adicionar filmes"
+                        >
+                            + Adicionar Filme
+                        </Link>
                     </div>
 
-                    <div className="carousel-wrapper">
-                        {/* Botão Anterior */}
-                        <button
-                            className="carousel-btn carousel-btn-prev"
-                            onClick={() => rolarCarrossel(favoritosRef, "esquerda")}
-                            aria-label="Rolar filmes favoritos para a esquerda"
-                            type="button"
-                        >
-                            &#8249;
-                        </button>
+                    {carregandoFilmes ? (
+                        <div className="empty-list">Carregando filmes favoritos...</div>
+                    ) : favoritos.length === 0 ? (
+                        <div className="empty-list">
+                            <span>Você ainda não possui filmes favoritos na sua lista.</span>
+                            <Link to="/" className="btn-explorar-catalogo">
+                                Explorar Catálogo de Filmes
+                            </Link>
+                        </div>
+                    ) : (
+                        <div className="carousel-wrapper">
+                            <button
+                                className="carousel-btn carousel-btn-prev"
+                                onClick={() => rolarCarrossel(favoritosRef, "esquerda")}
+                                aria-label="Rolar favoritos para a esquerda"
+                                type="button"
+                            >
+                                &#8249;
+                            </button>
 
-                        {/* Pista do Carrossel de Favoritos */}
-                        <div className="movies-carousel" ref={favoritosRef}>
-                            {favoritos.map((filme) => (
-                                <article key={filme.id} className="filme-card">
-                                    <a href={`/resenhas?id=${filme.id}`} className="card-link">
-                                        <div className="card-poster">
-                                            <img
-                                                src={filme.poster_url}
-                                                alt={`Poster de ${filme.titulo}`}
-                                                className="poster-img"
-                                                loading="lazy"
-                                            />
-                                            <div className="card-overlay">
-                                                <span className="card-overlay-text">Ver Detalhes</span>
-                                            </div>
-                                        </div>
-                                        <div className="card-info">
-                                            <h3 className="card-titulo">{filme.titulo}</h3>
-                                            <div className="card-meta">
-                                                <span className="card-genero">{filme.genero || filme.classificacao || "Filme"}</span>
-                                                <div className="card-nota">
-                                                    <span className="estrela">★</span>
-                                                    <span className="nota-valor">{filme.nota || "—"}</span>
+                            <div className="movies-carousel" ref={favoritosRef}>
+                                {favoritos.map((filme) => (
+                                    <article className="filme-card" id={`card-filme-${filme.id}`} key={filme.id}>
+                                        {/* PADRÃO DE LINK E CARD IGUAL AO Filmes.jsx / Inicio.jsx */}
+                                        <Link to={`/resenhas/${filme.id}`} className="card-link">
+                                            <div className="card-poster">
+                                                <img
+                                                    src={filme.poster_url || "https://placehold.co/300x450/1a1a1a/e50914?text=Sem+Poster"}
+                                                    alt={`Poster do Filme ${filme.titulo}`}
+                                                    className="poster-img"
+                                                    loading="lazy"
+                                                />
+                                                <div className="card-overlay">
+                                                    <span className="card-overlay-text">Ver Detalhes</span>
                                                 </div>
                                             </div>
-                                        </div>
-                                    </a>
-                                </article>
-                            ))}
-                        </div>
+                                            <div className="card-info">
+                                                <h3 className="card-titulo">{filme.titulo}</h3>
+                                                <span className="card-genero">{filme.generos || "Filme"}</span>
+                                                <div className="card-nota">
+                                                    <span className="estrela" title="Avaliação">★</span>
+                                                    <span className="nota-valor">
+                                                        {filme.avaliacao ? (typeof filme.avaliacao === 'number' ? filme.avaliacao.toFixed(1) : filme.avaliacao) : "N/A"}
+                                                        {filme.duracao ? ` | ${filme.duracao} min` : ""}
+                                                        {filme.ano_lancamento ? ` | ${new Date(filme.ano_lancamento).getFullYear()}` : ""}
+                                                    </span>
+                                                </div>
+                                                {filme.sinopse && (
+                                                    <p className="card-sinopse">
+                                                        {filme.sinopse}
+                                                    </p>
+                                                )}
+                                            </div>
+                                        </Link>
 
-                        {/* Botão Próximo */}
-                        <button
-                            className="carousel-btn carousel-btn-next"
-                            onClick={() => rolarCarrossel(favoritosRef, "direita")}
-                            aria-label="Rolar filmes favoritos para a direita"
-                            type="button"
-                        >
-                            &#8250;
-                        </button>
-                    </div>
+                                        {/* BOTÕES LADO A LADO: CORAÇÃO (FAVORITOS) E PLAYLIST */}
+                                        <div className="card-actions">
+                                            {/* BOTÃO CORAÇÃO (FAVORITOS) */}
+                                            <button
+                                                onClick={() => toggleFavorito(filme)}
+                                                type="button"
+                                                title={eFavorito(filme.id) ? "Remover dos Favoritos" : "Adicionar aos Favoritos"}
+                                                className={`btn-card-action favorito ${eFavorito(filme.id) ? 'ativo' : ''}`}
+                                            >
+                                                <span className="btn-card-icon">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18" fill={eFavorito(filme.id) ? "#e50914" : "currentColor"}>
+                                                        <path d="M16.792 3.904A4.989 4.989 0 0 1 21.5 9.122c0 3.072-2.652 4.959-5.197 7.222-2.512 2.243-3.865 3.469-4.303 3.752-.477-.309-2.143-1.823-4.303-3.752C5.141 14.072 2.5 12.167 2.5 9.122a4.989 4.989 0 0 1 4.708-5.218 4.21 4.21 0 0 1 3.675 1.941c.84 1.175.98 1.763 1.12 1.763s.278-.588 1.11-1.766a4.17 4.17 0 0 1 3.679-1.938m0-2a6.04 6.04 0 0 0-4.797 2.127 6.052 6.052 0 0 0-4.787-2.127A6.985 6.985 0 0 0 .5 9.122c0 3.61 2.55 5.827 5.015 7.97.283.246.569.494.853.747l1.027.918a44.998 44.998 0 0 0 3.518 3.018 2 2 0 0 0 2.174 0 45.263 45.263 0 0 0 3.626-3.115l.922-.824c.293-.26.59-.519.885-.774 2.334-2.025 4.98-4.32 4.98-7.94a6.985 6.985 0 0 0-6.708-7.218Z" />
+                                                    </svg>
+                                                </span>
+                                            </button>
+
+                                            {/* BOTÃO PLAYLIST (ABRE O MODAL COM ASSISTIR MAIS TARDE E OUTRAS PLAYLISTS) */}
+                                            <button
+                                                onClick={() => setFilmeParaModal(filme)}
+                                                type="button"
+                                                title="Adicionar ou remover de playlists"
+                                                className={`btn-card-action playlist ${estaEmAlgumaPlaylist(filme.id) ? 'ativo' : ''}`}
+                                            >
+                                                <span className="btn-card-icon">
+                                                    {estaEmAlgumaPlaylist(filme.id) ? (
+                                                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 48 48">
+                                                            <path fill="#c8e6c9" d="M44,24c0,11.045-8.955,20-20,20S4,35.045,4,24S12.955,4,24,4S44,12.955,44,24z"></path>
+                                                            <path fill="#4caf50" d="M34.586,14.586l-13.57,13.586l-5.602-5.586l-2.828,2.828l8.434,8.414l16.395-16.414L34.586,14.586z"></path>
+                                                        </svg>
+                                                    ) : (
+                                                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 48 48" fill="none">
+                                                            <circle cx="24" cy="24" r="20" stroke="currentColor" strokeWidth="3" />
+                                                            <line x1="24" y1="14" x2="24" y2="34" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" />
+                                                            <line x1="14" y1="24" x2="34" y2="24" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" />
+                                                        </svg>
+                                                    )}
+                                                </span>
+                                            </button>
+                                        </div>
+                                    </article>
+                                ))}
+                            </div>
+
+                            <button
+                                className="carousel-btn carousel-btn-next"
+                                onClick={() => rolarCarrossel(favoritosRef, "direita")}
+                                aria-label="Rolar favoritos para a direita"
+                                type="button"
+                            >
+                                &#8250;
+                            </button>
+                        </div>
+                    )}
                 </section>
 
-                {/* SEÇÃO 2: ASSISTIR MAIS TARDE (COM CARROSSEL) */}
+                {/* SEÇÃO 2: ASSISTIR MAIS TARDE */}
                 <section className="movies-section" aria-label="Assistir Mais Tarde">
                     <div className="section-header">
                         <div className="section-header-left">
@@ -458,65 +642,372 @@ function Usuario() {
                                 {assistirMaisTarde.length.toString().padStart(2, '0')} FILMES
                             </span>
                         </div>
+
+                        {/* NAVEGAÇÃO: BOTÃO DE ADICIONAR FILME */}
+                        <Link
+                            to="/"
+                            className="btn-adicionar-filme"
+                            title="Navegar para catálogo para adicionar filmes"
+                        >
+                            + Adicionar Filme
+                        </Link>
                     </div>
 
-                    <div className="carousel-wrapper">
-                        {/* Botão Anterior */}
-                        <button
-                            className="carousel-btn carousel-btn-prev"
-                            onClick={() => rolarCarrossel(assistirMaisTardeRef, "esquerda")}
-                            aria-label="Rolar lista assistir mais tarde para a esquerda"
-                            type="button"
-                        >
-                            &#8249;
-                        </button>
+                    {carregandoFilmes ? (
+                        <div className="empty-list">Carregando lista de assistir mais tarde...</div>
+                    ) : assistirMaisTarde.length === 0 ? (
+                        <div className="empty-list">
+                            <span>Sua lista de assistir mais tarde está vazia.</span>
+                            <Link to="/" className="btn-explorar-catalogo">
+                                Explorar Catálogo de Filmes
+                            </Link>
+                        </div>
+                    ) : (
+                        <div className="carousel-wrapper">
+                            <button
+                                className="carousel-btn carousel-btn-prev"
+                                onClick={() => rolarCarrossel(assistirMaisTardeRef, "esquerda")}
+                                aria-label="Rolar watchlist para a esquerda"
+                                type="button"
+                            >
+                                &#8249;
+                            </button>
 
-                        {/* Pista do Carrossel de Assistir Mais Tarde */}
-                        <div className="movies-carousel" ref={assistirMaisTardeRef}>
-                            {assistirMaisTarde.map((filme) => (
-                                <article key={filme.id} className="filme-card">
-                                    <a href={`/resenhas?id=${filme.id}`} className="card-link">
-                                        <div className="card-poster">
-                                            <img
-                                                src={filme.poster_url}
-                                                alt={`Poster de ${filme.titulo}`}
-                                                className="poster-img"
-                                                loading="lazy"
-                                            />
-                                            <div className="card-overlay">
-                                                <span className="card-overlay-text">Ver Detalhes</span>
-                                            </div>
-                                        </div>
-                                        <div className="card-info">
-                                            <h3 className="card-titulo">{filme.titulo}</h3>
-                                            <div className="card-meta">
-                                                <span className="card-genero">{filme.genero || filme.classificacao || "Filme"}</span>
-                                                <div className="card-nota">
-                                                    <span className="estrela">★</span>
-                                                    <span className="nota-valor">{filme.nota || "—"}</span>
+                            <div className="movies-carousel" ref={assistirMaisTardeRef}>
+                                {assistirMaisTarde.map((filme) => (
+                                    <article className="filme-card" id={`card-filme-${filme.id}`} key={filme.id}>
+                                        {/* PADRÃO DE LINK E CARD IGUAL AO Filmes.jsx / Inicio.jsx */}
+                                        <Link to={`/resenhas/${filme.id}`} className="card-link">
+                                            <div className="card-poster">
+                                                <img
+                                                    src={filme.poster_url || "https://placehold.co/300x450/1a1a1a/e50914?text=Sem+Poster"}
+                                                    alt={`Poster do Filme ${filme.titulo}`}
+                                                    className="poster-img"
+                                                    loading="lazy"
+                                                />
+                                                <div className="card-overlay">
+                                                    <span className="card-overlay-text">Ver Detalhes</span>
                                                 </div>
                                             </div>
+                                            <div className="card-info">
+                                                <h3 className="card-titulo">{filme.titulo}</h3>
+                                                <span className="card-genero">{filme.generos || "Filme"}</span>
+                                                <div className="card-nota">
+                                                    <span className="estrela" title="Avaliação">★</span>
+                                                    <span className="nota-valor">
+                                                        {filme.avaliacao ? (typeof filme.avaliacao === 'number' ? filme.avaliacao.toFixed(1) : filme.avaliacao) : "N/A"}
+                                                        {filme.duracao ? ` | ${filme.duracao} min` : ""}
+                                                        {filme.ano_lancamento ? ` | ${new Date(filme.ano_lancamento).getFullYear()}` : ""}
+                                                    </span>
+                                                </div>
+                                                {filme.sinopse && (
+                                                    <p className="card-sinopse">
+                                                        {filme.sinopse}
+                                                    </p>
+                                                )}
+                                            </div>
+                                        </Link>
+
+                                        {/* BOTÕES LADO A LADO: CORAÇÃO (FAVORITOS) E PLAYLIST */}
+                                        <div className="card-actions">
+                                            {/* BOTÃO CORAÇÃO (FAVORITOS) */}
+                                            <button
+                                                onClick={() => toggleFavorito(filme)}
+                                                type="button"
+                                                title={eFavorito(filme.id) ? "Remover dos Favoritos" : "Adicionar aos Favoritos"}
+                                                className={`btn-card-action favorito ${eFavorito(filme.id) ? 'ativo' : ''}`}
+                                            >
+                                                <span className="btn-card-icon">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18" fill={eFavorito(filme.id) ? "#e50914" : "currentColor"}>
+                                                        <path d="M16.792 3.904A4.989 4.989 0 0 1 21.5 9.122c0 3.072-2.652 4.959-5.197 7.222-2.512 2.243-3.865 3.469-4.303 3.752-.477-.309-2.143-1.823-4.303-3.752C5.141 14.072 2.5 12.167 2.5 9.122a4.989 4.989 0 0 1 4.708-5.218 4.21 4.21 0 0 1 3.675 1.941c.84 1.175.98 1.763 1.12 1.763s.278-.588 1.11-1.766a4.17 4.17 0 0 1 3.679-1.938m0-2a6.04 6.04 0 0 0-4.797 2.127 6.052 6.052 0 0 0-4.787-2.127A6.985 6.985 0 0 0 .5 9.122c0 3.61 2.55 5.827 5.015 7.97.283.246.569.494.853.747l1.027.918a44.998 44.998 0 0 0 3.518 3.018 2 2 0 0 0 2.174 0 45.263 45.263 0 0 0 3.626-3.115l.922-.824c.293-.26.59-.519.885-.774 2.334-2.025 4.98-4.32 4.98-7.94a6.985 6.985 0 0 0-6.708-7.218Z" />
+                                                    </svg>
+                                                </span>
+                                            </button>
+
+                                            {/* BOTÃO PLAYLIST (ABRE O MODAL) */}
+                                            <button
+                                                onClick={() => setFilmeParaModal(filme)}
+                                                type="button"
+                                                title="Adicionar ou remover de playlists"
+                                                className={`btn-card-action playlist ${estaEmAlgumaPlaylist(filme.id) ? 'ativo' : ''}`}
+                                            >
+                                                <span className="btn-card-icon">
+                                                    {estaEmAlgumaPlaylist(filme.id) ? (
+                                                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 48 48">
+                                                            <path fill="#c8e6c9" d="M44,24c0,11.045-8.955,20-20,20S4,35.045,4,24S12.955,4,24,4S44,12.955,44,24z"></path>
+                                                            <path fill="#4caf50" d="M34.586,14.586l-13.57,13.586l-5.602-5.586l-2.828,2.828l8.434,8.414l16.395-16.414L34.586,14.586z"></path>
+                                                        </svg>
+                                                    ) : (
+                                                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 48 48" fill="none">
+                                                            <circle cx="24" cy="24" r="20" stroke="currentColor" strokeWidth="3" />
+                                                            <line x1="24" y1="14" x2="24" y2="34" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" />
+                                                            <line x1="14" y1="24" x2="34" y2="24" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" />
+                                                        </svg>
+                                                    )}
+                                                </span>
+                                            </button>
                                         </div>
-                                    </a>
-                                </article>
-                            ))}
+                                    </article>
+                                ))}
+                            </div>
+
+                            <button
+                                className="carousel-btn carousel-btn-next"
+                                onClick={() => rolarCarrossel(assistirMaisTardeRef, "direita")}
+                                aria-label="Rolar watchlist para a direita"
+                                type="button"
+                            >
+                                &#8250;
+                            </button>
+                        </div>
+                    )}
+                </section>
+
+                {/* SEÇÃO 3: SUAS PLAYLISTS PERSONALIZADAS (ABAIXO DE ASSISTIR MAIS TARDE) */}
+                <section className="movies-section custom-playlists-wrapper" aria-label="Minhas Playlists Personalizadas">
+                    <div className="section-header">
+                        <div className="section-header-left">
+                            <h2>PLAYLISTS PERSONALIZADAS</h2>
+                            <span className="movie-count">
+                                {playlists.length.toString().padStart(2, '0')} PLAYLISTS
+                            </span>
                         </div>
 
-                        {/* Botão Próximo */}
-                        <button
-                            className="carousel-btn carousel-btn-next"
-                            onClick={() => rolarCarrossel(assistirMaisTardeRef, "direita")}
-                            aria-label="Rolar lista assistir mais tarde para a direita"
-                            type="button"
-                        >
-                            &#8250;
-                        </button>
+
                     </div>
+
+                    {/* FORMULÁRIO PARA CRIAR NOVA PLAYLIST */}
+                    {isCriandoPlaylist && (
+                        <form onSubmit={handleCriarPlaylist} className="form-criar-playlist">
+                            <input
+                                type="text"
+                                placeholder="Digite o nome da playlist..."
+                                value={novaPlaylistNome}
+                                onChange={(e) => setNovaPlaylistNome(e.target.value)}
+                                autoFocus
+                                className="input-nome-playlist"
+                            />
+                            <div className="form-criar-actions">
+                                <button type="submit" className="btn-confirmar-criar">Criar Playlist</button>
+                                <button type="button" className="btn-cancelar-criar" onClick={() => setIsCriandoPlaylist(false)}>Cancelar</button>
+                            </div>
+                        </form>
+                    )}
+
+                    {playlists.length === 0 ? (
+                        <div className="empty-list">
+                            <span>Você ainda não criou nenhuma playlist personalizada.</span>
+
+                        </div>
+                    ) : (
+                        playlists.map((pl) => (
+                            <div key={pl.id} className="custom-playlist-block">
+                                <div className="custom-playlist-header">
+                                    <div className="custom-playlist-title-container">
+                                        {/* BOTÃO TOGGLE PÚBLICA / PRIVADA À ESQUERDA DO TÍTULO */}
+                                        <button
+                                            type="button"
+                                            onClick={() => togglePublicaPlaylist(pl.id)}
+                                            className={`btn-playlist-visibilidade ${(pl.publica ?? true) ? 'publica' : 'privada'}`}
+                                            title={(pl.publica ?? true) ? "Playlist Pública (Clique para tornar Privada)" : "Playlist Privada (Clique para tornar Pública)"}
+                                            aria-label={(pl.publica ?? true) ? "Playlist Pública" : "Playlist Privada"}
+                                        >
+                                            {(pl.publica ?? true) ? (
+                                                /* SVG DE GLOBO (PÚBLICA) */
+                                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                    <circle cx="12" cy="12" r="10" />
+                                                    <line x1="2" y1="12" x2="22" y2="12" />
+                                                    <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+                                                </svg>
+                                            ) : (
+                                                /* SVG DE CADEADO (PRIVADA) */
+                                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                                                    <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                                                </svg>
+                                            )}
+                                        </button>
+                                        <h3>{pl.nome}</h3>
+                                    </div>
+                                    <div className="canto-direito">
+                                        <span className="movie-count">
+                                            {(pl.filmes ? pl.filmes.length : 0).toString().padStart(2, '0')} FILMES
+                                        </span>
+                                        <button
+                                            type="button"
+                                            className="btn-deletar-playlist"
+                                            onClick={() => handleDeletarPlaylist(pl.id)}
+                                            title="Excluir esta playlist"
+                                        >
+                                            <svg xmlns="http://www.w3.org/2000/svg" id="Layer_1" data-name="Layer 1" viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
+                                                <path d="m19.5,0H4.5C2.019,0,0,2.019,0,4.5v15c0,2.481,2.019,4.5,4.5,4.5h15c2.481,0,4.5-2.019,4.5-4.5V4.5c0-2.481-2.019-4.5-4.5-4.5Zm3.5,19.5c0,1.93-1.57,3.5-3.5,3.5H4.5c-1.93,0-3.5-1.57-3.5-3.5V4.5c0-1.93,1.57-3.5,3.5-3.5h15c1.93,0,3.5,1.57,3.5,3.5v15Zm-4.122-14.673l-6.216,7.173,6.216,7.173c.181.208.158.524-.051.705-.095.082-.211.122-.327.122-.14,0-.279-.059-.378-.173l-6.122-7.064-6.122,7.064c-.099.114-.238.173-.378.173-.116,0-.232-.04-.327-.122-.209-.181-.231-.497-.051-.705l6.216-7.173-6.216-7.173c-.181-.208-.158-.524.051-.705.208-.18.524-.159.705.051l6.122,7.064,6.122-7.064c.181-.21.496-.23.705-.051.209.181.231.497.051.705Z" />
+                                            </svg>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {(!pl.filmes || pl.filmes.length === 0) ? (
+                                    <div className="empty-list mini-empty">
+                                        <span>Nenhum filme adicionado a esta playlist ainda. Clique no botão de playlist dos filmes para adicionar!</span>
+
+                                    </div>
+
+                                ) : (
+                                    <div className="carousel-wrapper">
+                                        <button
+                                            className="carousel-btn carousel-btn-prev"
+                                            onClick={() => rolarCarrosselPorId(`carousel-pl-${pl.id}`, "esquerda")}
+                                            aria-label="Rolar playlist para a esquerda"
+                                            type="button"
+                                        >
+                                            &#8249;
+                                        </button>
+
+                                        <div className="movies-carousel" id={`carousel-pl-${pl.id}`}>
+                                            {pl.filmes.map((filme) => (
+                                                <article className="filme-card" id={`card-filme-pl-${pl.id}-${filme.id}`} key={filme.id}>
+                                                    <Link to={`/resenhas/${filme.id}`} className="card-link">
+                                                        <div className="card-poster">
+                                                            <img
+                                                                src={filme.poster_url || "https://placehold.co/300x450/1a1a1a/e50914?text=Sem+Poster"}
+                                                                alt={`Poster do Filme ${filme.titulo}`}
+                                                                className="poster-img"
+                                                                loading="lazy"
+                                                            />
+                                                            <div className="card-overlay">
+                                                                <span className="card-overlay-text">Ver Detalhes</span>
+                                                            </div>
+                                                        </div>
+                                                        <div className="card-info">
+                                                            <h3 className="card-titulo">{filme.titulo}</h3>
+                                                            <span className="card-genero">{filme.generos || "Filme"}</span>
+                                                            <div className="card-nota">
+                                                                <span className="estrela" title="Avaliação">★</span>
+                                                                <span className="nota-valor">
+                                                                    {filme.avaliacao ? (typeof filme.avaliacao === 'number' ? filme.avaliacao.toFixed(1) : filme.avaliacao) : "N/A"}
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                    </Link>
+
+                                                    <div className="card-actions">
+                                                        <button
+                                                            onClick={() => toggleFavorito(filme)}
+                                                            type="button"
+                                                            title={eFavorito(filme.id) ? "Remover dos Favoritos" : "Adicionar aos Favoritos"}
+                                                            className={`btn-card-action favorito ${eFavorito(filme.id) ? 'ativo' : ''}`}
+                                                        >
+                                                            <span className="btn-card-icon">
+                                                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18" fill={eFavorito(filme.id) ? "#e50914" : "currentColor"}>
+                                                                    <path d="M16.792 3.904A4.989 4.989 0 0 1 21.5 9.122c0 3.072-2.652 4.959-5.197 7.222-2.512 2.243-3.865 3.469-4.303 3.752-.477-.309-2.143-1.823-4.303-3.752C5.141 14.072 2.5 12.167 2.5 9.122a4.989 4.989 0 0 1 4.708-5.218 4.21 4.21 0 0 1 3.675 1.941c.84 1.175.98 1.763 1.12 1.763s.278-.588 1.11-1.766a4.17 4.17 0 0 1 3.679-1.938m0-2a6.04 6.04 0 0 0-4.797 2.127 6.052 6.052 0 0 0-4.787-2.127A6.985 6.985 0 0 0 .5 9.122c0 3.61 2.55 5.827 5.015 7.97.283.246.569.494.853.747l1.027.918a44.998 44.998 0 0 0 3.518 3.018 2 2 0 0 0 2.174 0 45.263 45.263 0 0 0 3.626-3.115l.922-.824c.293-.26.59-.519.885-.774 2.334-2.025 4.98-4.32 4.98-7.94a6.985 6.985 0 0 0-6.708-7.218Z" />
+                                                                </svg>
+                                                            </span>
+                                                        </button>
+
+                                                        <button
+                                                            onClick={() => toggleFilmeEmPlaylist(pl.id, filme)}
+                                                            type="button"
+                                                            title="Remover filme desta playlist"
+                                                            className="btn-card-action remover-playlist"
+                                                        >
+                                                            <span className="btn-card-icon">✕</span>
+                                                        </button>
+                                                    </div>
+                                                </article>
+                                            ))}
+                                        </div>
+
+                                        <button
+                                            className="carousel-btn carousel-btn-next"
+                                            onClick={() => rolarCarrosselPorId(`carousel-pl-${pl.id}`, "direita")}
+                                            aria-label="Rolar playlist para a direita"
+                                            type="button"
+                                        >
+                                            &#8250;
+                                        </button>
+                                    </div>
+                                )}
+
+
+                            </div>
+                        ))
+                    )}
+
+                    <button
+                        type="button"
+                        className="btn-explorar-catalogo"
+                        onClick={() => setIsCriandoPlaylist(true)}
+                    >
+                        + Crie Sua Playlist
+                    </button>
                 </section>
 
             </main>
 
-            {/* Componente de Rodapé do CiNEPLANNER */}
+            {/* MODAL PARA SELECIONAR E ADICIONAR FILME A PLAYLISTS (ASSISTIR MAIS TARDE OU PERSONALIZADAS) */}
+            {filmeParaModal && (
+                <div className="modal-overlay" onClick={() => setFilmeParaModal(null)}>
+                    <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+                        <div className="modal-header">
+                            <h3>Adicionar às Playlists</h3>
+                            <button type="button" className="btn-close-modal" onClick={() => setFilmeParaModal(null)}>✕</button>
+                        </div>
+                        <p className="modal-sub">Filme: <strong>{filmeParaModal.titulo}</strong></p>
+
+                        <div className="modal-playlists-list">
+                            {/* PLAYLIST PADRÃO: ASSISTIR MAIS TARDE */}
+                            <button
+                                type="button"
+                                className={`modal-playlist-item ${naWatchlist(filmeParaModal.id) ? 'selecionada' : ''}`}
+                                onClick={() => toggleAssistirMaisTarde(filmeParaModal)}
+                            >
+                                <span className="modal-item-nome">
+                                    <img src={playlistIcon} alt="Playlist" className="modal-item-icon" /> Assistir Mais Tarde
+                                </span>
+                                <span className="modal-item-status">{naWatchlist(filmeParaModal.id) ? '✓ Adicionado' : '+ Adicionar'}</span>
+                            </button>
+
+                            {/* PLAYLISTS PERSONALIZADAS CRIADAS PELO USUÁRIO */}
+                            {playlists.map((pl) => {
+                                const jaPertence = pl.filmes && pl.filmes.some(f => f.id === filmeParaModal.id);
+                                return (
+                                    <button
+                                        key={pl.id}
+                                        type="button"
+                                        className={`modal-playlist-item ${jaPertence ? 'selecionada' : ''}`}
+                                        onClick={() => toggleFilmeEmPlaylist(pl.id, filmeParaModal)}
+                                    >
+                                        <span className="modal-item-nome">
+                                            <img src={playlistIcon} alt="Playlist" className="modal-item-icon" /> {pl.nome}
+                                        </span>
+                                        <span className="modal-item-status">{jaPertence ? '✓ Adicionado' : '+ Adicionar'}</span>
+                                    </button>
+                                );
+                            })}
+                        </div>
+
+                        <div className="modal-footer">
+                            <button
+                                type="button"
+                                className="btn-modal-criar"
+                                onClick={() => {
+                                    setFilmeParaModal(null);
+                                    setIsCriandoPlaylist(true);
+                                }}
+                            >
+                                + Criar Nova Playlist
+                            </button>
+                            <button
+                                type="button"
+                                className="btn-modal-fechar"
+                                onClick={() => setFilmeParaModal(null)}
+                            >
+                                Concluído
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
