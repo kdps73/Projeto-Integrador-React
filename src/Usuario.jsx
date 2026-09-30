@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import Menu from "./components/Menu";
 import { supabase } from "./supabase";
 import playlistIcon from "./assets/playlist_icon.svg";
@@ -36,21 +36,30 @@ async function buscarDetalhesFilme(id) {
 }
 
 function Usuario() {
+    const navigate = useNavigate();
     // =========================================================
     // 1. ESTADOS DO USUÁRIO (Perfil, XP, Bio e Acessórios)
     // =========================================================
-    const [usuario, setUsuario] = useState({
-        id: 11,
-        nome: "They Pro Filmes",
-        username: "THEY_PRO_FILMES",
-        email: "usuario@cineplanner.com",
-        bio: "Amante de ficção científica, cinema clássico e maratonas de fim de semana.",
-        xpTotal: 25400,
-        nivel: 50,
-        chapeuUrl: "./img/hat-red-dead.png",
-        maoUrl: "./img/acessorio-red-dead.png",
-        mascoteUrl: "./img/pet-red-dead.png",
-        avatarUrl: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=300&q=80"
+    const [usuario, setUsuario] = useState(() => {
+        const userStr = localStorage.getItem("user");
+        let userLocal = null;
+        if (userStr) {
+            try { userLocal = JSON.parse(userStr); } catch(e){}
+        }
+
+        return {
+            id: userLocal?.id || 11,
+            nome: userLocal?.nome || "Usuário",
+            username: userLocal?.username || userLocal?.nome || "USUARIO",
+            email: userLocal?.email || "usuario@cineplanner.com",
+            bio: "Amante de ficção científica, cinema clássico e maratonas de fim de semana.",
+            xpTotal: userLocal?.xp || 25400,
+            nivel: userLocal?.nivel || Math.floor((userLocal?.xp || 25400) / 600) || 50,
+            chapeuUrl: "null",
+            maoUrl: "null",
+            mascoteUrl: "null",
+            avatarUrl: userLocal?.url_img || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=300&q=80"
+        };
     });
 
     const [inputBio, setInputBio] = useState(usuario.bio);
@@ -374,6 +383,12 @@ function Usuario() {
         }
     };
 
+    const handleLogout = () => {
+        localStorage.removeItem("user");
+        window.dispatchEvent(new Event("authChanged"));
+        navigate("/login");
+    };
+
     // =========================================================
     // 6. RENDERIZAÇÃO DA PÁGINA
     // =========================================================
@@ -427,6 +442,9 @@ function Usuario() {
                                 }}
                             />
                         </div>
+                        <button onClick={handleLogout} style={{ background: 'transparent', border: 'none', color: '#dc2626', cursor: 'pointer', fontWeight: 'bold', padding: '5px 10px' }}>
+                            Sair
+                        </button>
 
                         {usuario.maoUrl && (
                             <img

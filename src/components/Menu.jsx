@@ -84,12 +84,6 @@ function Menu() {
         };
     }, []);
 
-    const handleLogout = () => {
-        localStorage.removeItem("user");
-        setUser(null);
-        window.dispatchEvent(new Event("authChanged"));
-        navigate("/login");
-    };
 
     const avatarUrl = user?.url_img;
     const userName = user?.nome || user?.username || user?.email?.split('@')[0] || "Usuário";
@@ -97,10 +91,10 @@ function Menu() {
     return (
         <div>
             <nav className="navbar" id="navbar">
-                <div className="navbar-container" style={{ display: 'flex', alignItems: 'center', width: '100%' }}>
-                    <a href="/index.html" className="navbar-logo" id="logo-link">
+                <div className="navbar-container" style={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
+                    <Link to="/" className="navbar-logo" id="logo-link">
                         <span className="logo-text">CiNEPLANNER</span>
-                    </a>
+                    </Link>
 
                     <ul className="navbar-links" style={{ display: 'flex', alignItems: 'center', margin: 0, padding: 0 }}>
                         <li>
@@ -128,20 +122,23 @@ function Menu() {
                     </ul>
 
                     {/* Barra de pesquisa */}
-                    <div style={{ flex: 1, display: 'flex', justifyContent: 'center', padding: '0 20px', position: 'relative' }}>
-                        <div style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            backgroundColor: '#111',
-                            borderRadius: '20px',
-                            padding: '4px 12px',
-                            border: '1px solid #dc2626',
-                            width: '100%',
-                            maxWidth: '300px',
-                            boxShadow: '0 0 5px rgba(220, 38, 38, 0.3)',
-                            position: 'relative'
-                        }}>
-                            <span style={{ color: '#dc2626', marginRight: '8px', fontSize: '1rem' }}>🔍</span>
+                    <div style={{ flex: 0, display: 'flex', justifyContent: 'right', padding: '0px', position: 'relative' }}>
+                        <div className={`search-container ${searchTerm ? 'has-text' : ''}`}>
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="16"
+                                height="25"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="#dc2626"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                style={{ marginRight: '8px', minWidth: '16px' }}
+                            >
+                                <circle cx="11" cy="11" r="8"></circle>
+                                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                            </svg>
                             <input
                                 type="text"
                                 placeholder="Pesquisar filmes..."
@@ -150,14 +147,7 @@ function Menu() {
                                 onKeyDown={handleSearchKeyDown}
                                 onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
                                 onFocus={() => { if (suggestions.length > 0) setShowSuggestions(true); }}
-                                style={{
-                                    backgroundColor: 'transparent',
-                                    border: 'none',
-                                    color: '#fff',
-                                    outline: 'none',
-                                    width: '100%',
-                                    fontSize: '0.9rem'
-                                }}
+                                className="search-input"
                             />
 
                             {showSuggestions && (
@@ -194,9 +184,6 @@ function Menu() {
                                     )}
                                     <span style={{ fontWeight: '500', fontSize: '0.9rem' }}>{userName}</span>
                                 </Link>
-                                <button onClick={handleLogout} style={{ background: 'transparent', border: 'none', color: '#dc2626', cursor: 'pointer', fontWeight: 'bold' }}>
-                                    Sair
-                                </button>
                             </div>
                         ) : (
                             <Link
