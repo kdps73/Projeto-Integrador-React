@@ -851,6 +851,54 @@ ul {
     transform: translateY(-2px);
 }
 
+@keyframes slideInUpFadeOut {
+    0% {
+        transform: translateY(100px);
+        opacity: 0;
+    }
+
+    10% {
+        transform: translateY(0);
+        opacity: 1;
+    }
+
+    80% {
+        transform: translateY(0);
+        opacity: 1;
+    }
+
+    100% {
+        transform: translateY(0);
+        opacity: 0;
+    }
+}
+
+.toast-xp {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    padding: 15px 25px;
+    border-radius: 8px;
+    color: white;
+    font-weight: bold;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+    z-index: 9999;
+    animation: slideInUpFadeOut 3s ease-in-out forwards;
+}
+
+.toast-xp.positivo {
+    background-color: #e50914;
+}
+
+.toast-xp.negativo {
+    background-color: #111;
+    border: 1px solid #333;
+}
+
 /* Footer styles inherited from index.css */
 
 /* ===== RESPONSIVIDADE ===== */
