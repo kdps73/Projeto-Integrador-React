@@ -1,4 +1,4 @@
-import { Link, useSearchParams } from "react-router-dom";
+import { Link, useSearchParams, useLocation } from "react-router-dom";
 import { useState, useEffect } from "react";
 import "./css/index.css";
 import Filmes from "./components/Filmes";
@@ -9,12 +9,23 @@ function Inicio() {
     
     const [searchParams] = useSearchParams();
     const searchQuery = searchParams.get("search");
+    const { hash } = useLocation();
 
     const [fetchUrl, setFetchUrl] = useState(`${BASE_URL}/movie/popular?language=pt-BR&api_key=${API_KEY}`);
     const [page, setPage] = useState(1);
     const [tituloSecao, setTituloSecao] = useState("Mais Populares");
     const [subtituloSecao, setSubtituloSecao] = useState("Ordenados por popularidade");
 
+
+    useEffect(() => {
+        if (hash) {
+            const id = hash.replace('#', '');
+            const element = document.getElementById(id);
+            if (element) {
+                element.scrollIntoView({ behavior: 'smooth' });
+            }
+        }
+    }, [hash]);
 
     useEffect(() => {
         if (searchQuery) {
