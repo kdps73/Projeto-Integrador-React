@@ -77,7 +77,7 @@ function Menu() {
 
         window.addEventListener("storage", checkUser);
         window.addEventListener("authChanged", checkUser);
-        
+
         return () => {
             window.removeEventListener("storage", checkUser);
             window.removeEventListener("authChanged", checkUser);
@@ -104,14 +104,14 @@ function Menu() {
 
                     <ul className="navbar-links" style={{ display: 'flex', alignItems: 'center', margin: 0, padding: 0 }}>
                         <li>
-                            <Link to="/" className="nav-link">
+                            <a href="/#hero" className="nav-link">
                                 Início
-                            </Link>
+                            </a>
                         </li>
                         <li>
-                            <Link to="/" className="nav-link">
+                            <a href="/#filmes" className="nav-link">
                                 Filmes
-                            </Link>
+                            </a>
                         </li>
                         <li>
                             <Link to="/listas" className="nav-link active">
