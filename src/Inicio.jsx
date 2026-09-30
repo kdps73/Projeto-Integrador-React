@@ -3,7 +3,9 @@ import { useState, useEffect } from "react";
 import "./css/index.css";
 import Filmes from "./components/Filmes";
 import Filtro from "./components/Filtro";
+import Carousel3D from "./components/Carousel3D";
 function Inicio() {
+
     const API_KEY = '168817e9845280fe6d28f3a939f4bc67';
     const BASE_URL = 'https://api.themoviedb.org/3';
     
@@ -53,17 +55,18 @@ function Inicio() {
     return (
         <>
             <header className="hero" id="hero">
+                <Carousel3D />
                 <div className="hero-overlay"></div>
-                <div className="hero-content">
-                    <h1 className="hero-title">CiNEPLANNER</h1>
-                    <h2 className="hero-subtitle">
+                <div className="hero-content" style={{ pointerEvents: 'none' }}>
+                    <h1 className="hero-title" style={{ pointerEvents: 'auto' }}>CiNEPLANNER</h1>
+                    <h2 className="hero-subtitle" style={{ pointerEvents: 'auto' }}>
                         Sua experiência cinematográfica começa aqui.
                     </h2>
-                    <p className="hero-description">
+                    <p className="hero-description" style={{ pointerEvents: 'auto' }}>
                         Descubra os melhores filmes, leia resenhas e compartilhe sua opinião
                         com outros cinéfilos.
                     </p>
-                    <a href="#filmes" className="hero-btn" id="btn-explorar">
+                    <a href="#filmes" className="hero-btn" id="btn-explorar" style={{ pointerEvents: 'auto' }}>
                         Explorar Filmes
                     </a>
                 </div>
@@ -131,7 +134,7 @@ function Inicio() {
                     <Filmes fetchUrl={fetchUrl} page={page} />
                 </div>
 
-                <div style={{ textAlign: "center", marginTop: "2rem", marginBottom: "4rem" }}>
+                <div className="pagination-container">
                     <button className="hero-btn" onClick={() => setPage(p => p + 1)}>
                         Ver Mais
                     </button>

@@ -63,7 +63,10 @@ ul {
             rgba(0, 0, 0, 0.78) 0%,
             rgba(0, 0, 0, 0.60) 55%,
             rgba(20, 20, 20, 0.98) 100%),
-        url('https://placehold.co/1920x900/0d0d0d/1a1a1a?text=') center center / cover no-repeat;
+        var(--bg-image, none);
+    background-position: center;
+    background-size: cover;
+    background-repeat: no-repeat;
     overflow: auto;
 }
 
@@ -942,4 +945,28 @@ ul {
     .novo-coment-form {
         flex-direction: column;
     }
+}
+
+.loading-message {
+    color: white;
+    text-align: center;
+    margin-top: 100px;
+}
+
+.star-rating-container {
+    display: inline-flex;
+    flex-direction: row-reverse;
+}
+
+.no-comments-message {
+    color: #888;
+    margin-bottom: 30px;
+}
+
+.login-prompt-message {
+    color: #888;
+}
+
+.login-prompt-link {
+    color: #e50914;
 }
