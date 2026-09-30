@@ -35,12 +35,37 @@ async function buscarDetalhesFilme(id) {
     }
 }
 
+// Função utilitária para obter a URL pública de itens do Supabase Storage
+function obterUrlItem(caminhoOuUrl) {
+    if (!caminhoOuUrl) return "";
+    // Se já for uma URL completa externa ou caminho relativo local
+    if (
+        caminhoOuUrl.startsWith("http://") ||
+        caminhoOuUrl.startsWith("https://") ||
+        caminhoOuUrl.startsWith("./") ||
+        caminhoOuUrl.startsWith("/")
+    ) {
+        return caminhoOuUrl;
+    }
+    // Se for o nome do arquivo ou caminho salvo no bucket do Supabase Storage ('itens')
+    if (supabase) {
+        // Remove prefixo "itens/" se existir para evitar duplicação caso o bucket já seja 'itens'
+        const nomeArquivo = caminhoOuUrl.startsWith("itens/")
+            ? caminhoOuUrl.replace(/^itens\//, "")
+            : caminhoOuUrl;
+
+        const { data } = supabase.storage.from("itens").getPublicUrl(nomeArquivo);
+        return data?.publicUrl || caminhoOuUrl;
+    }
+    return caminhoOuUrl;
+}
+
 function Usuario() {
     // =========================================================
     // 1. ESTADOS DO USUÁRIO (Perfil, XP, Bio e Acessórios)
     // =========================================================
     const [usuario, setUsuario] = useState({
-        id: 11,
+        id: 1,
         nome: "They Pro Filmes",
         username: "THEY_PRO_FILMES",
         email: "usuario@cineplanner.com",
@@ -50,8 +75,14 @@ function Usuario() {
         chapeuUrl: "./img/hat-red-dead.png",
         maoUrl: "./img/acessorio-red-dead.png",
         mascoteUrl: "./img/pet-red-dead.png",
-        avatarUrl: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=300&q=80"
+        avatarUrl: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=300&q=80",
+        idItemChapeu: null,
+        idItemMao: null,
+        idItemMascote: null
     });
+
+    const [itens, setItens] = useState([]);
+    const [modalItensAberto, setModalItensAberto] = useState(false);
 
     const [inputBio, setInputBio] = useState(usuario.bio);
     const [statusBio, setStatusBio] = useState("");
@@ -290,13 +321,20 @@ function Usuario() {
                             bio: dadosUsuario.bio || prev.bio,
                             xpTotal: dadosUsuario.xp_total ?? prev.xpTotal,
                             nivel: dadosUsuario.nivel ?? prev.nivel,
-                            avatarUrl: dadosUsuario.url_img || dadosUsuario.avatar_url || prev.avatarUrl,
-                            chapeuUrl: dadosUsuario.id_item_chapeu?.url_imagem || prev.chapeuUrl,
-                            maoUrl: dadosUsuario.id_item_mao?.url_imagem || prev.maoUrl,
-                            mascoteUrl: dadosUsuario.id_item_mascote?.url_imagem || prev.mascoteUrl
+                            avatarUrl: dadosUsuario.url_img ? obterUrlItem(dadosUsuario.url_img) : (dadosUsuario.avatar_url || prev.avatarUrl),
+                            chapeuUrl: dadosUsuario.id_item_chapeu?.url_item ? obterUrlItem(dadosUsuario.id_item_chapeu.url_item) : prev.chapeuUrl,
+                            maoUrl: dadosUsuario.id_item_mao?.url_item ? obterUrlItem(dadosUsuario.id_item_mao.url_item) : prev.maoUrl,
+                            mascoteUrl: dadosUsuario.id_item_mascote?.url_item ? obterUrlItem(dadosUsuario.id_item_mascote.url_item) : prev.mascoteUrl,
+                            idItemChapeu: dadosUsuario.id_item_chapeu?.id || null,
+                            idItemMao: dadosUsuario.id_item_mao?.id || null,
+                            idItemMascote: dadosUsuario.id_item_mascote?.id || null
                         }));
                         setInputBio(dadosUsuario.bio || "");
                     }
+
+                    // Buscar os itens
+                    const { data: dadosItens } = await supabase.from('itens').select('*');
+                    if (dadosItens) setItens(dadosItens);
                 }
 
                 // B) Sincronizar Playlists (Favoritos, Assistir Mais Tarde e Personalizadas) direto do Supabase
@@ -374,6 +412,39 @@ function Usuario() {
         }
     };
 
+    const handleEquiparItem = async (item) => {
+        const xpAtual = Number(usuario.xpTotal || 0);
+        const valorItem = Number(item.valor || 0);
+
+        if (xpAtual < valorItem) return; // Item bloqueado
+
+        const atualizacoes = {};
+        if (item.tipo === 1) atualizacoes.id_item_chapeu = item.id;
+        else if (item.tipo === 2) atualizacoes.id_item_mao = item.id;
+        else if (item.tipo === 3) atualizacoes.id_item_mascote = item.id;
+
+        const urlFormatada = obterUrlItem(item.url_item);
+
+        // Atualiza a UI imediatamente para sensação de tempo real
+        setUsuario(prev => ({
+            ...prev,
+            chapeuUrl: item.tipo === 1 ? urlFormatada : prev.chapeuUrl,
+            maoUrl: item.tipo === 2 ? urlFormatada : prev.maoUrl,
+            mascoteUrl: item.tipo === 3 ? urlFormatada : prev.mascoteUrl,
+            idItemChapeu: item.tipo === 1 ? item.id : prev.idItemChapeu,
+            idItemMao: item.tipo === 2 ? item.id : prev.idItemMao,
+            idItemMascote: item.tipo === 3 ? item.id : prev.idItemMascote,
+        }));
+
+        if (supabase) {
+            try {
+                await supabase.from('usuario').update(atualizacoes).eq('id', usuario.id);
+            } catch (err) {
+                console.warn("Erro ao equipar item", err);
+            }
+        }
+    };
+
     // =========================================================
     // 6. RENDERIZAÇÃO DA PÁGINA
     // =========================================================
@@ -441,6 +512,28 @@ function Usuario() {
                         <div className="username-header">
                             <span className="username-label">USUÁRIO</span>
                             <span className="user-email">{usuario.email}</span>
+                            <button 
+                                className="btn-inventario" 
+                                onClick={() => setModalItensAberto(true)}
+                                type="button"
+                                title="Abrir Itens"
+                            >
+                                <svg 
+                                    width="14" 
+                                    height="14" 
+                                    viewBox="0 0 24 24" 
+                                    fill="none" 
+                                    stroke="currentColor" 
+                                    strokeWidth="2" 
+                                    strokeLinecap="round" 
+                                    strokeLinejoin="round"
+                                >
+                                    <circle cx="9" cy="21" r="1"></circle>
+                                    <circle cx="20" cy="21" r="1"></circle>
+                                    <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+                                </svg>
+                                Itens
+                            </button>
                         </div>
 
                         <h1 className="username">{usuario.username}</h1>
@@ -1008,8 +1101,102 @@ function Usuario() {
                     </div>
                 </div>
             )}
+
+            {/* MODAL DE ITENS */}
+            {modalItensAberto && (
+                <div className="modal-overlay" style={{ backdropFilter: "blur(10px)", backgroundColor: "rgba(0, 0, 0, 0.7)" }} onClick={() => setModalItensAberto(false)}>
+                    <div className="modal-content itens-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: "800px", width: "90%", maxHeight: "90vh", display: "flex", flexDirection: "column" }}>
+                        <div className="modal-header">
+                            <h3>ITENS</h3>
+                            <button type="button" className="btn-close-modal" onClick={() => setModalItensAberto(false)}>✕</button>
+                        </div>
+
+                        <div className="itens-container" style={{ padding: "20px", overflowY: "auto", display: "flex", flexDirection: "column", gap: "30px" }}>
+                            
+                            {/* SEÇÃO 1: CHAPÉUS */}
+                            <div className="itens-secao">
+                                <h4 style={{ borderBottom: "1px solid rgba(255,255,255,0.2)", paddingBottom: "10px", marginBottom: "15px", color: "#fff" }}>CHAPÉUS</h4>
+                                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(130px, 1fr))", gap: "15px" }}>
+                                    {itens.filter(i => i.tipo === 1).map(item => renderizarItem(item))}
+                                    {itens.filter(i => i.tipo === 1).length === 0 && <span style={{ color: "#888" }}>Nenhum item...</span>}
+                                </div>
+                            </div>
+
+                            {/* SEÇÃO 2: MÃOS */}
+                            <div className="itens-secao">
+                                <h4 style={{ borderBottom: "1px solid rgba(255,255,255,0.2)", paddingBottom: "10px", marginBottom: "15px", color: "#fff" }}>MÃOS</h4>
+                                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(130px, 1fr))", gap: "15px" }}>
+                                    {itens.filter(i => i.tipo === 2).map(item => renderizarItem(item))}
+                                    {itens.filter(i => i.tipo === 2).length === 0 && <span style={{ color: "#888" }}>Nenhum item...</span>}
+                                </div>
+                            </div>
+
+                            {/* SEÇÃO 3: MASCOTES */}
+                            <div className="itens-secao">
+                                <h4 style={{ borderBottom: "1px solid rgba(255,255,255,0.2)", paddingBottom: "10px", marginBottom: "15px", color: "#fff" }}>MASCOTES</h4>
+                                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(130px, 1fr))", gap: "15px" }}>
+                                    {itens.filter(i => i.tipo === 3).map(item => renderizarItem(item))}
+                                    {itens.filter(i => i.tipo === 3).length === 0 && <span style={{ color: "#888" }}>Nenhum item...</span>}
+                                </div>
+                            </div>
+
+                        </div>
+
+                        <div className="modal-footer" style={{ justifyContent: "center" }}>
+                            <button type="button" className="btn-modal-fechar" onClick={() => setModalItensAberto(false)} style={{ width: "100%", padding: "12px", background: "#333", color: "#fff", border: "none", borderRadius: "8px", fontWeight: "bold", cursor: "pointer" }}>FECHAR</button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
+
+    function renderizarItem(item) {
+        const xpAtual = Number(usuario.xpTotal || 0);
+        const valorItem = Number(item.valor || 0);
+        const desbloqueado = xpAtual >= valorItem;
+        
+        const equipado = (item.tipo === 1 && usuario.idItemChapeu === item.id) ||
+                         (item.tipo === 2 && usuario.idItemMao === item.id) ||
+                         (item.tipo === 3 && usuario.idItemMascote === item.id);
+        
+        return (
+            <div 
+                key={item.id} 
+                onClick={() => desbloqueado && !equipado && handleEquiparItem(item)}
+                style={{
+                    border: equipado ? "2px solid #e50914" : "1px solid rgba(255,255,255,0.2)",
+                    borderRadius: "10px",
+                    padding: "10px",
+                    background: "rgba(255,255,255,0.05)",
+                    textAlign: "center",
+                    cursor: desbloqueado && !equipado ? "pointer" : (equipado ? "default" : "not-allowed"),
+                    opacity: desbloqueado ? 1 : 0.5,
+                    position: "relative",
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center"
+                }}
+            >
+                {!desbloqueado && (
+                    <div style={{ position: "absolute", top: "5px", right: "5px", background: "rgba(0,0,0,0.8)", borderRadius: "50%", padding: "4px", fontSize: "0.7rem" }}>
+                        🔒
+                    </div>
+                )}
+                <img src={obterUrlItem(item.url_item)} alt={`Item ${item.id}`} style={{ width: "60px", height: "60px", objectFit: "contain", marginBottom: "10px" }} />
+                
+                <div style={{ marginTop: "auto", width: "100%" }}>
+                    {!desbloqueado ? (
+                        <span style={{ display: "block", fontSize: "0.75rem", color: "#ff9800", fontWeight: "bold" }}>🔒 {valorItem} XP</span>
+                    ) : equipado ? (
+                        <span style={{ display: "block", fontSize: "0.8rem", color: "#e50914", fontWeight: "bold" }}>✓ Equipado</span>
+                    ) : (
+                        <span style={{ display: "block", fontSize: "0.8rem", color: "#4caf50", fontWeight: "bold" }}>Equipar</span>
+                    )}
+                </div>
+            </div>
+        );
+    }
 }
 
 export default Usuario;

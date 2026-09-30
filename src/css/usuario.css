@@ -173,8 +173,8 @@
 
 #pagina-usuario .hat-accessory {
     position: absolute;
-    width: 80px;
-    top: -24px;
+    width: 150px;
+    top: -34px;
     left: 50%;
     transform: translateX(-50%);
     z-index: 4;
@@ -184,8 +184,8 @@
 
 #pagina-usuario .accessory {
     position: absolute;
-    width: 46px;
-    height: 46px;
+    width: 145px;
+    height: 150px;
     object-fit: contain;
     right: -10px;
     bottom: -6px;
@@ -204,7 +204,7 @@
 #pagina-usuario .username-header {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 2px;
     margin-bottom: 6px;
 }
 
@@ -272,6 +272,35 @@
 }
 
 #pagina-usuario .btn-editar-bio:hover {
+    border-color: var(--vermelho, #e50914);
+    color: #ffffff;
+    background: rgba(229, 9, 20, 0.1);
+}
+
+#pagina-usuario .btn-inventario {
+    background: transparent;
+    border: 1px solid #444444;
+    color: #e0e0e0;
+    padding: 6px 14px;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    cursor: pointer;
+    margin-left: auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s ease, background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+#pagina-usuario .user-info:hover .btn-inventario {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+#pagina-usuario .btn-inventario:hover {
     border-color: var(--vermelho, #e50914);
     color: #ffffff;
     background: rgba(229, 9, 20, 0.1);
