@@ -7,14 +7,9 @@ function Filmes({ fetchUrl, page = 1 }) {
     const [carregando, setCarregando] = useState(true);
     const API_KEY = '168817e9845280fe6d28f3a939f4bc67';
 
-    // Se a URL mudar (o usuário clicou num filtro), nós resetamos a lista.
-    useEffect(() => {
-        setFilmes([]);
-    }, [fetchUrl]);
-
     useEffect(() => {
         async function buscarListaDeFilmes() {
-            setCarregando(true);
+            if (page === 1) setCarregando(true);
             try {
                 // Adiciona o parâmetro de página na requisição
                 const finalUrl = fetchUrl.includes('?') 
@@ -43,12 +38,21 @@ function Filmes({ fetchUrl, page = 1 }) {
                 });
 
                 const listaCompleta = await Promise.all(promessasDeDetalhes);
-                // Adiciona os novos filmes à lista atual
-                setFilmes(prev => [...prev, ...listaCompleta]);
+                
+                // Se for a primeira página, substitui a lista. Se não, adiciona no final filtrando repetidos.
+                if (page === 1) {
+                    setFilmes(listaCompleta);
+                } else {
+                    setFilmes(prev => {
+                        const prevIds = new Set(prev.map(f => f.id));
+                        const novosFilmes = listaCompleta.filter(f => !prevIds.has(f.id));
+                        return [...prev, ...novosFilmes];
+                    });
+                }
             } catch (erro) {
                 console.error("Erro ao buscar a lista de filmes:", erro);
             } finally {
-                setCarregando(false);
+                if (page === 1) setCarregando(false);
             }
         }
 
