@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import "./css/index.css";
 import "./css/resenha.css";
 import { supabase } from "./supabase";
@@ -66,7 +66,6 @@ function Resenha() {
         const {error} = await supabase.from("comentarios").insert(comentario);
 
         if(error == null){
-            alert("Comentário publicado com sucesso!")
             setNovoComentario("")
             fetchComentarios()
             ganhaXP(15)
@@ -127,6 +126,12 @@ function Resenha() {
 
     return (
         <>
+            {toastXP && (
+                <div className={`toast-xp ${toastXP.xp > 0 ? 'positivo' : 'negativo'}`}>
+                    {toastXP.msg}
+                </div>
+            )}
+
             <section className="filme-hero" id="filme-hero" style={{ backgroundImage: backdropUrl ? `url(${backdropUrl})` : 'none', backgroundSize: 'cover', backgroundPosition: 'center' }}>
                 <div className="filme-hero-inner">
                     <div className="poster-col">
@@ -291,7 +296,7 @@ function Resenha() {
                                 </div>
                             </div>
                         ) : (
-                         <p style={{color: '#888'}}>Você precisa estar logado para comentar. <a href="login.html" style={{color: '#e50914'}}>Entrar</a></p>
+                            <p style={{ color: '#888' }}>Você precisa estar logado para comentar. <Link to="/login" style={{ color: '#e50914' }}>Entrar</Link></p>
                         )}
                     </div>
                 </div>
