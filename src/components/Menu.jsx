@@ -104,14 +104,14 @@ function Menu() {
 
                     <ul className="navbar-links" style={{ display: 'flex', alignItems: 'center', margin: 0, padding: 0 }}>
                         <li>
-                            <a href="/#hero" className="nav-link">
+                            <Link to="/#hero" className="nav-link">
                                 Início
-                            </a>
+                            </Link>
                         </li>
                         <li>
-                            <a href="/#filmes" className="nav-link">
+                            <Link to="/#filmes" className="nav-link">
                                 Filmes
-                            </a>
+                            </Link>
                         </li>
                         <li>
                             <Link to="/listas" className="nav-link active">

@@ -66,7 +66,6 @@ function Resenha() {
         const {error} = await supabase.from("comentarios").insert(comentario);
 
         if(error == null){
-            alert("Comentário publicado com sucesso!")
             setNovoComentario("")
             fetchComentarios()
             ganhaXP(15)
