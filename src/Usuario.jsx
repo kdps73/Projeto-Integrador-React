@@ -415,7 +415,7 @@ function Usuario() {
                     <div className="xp-bar-container" title={`${porcentagemXp}% concluído`}>
                         <div
                             className="xp-fill"
-                            style={{ width: `${porcentagemXp}%` }}
+                            style={{ '--progress-width': `${porcentagemXp}%` }}
                         ></div>
                     </div>
                 </section>
@@ -442,7 +442,7 @@ function Usuario() {
                                 }}
                             />
                         </div>
-                        <button onClick={handleLogout} style={{ background: 'transparent', border: 'none', color: '#dc2626', cursor: 'pointer', fontWeight: 'bold', padding: '5px 10px' }}>
+                        <button onClick={handleLogout} className="logout-btn">
                             Sair
                         </button>
 

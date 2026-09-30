@@ -91,12 +91,12 @@ function Menu() {
     return (
         <div>
             <nav className="navbar" id="navbar">
-                <div className="navbar-container" style={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
+                <div className="navbar-container">
                     <Link to="/" className="navbar-logo" id="logo-link">
                         <span className="logo-text">CiNEPLANNER</span>
                     </Link>
 
-                    <ul className="navbar-links" style={{ display: 'flex', alignItems: 'center', margin: 0, padding: 0 }}>
+                    <ul className="navbar-links">
                         <li>
                             <Link to="/#hero" className="nav-link">
                                 Início
@@ -122,7 +122,7 @@ function Menu() {
                     </ul>
 
                     {/* Barra de pesquisa */}
-                    <div style={{ flex: 0, display: 'flex', justifyContent: 'right', padding: '0px', position: 'relative' }}>
+                    <div className="search-wrapper">
                         <div className={`search-container ${searchTerm ? 'has-text' : ''}`}>
                             <svg
                                 xmlns="http://www.w3.org/2000/svg"
@@ -134,7 +134,7 @@ function Menu() {
                                 strokeWidth="2"
                                 strokeLinecap="round"
                                 strokeLinejoin="round"
-                                style={{ marginRight: '8px', minWidth: '16px' }}
+                                className="search-icon"
                             >
                                 <circle cx="11" cy="11" r="8"></circle>
                                 <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
@@ -171,18 +171,18 @@ function Menu() {
                         </div>
                     </div>
 
-                    <div className="navbar-actions" style={{ display: 'flex', alignItems: 'center', marginLeft: 'auto' }}>
+                    <div className="navbar-actions">
                         {user ? (
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-                                <Link to="/usuario" style={{ display: 'flex', alignItems: 'center', textDecoration: 'none', color: '#fff', gap: '10px' }}>
+                            <div className="navbar-user-actions">
+                                <Link to="/usuario" className="navbar-user-link">
                                     {avatarUrl ? (
-                                        <img src={avatarUrl} alt="Avatar" style={{ width: '32px', height: '32px', borderRadius: '50%', objectFit: 'cover', border: '2px solid #dc2626' }} />
+                                        <img src={avatarUrl} alt="Avatar" className="navbar-user-avatar" />
                                     ) : (
-                                        <div style={{ width: '32px', height: '32px', borderRadius: '50%', backgroundColor: '#dc2626', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 'bold', fontSize: '1rem' }}>
+                                        <div className="navbar-user-avatar-placeholder">
                                             {userName.charAt(0).toUpperCase()}
                                         </div>
                                     )}
-                                    <span style={{ fontWeight: '500', fontSize: '0.9rem' }}>{userName}</span>
+                                    <span className="navbar-user-name">{userName}</span>
                                 </Link>
                             </div>
                         ) : (
@@ -190,7 +190,6 @@ function Menu() {
                                 to="/login"
                                 className="btn-login"
                                 id="btn-entrar"
-                                style={{ marginLeft: '10px' }}
                             >
                                 Entrar
                             </Link>

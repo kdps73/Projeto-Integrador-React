@@ -64,7 +64,7 @@ function Filmes({ fetchUrl, page = 1 }) {
     return (
         <>
             {carregando ? (
-                <p style={{ color: "white", gridColumn: "1 / -1", textAlign: "center" }}>Carregando filmes...</p>
+                <p className="filmes-mensagem">Carregando filmes...</p>
             ) : filmes.length > 0 ? (
                 filmes.map((filme) => (
                     <article className="filme-card" id={`card-filme-${filme.id}`} key={filme.id}>
@@ -93,7 +93,7 @@ function Filmes({ fetchUrl, page = 1 }) {
                                     </span>
                                 </div>
                                 {filme.sinopse && (
-                                    <p className="card-sinopse" style={{ fontSize: '0.8rem', marginTop: '8px', color: '#bbb', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                    <p className="card-sinopse">
                                         {filme.sinopse}
                                     </p>
                                 )}
@@ -102,7 +102,7 @@ function Filmes({ fetchUrl, page = 1 }) {
                     </article>
                 ))
             ) : (
-                <p style={{ color: "white", gridColumn: "1 / -1", textAlign: "center" }}>Nenhum filme encontrado.</p>
+                <p className="filmes-mensagem">Nenhum filme encontrado.</p>
             )}
         </>
     )
