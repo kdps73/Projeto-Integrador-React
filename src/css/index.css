@@ -170,8 +170,7 @@ div:has(> nav.navbar) {
 .hero {
     position: relative;
     width: 100%;
-    min-height: 80vh;
-    /* Puxa a página para cima */
+    min-height: 80vh; /* Puxa a página para cima */
     display: flex;
     align-items: center;
     justify-content: center;
@@ -623,6 +622,7 @@ div:has(> nav.navbar) {
     color: #bbb;
     display: -webkit-box;
     -webkit-line-clamp: 3;
+    line-clamp: 3;
     -webkit-box-orient: vertical;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -646,8 +646,7 @@ div:has(> nav.navbar) {
     display: flex;
     align-items: center;
     justify-content: center;
-    transform: translateY(-6vh);
-    /* Aproxima da navbar */
+    transform: translateY(-6vh); /* Aproxima da navbar */
     perspective: 1200px;
     overflow: hidden;
     z-index: 1;
