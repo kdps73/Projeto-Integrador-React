@@ -137,32 +137,55 @@ ul {
     box-shadow: var(--sombra-brilho);
 }
 
-/* Stars – CSS-only rating (RTL trick) */
+/* Stars – React rating */
 .stars-row {
     display: flex;
-    flex-direction: row-reverse;
+    flex-direction: row;
     justify-content: center;
     gap: 0.15rem;
 }
 
-.star-input {
-    display: none;
-}
-
-.star-label {
+.star-rating-container {
+    position: relative;
+    display: inline-block;
     font-size: 1.8rem;
-    color: #444;
-    cursor: pointer;
-    transition: color 0.2s, transform 0.15s;
     line-height: 1;
+    transition: transform 0.15s;
 }
 
-/* Quando uma estrela for checked, ela e todas as anteriores ficam douradas */
-.star-input:checked~.star-label,
-.star-label:hover,
-.star-label:hover~.star-label {
-    color: #f5c518;
+.star-rating-container.is-active {
     transform: scale(1.12);
+}
+
+.star-base {
+    color: #444;
+}
+
+.star-filled {
+    position: absolute;
+    left: 0;
+    top: 0;
+    overflow: hidden;
+    color: #f5c518;
+    white-space: nowrap;
+    transition: width 0.15s ease-in-out;
+}
+
+.star-half {
+    position: absolute;
+    top: 0;
+    width: 50%;
+    height: 100%;
+    cursor: pointer;
+    z-index: 2;
+}
+
+.star-half-left {
+    left: 0;
+}
+
+.star-half-right {
+    right: 0;
 }
 
 .media-nota {
