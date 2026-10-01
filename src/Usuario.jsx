@@ -384,7 +384,7 @@ function Usuario() {
                                     .select()
                                     .single();
                                 if (novaFav) favPlaylist = novaFav;
-                            } 
+                            }
 
                             // Se não existir playlist "Assistir Mais Tarde" para o usuário, cria no banco
                             if (!watchPlaylist) {

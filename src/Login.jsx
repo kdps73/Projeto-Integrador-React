@@ -38,7 +38,7 @@ function Login() {
       // Salva os dados no localStorage e avisa o Menu.jsx na mesma aba
       localStorage.setItem("user", JSON.stringify(data));
       window.dispatchEvent(new Event("authChanged"));
-      
+
       // Redireciona para a página inicial
       navigate("/");
     } catch (error) {
@@ -135,13 +135,13 @@ function Login() {
                 fill="none"
               />
             </svg>
-            <input 
-              type="email" 
-              id="email" 
-              placeholder="E-mail" 
+            <input
+              type="email"
+              id="email"
+              placeholder="E-mail"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              required 
+              required
             />
           </div>
 
@@ -169,13 +169,13 @@ function Login() {
                 fill="none"
               />
             </svg>
-            <input 
-              type="password" 
-              id="password" 
-              placeholder="Senha" 
+            <input
+              type="password"
+              id="password"
+              placeholder="Senha"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              required 
+              required
             />
           </div>
 
