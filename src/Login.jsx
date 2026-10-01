@@ -108,7 +108,7 @@ function Login() {
         <h2>Entrar</h2>
         <p className="subtitle">Faça login para acessar sua conta</p>
 
-        {errorMsg && <p style={{ color: "red", textAlign: "center", marginBottom: "10px" }}>{errorMsg}</p>}
+        {errorMsg && <p className="error-msg">{errorMsg}</p>}
 
         <form id="loginForm" onSubmit={handleLogin}>
           <div className="input-group">

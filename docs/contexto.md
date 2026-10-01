@@ -14,6 +14,8 @@ Não use e nem instale nada neste projeto.
 
 Este projeto NÃO USA JavaScript.
 
+**JAMAIS** Faça uma estilização nos arquivos `.jsx`, utilize apenas os `.css`.
+
 - Faça uma NAVBAR igual para todas as páginas criadas do projeto (com exceção à tela de login e de cadastro), use o arquivo `index.html` para fazer igual em todas.
     - Imagem da logo "CiNEPLANNER" em vermelho.
 - Faça o RODAPÉ sempre exatamente idêntico ao do rodapé `index.html`.

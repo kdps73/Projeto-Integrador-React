@@ -108,7 +108,7 @@ function Registro() {
         <h2>Criar conta</h2>
         <p className="subtitle">Preencha os campos para se registrar</p>
 
-        {errorMsg && <p style={{ color: "red", textAlign: "center", marginBottom: "10px" }}>{errorMsg}</p>}
+        {errorMsg && <p className="error-msg">{errorMsg}</p>}
 
         <form id="registerForm" onSubmit={handleRegister}>
           <div className="input-group">

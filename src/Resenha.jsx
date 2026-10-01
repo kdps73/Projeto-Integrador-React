@@ -115,7 +115,7 @@ function Resenha() {
         }
     }, [id]);
 
-    if (!filme) return <p style={{ color: 'white', textAlign: 'center', marginTop: '100px' }}>Carregando...</p>;
+    if (!filme) return <p className="loading-message">Carregando...</p>;
 
     const certificacaoBR = filme.release_dates?.results?.find(r => r.iso_3166_1 === 'BR')?.release_dates[0]?.certification || '14+';
     const elenco = filme.credits?.cast?.slice(0, 4) || [];
@@ -132,7 +132,7 @@ function Resenha() {
                 </div>
             )}
 
-            <section className="filme-hero" id="filme-hero" style={{ backgroundImage: backdropUrl ? `url(${backdropUrl})` : 'none', backgroundSize: 'cover', backgroundPosition: 'center' }}>
+            <section className="filme-hero" id="filme-hero" style={{ '--bg-image': backdropUrl ? `url(${backdropUrl})` : 'none' }}>
                 <div className="filme-hero-inner">
                     <div className="poster-col">
                         <div className="poster-wrap">
@@ -146,7 +146,7 @@ function Resenha() {
                         <div className="poster-rating" id="poster-rating">
                             <div className="stars-row">
                                 {[5, 4, 3, 2, 1].map(num => (
-                                    <span key={num} style={{ display: 'inline-flex', flexDirection: 'row-reverse' }}>
+                                    <span key={num} className="star-rating-container">
                                         <input type="radio" name="avaliacao" id={`star${num}`} value={num} className="star-input" />
                                         <label htmlFor={`star${num}`} className="star-label" title={`${num} estrelas`}>★</label>
                                     </span>
@@ -210,7 +210,7 @@ function Resenha() {
                     </h2>
 
                     {comentarios.length === 0 ? (
-                        <p style={{ color: '#888', marginBottom: '30px' }}>Nenhum comentário ainda. Seja o primeiro a comentar!</p>
+                        <p className="no-comments-message">Nenhum comentário ainda. Seja o primeiro a comentar!</p>
                     ) : (
                         comentarios.map((coment, index) => {
                             const jaCurtiu = usuarioLogado && coment.curtidas?.some(c => Number(c.id_usuario) === Number(usuarioLogado.id));
@@ -296,7 +296,7 @@ function Resenha() {
                                 </div>
                             </div>
                         ) : (
-                            <p style={{ color: '#888' }}>Você precisa estar logado para comentar. <Link to="/login" style={{ color: '#e50914' }}>Entrar</Link></p>
+                            <p className="login-prompt-message">Você precisa estar logado para comentar. <Link to="/login" className="login-prompt-link">Entrar</Link></p>
                         )}
                     </div>
                 </div>
