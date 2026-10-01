@@ -512,28 +512,6 @@ function Usuario() {
                         <div className="username-header">
                             <span className="username-label">USUÁRIO</span>
                             <span className="user-email">{usuario.email}</span>
-                            <button 
-                                className="btn-inventario" 
-                                onClick={() => setModalItensAberto(true)}
-                                type="button"
-                                title="Abrir Itens"
-                            >
-                                <svg 
-                                    width="14" 
-                                    height="14" 
-                                    viewBox="0 0 24 24" 
-                                    fill="none" 
-                                    stroke="currentColor" 
-                                    strokeWidth="2" 
-                                    strokeLinecap="round" 
-                                    strokeLinejoin="round"
-                                >
-                                    <circle cx="9" cy="21" r="1"></circle>
-                                    <circle cx="20" cy="21" r="1"></circle>
-                                    <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
-                                </svg>
-                                Itens
-                            </button>
                         </div>
 
                         <h1 className="username">{usuario.username}</h1>
@@ -575,13 +553,37 @@ function Usuario() {
                                 <p className="bio-text-display">
                                     {usuario.bio ? usuario.bio : "Nenhuma bio informada."}
                                 </p>
-                                <button
-                                    className="btn-editar-bio"
-                                    onClick={() => setIsEditingBio(true)}
-                                    type="button"
-                                >
-                                    Editar Bio
-                                </button>
+                                <div className="bio-botoes-acoes">
+                                    <button
+                                        className="btn-editar-bio"
+                                        onClick={() => setIsEditingBio(true)}
+                                        type="button"
+                                    >
+                                        Editar Bio
+                                    </button>
+                                    <button 
+                                        className="btn-inventario" 
+                                        onClick={() => setModalItensAberto(true)}
+                                        type="button"
+                                        title="Abrir Itens"
+                                    >
+                                        <svg 
+                                            width="12" 
+                                            height="12" 
+                                            viewBox="0 0 24 24" 
+                                            fill="none" 
+                                            stroke="currentColor" 
+                                            strokeWidth="2" 
+                                            strokeLinecap="round" 
+                                            strokeLinejoin="round"
+                                        >
+                                            <circle cx="9" cy="21" r="1"></circle>
+                                            <circle cx="20" cy="21" r="1"></circle>
+                                            <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+                                        </svg>
+                                        Itens
+                                    </button>
+                                </div>
                                 {statusBio && <span className="bio-status-msg">{statusBio}</span>}
                             </div>
                         )}
@@ -1112,7 +1114,7 @@ function Usuario() {
                         </div>
 
                         <div className="itens-container" style={{ padding: "20px", overflowY: "auto", display: "flex", flexDirection: "column", gap: "30px" }}>
-                            
+
                             {/* SEÇÃO 1: CHAPÉUS */}
                             <div className="itens-secao">
                                 <h4 style={{ borderBottom: "1px solid rgba(255,255,255,0.2)", paddingBottom: "10px", marginBottom: "15px", color: "#fff" }}>CHAPÉUS</h4>
@@ -1155,14 +1157,14 @@ function Usuario() {
         const xpAtual = Number(usuario.xpTotal || 0);
         const valorItem = Number(item.valor || 0);
         const desbloqueado = xpAtual >= valorItem;
-        
+
         const equipado = (item.tipo === 1 && usuario.idItemChapeu === item.id) ||
-                         (item.tipo === 2 && usuario.idItemMao === item.id) ||
-                         (item.tipo === 3 && usuario.idItemMascote === item.id);
-        
+            (item.tipo === 2 && usuario.idItemMao === item.id) ||
+            (item.tipo === 3 && usuario.idItemMascote === item.id);
+
         return (
-            <div 
-                key={item.id} 
+            <div
+                key={item.id}
                 onClick={() => desbloqueado && !equipado && handleEquiparItem(item)}
                 style={{
                     border: equipado ? "2px solid #e50914" : "1px solid rgba(255,255,255,0.2)",
@@ -1184,7 +1186,7 @@ function Usuario() {
                     </div>
                 )}
                 <img src={obterUrlItem(item.url_item)} alt={`Item ${item.id}`} style={{ width: "60px", height: "60px", objectFit: "contain", marginBottom: "10px" }} />
-                
+
                 <div style={{ marginTop: "auto", width: "100%" }}>
                     {!desbloqueado ? (
                         <span style={{ display: "block", fontSize: "0.75rem", color: "#ff9800", fontWeight: "bold" }}>🔒 {valorItem} XP</span>

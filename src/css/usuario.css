@@ -242,6 +242,7 @@
     flex-direction: column;
     align-items: flex-start;
     gap: 8px;
+    width: 100%;
 }
 
 #pagina-usuario .bio-text-display {
@@ -250,56 +251,45 @@
     color: #cccccc;
     margin: 0;
     word-break: break-word;
+    width: 100%;
 }
 
-#pagina-usuario .btn-editar-bio {
-    background: transparent;
-    border: 1px solid #444444;
-    color: #e0e0e0;
-    padding: 6px 14px;
-    border-radius: 6px;
-    font-size: 0.8rem;
-    font-weight: 500;
-    cursor: pointer;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.25s ease, background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+#pagina-usuario .bio-botoes-acoes {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
 }
 
-#pagina-usuario .user-info:hover .btn-editar-bio {
-    opacity: 1;
-    pointer-events: auto;
-}
-
-#pagina-usuario .btn-editar-bio:hover {
-    border-color: var(--vermelho, #e50914);
-    color: #ffffff;
-    background: rgba(229, 9, 20, 0.1);
-}
-
+#pagina-usuario .btn-editar-bio,
 #pagina-usuario .btn-inventario {
+    flex: 1;
     background: transparent;
     border: 1px solid #444444;
     color: #e0e0e0;
-    padding: 6px 14px;
+    padding: 0 12px;
+    height: 32px;
     border-radius: 6px;
-    font-size: 0.8rem;
+    font-size: 0.78rem;
     font-weight: 500;
     cursor: pointer;
-    margin-left: auto;
     display: inline-flex;
     align-items: center;
+    justify-content: center;
     gap: 6px;
     opacity: 0;
     pointer-events: none;
+    box-sizing: border-box;
     transition: opacity 0.25s ease, background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
 }
 
+#pagina-usuario .user-info:hover .btn-editar-bio,
 #pagina-usuario .user-info:hover .btn-inventario {
     opacity: 1;
     pointer-events: auto;
 }
 
+#pagina-usuario .btn-editar-bio:hover,
 #pagina-usuario .btn-inventario:hover {
     border-color: var(--vermelho, #e50914);
     color: #ffffff;
@@ -1183,6 +1173,10 @@
     #pagina-usuario .bio-box {
         flex-direction: column;
         width: 100%;
+    }
+
+    #pagina-usuario .bio-botoes-acoes {
+        justify-content: center;
     }
 
     #pagina-usuario .btn-salvar-bio {
