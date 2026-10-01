@@ -103,6 +103,7 @@
 
 #pagina-usuario .xp-fill {
     height: 100%;
+    width: var(--progress-width, 0%);
     background: linear-gradient(90deg, #b30710, #e50914, #ff3b47);
     border-radius: 10px;
     transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
@@ -1216,4 +1217,13 @@
     #pagina-usuario .card-titulo {
         font-size: 0.85rem;
     }
+}
+
+.logout-btn {
+    background: transparent;
+    border: none;
+    color: #dc2626;
+    cursor: pointer;
+    font-weight: bold;
+    padding: 5px 10px;
 }

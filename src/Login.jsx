@@ -3,6 +3,13 @@ import { useNavigate, Link } from "react-router-dom";
 import { supabase } from "./supabase";
 import "./css/login.css";
 
+// Importações corretas das imagens da pasta assets
+import filme1 from "./assets/filme.1.jpg";
+import filme2 from "./assets/filme2.jpg";
+import filme3 from "./assets/filme3.jpg";
+import filme4 from "./assets/filme.4.jpg";
+import filme5 from "./assets/filme.5.jpg";
+
 function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -45,27 +52,27 @@ function Login() {
     <>
       <div className="carousel-bg">
         <img
-          src="img/filme.1.jpg"
+          src={filme1}
           className="carousel-slide slide-1"
           alt="Filme 1"
         />
         <img
-          src="img/filme2.jpg"
+          src={filme2}
           className="carousel-slide slide-2"
           alt="Filme 2"
         />
         <img
-          src="img/filme3.jpg"
+          src={filme3}
           className="carousel-slide slide-3"
           alt="Filme 3"
         />
         <img
-          src="img/filme4.jpg"
+          src={filme4}
           className="carousel-slide slide-4"
           alt="Filme 4"
         />
         <img
-          src="img/filme.5.jpg"
+          src={filme5}
           className="carousel-slide slide-5"
           alt="Filme 5"
         />
@@ -101,7 +108,7 @@ function Login() {
         <h2>Entrar</h2>
         <p className="subtitle">Faça login para acessar sua conta</p>
 
-        {errorMsg && <p style={{ color: "red", textAlign: "center", marginBottom: "10px" }}>{errorMsg}</p>}
+        {errorMsg && <p className="error-msg">{errorMsg}</p>}
 
         <form id="loginForm" onSubmit={handleLogin}>
           <div className="input-group">

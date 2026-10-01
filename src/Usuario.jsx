@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import Menu from "./components/Menu";
 import { supabase } from "./supabase";
 import playlistIcon from "./assets/playlist_icon.svg";
@@ -61,6 +61,7 @@ function obterUrlItem(caminhoOuUrl) {
 }
 
 function Usuario() {
+    const navigate = useNavigate();
     // =========================================================
     // 1. ESTADOS DO USUÁRIO (Perfil, XP, Bio e Acessórios)
     // =========================================================
@@ -471,7 +472,7 @@ function Usuario() {
                     <div className="xp-bar-container" title={`${porcentagemXp}% concluído`}>
                         <div
                             className="xp-fill"
-                            style={{ width: `${porcentagemXp}%` }}
+                            style={{ '--progress-width': `${porcentagemXp}%` }}
                         ></div>
                     </div>
                 </section>
@@ -498,6 +499,9 @@ function Usuario() {
                                 }}
                             />
                         </div>
+                        <button onClick={handleLogout} className="logout-btn">
+                            Sair
+                        </button>
 
                         {usuario.maoUrl && (
                             <img

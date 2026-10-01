@@ -161,7 +161,7 @@ div:has(> nav.navbar) {
 }
 
 /* Reduz o tamanho e arredonda a barra de pesquisa */
-.navbar-container > div:nth-child(3) > div {
+.navbar-container>div:nth-child(3)>div {
     max-width: 200px !important;
     border-radius: 50px !important;
 }
@@ -170,19 +170,15 @@ div:has(> nav.navbar) {
 .hero {
     position: relative;
     width: 100%;
-    min-height: 100vh;
+    min-height: 80vh; /* Puxa a página para cima */
     display: flex;
     align-items: center;
     justify-content: center;
     text-align: center;
+    padding: 90px;
 
-    /* Placeholder de imagem de fundo via gradient escuro */
-    background:
-        linear-gradient(to bottom,
-            rgba(0, 0, 0, 0.72) 0%,
-            rgba(0, 0, 0, 0.55) 50%,
-            rgba(0, 0, 0, 0.85) 100%),
-        url('https://placehold.co/1920x1080/111111/333333?text=Imagem+de+Fundo') center center / cover no-repeat;
+    /* Fundo um pouco mais escuro atrás do carrossel */
+    background: rgba(0, 0, 0, 0.5);
 
     overflow: auto;
 }
@@ -190,9 +186,10 @@ div:has(> nav.navbar) {
 .hero-overlay {
     position: absolute;
     inset: 0;
-    background: radial-gradient(ellipse at center, rgba(229, 9, 20, 0.08) 0%, transparent 70%);
+    background: radial-gradient(ellipse at center, rgba(229, 9, 20, 0.08) 0%, rgba(0, 0, 0, 0.6) 80%);
     pointer-events: none;
 }
+
 
 .hero-content {
     position: relative;
@@ -215,16 +212,20 @@ div:has(> nav.navbar) {
 }
 
 .hero-title {
+    position: absolute;
     font-family: var(--fonte-titulo);
     font-size: clamp(3.5rem, 8vw, 6.5rem);
     font-weight: 800;
     color: var(--vermelho);
     text-shadow:
+        0 5px 20px rgba(0, 0, 0, 1),
         0 0 30px rgba(229, 9, 20, 0.7),
         0 0 70px rgba(229, 9, 20, 0.3);
     letter-spacing: 2px;
     line-height: 1;
+    margin-top: 220px;
     margin-bottom: 1rem;
+    margin-left: -39px;
 }
 
 .hero-subtitle {
@@ -232,6 +233,7 @@ div:has(> nav.navbar) {
     font-size: clamp(1.1rem, 2.5vw, 1.6rem);
     font-weight: 300;
     color: var(--branco);
+    margin-top: 550px;
     margin-bottom: 0.8rem;
     letter-spacing: 0.5px;
 }
@@ -356,7 +358,8 @@ div:has(> nav.navbar) {
     transition: transform var(--transicao);
 }
 
-.filtro-dropdown:hover .dropdown-arrow {
+.filtro-dropdown:hover .dropdown-arrow,
+.dropdown-arrow.open {
     transform: rotate(180deg);
 }
 
@@ -372,16 +375,21 @@ div:has(> nav.navbar) {
     padding: 0.4rem 0;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6), 0 0 16px rgba(229, 9, 20, 0.15);
     margin-top: -7px;
-    /* Escondido por padrão usando CSS puro */
+    display: none;
     opacity: 0;
-    visibility: auto;
+    visibility: hidden;
+    pointer-events: none;
     transform: translateY(-6px);
     transition: opacity var(--transicao), visibility var(--transicao), transform var(--transicao);
 }
 
-.filtro-dropdown:hover .dropdown-menu {
+.filtro-dropdown:hover .dropdown-menu,
+.dropdown-menu.open {
+    display: flex;
+    flex-direction: column;
     opacity: 1;
     visibility: visible;
+    pointer-events: auto;
     transform: translateY(0);
 }
 
@@ -600,4 +608,129 @@ div:has(> nav.navbar) {
     padding: 0.55rem 1.5rem !important;
     width: auto !important;
     min-width: 0 !important;
+}
+
+.filmes-mensagem {
+    color: white;
+    grid-column: 1 / -1;
+    text-align: center;
+}
+
+.card-sinopse {
+    font-size: 0.8rem;
+    margin-top: 8px;
+    color: #bbb;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.pagination-container {
+    text-align: center;
+    margin-top: 2rem;
+    margin-bottom: 4rem;
+}
+
+/* =========================================================
+   CINEPLANNER - CAROUSEL 3D (Efeito Framer)
+   ========================================================= */
+
+.carousel-3d-wrapper {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transform: translateY(-6vh); /* Aproxima da navbar */
+    perspective: 1200px;
+    overflow: hidden;
+    z-index: 1;
+    /* Fica no fundo, atrás do texto do Hero se houver sobreposição */
+    background: transparent;
+}
+
+.carousel-3d-track {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transform-style: preserve-3d;
+    transition: transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.carousel-3d-card {
+    position: absolute;
+    width: 220px;
+    height: 330px;
+    border-radius: 16px;
+    cursor: pointer;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5), 0 5px 15px rgba(229, 9, 20, 0.1);
+    transform-origin: center center;
+}
+
+.card-image-wrapper {
+    width: 100%;
+    height: 100%;
+    border-radius: 16px;
+    overflow: hidden;
+    position: relative;
+    border: 2px solid transparent;
+    transition: border-color 0.4s ease, transform 0.4s ease;
+}
+
+.poster-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    border-radius: 14px;
+    transition: filter 0.4s ease, transform 0.4s ease;
+}
+
+/* Brilho interno/gradiente sutil sobre o pôster */
+.card-glow {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.7) 0%, rgba(229, 9, 20, 0.1) 40%, rgba(255, 255, 255, 0.05) 100%);
+    opacity: 0;
+    transition: opacity 0.4s ease;
+    pointer-events: none;
+}
+
+/* Estado de Hover apenas para os cartões laterais e o central */
+.carousel-3d-card:hover .card-image-wrapper {
+    border-color: rgba(229, 9, 20, 0.7);
+    transform: translateY(-8px);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.7), 0 0 25px rgba(229, 9, 20, 0.3);
+}
+
+.carousel-3d-card:hover .poster-img {
+    filter: brightness(1.15) contrast(1.1);
+}
+
+.carousel-3d-card:hover .card-glow {
+    opacity: 1;
+}
+
+/* O Cartão Central (is-active) ganha um destaque especial */
+.carousel-3d-card.is-active {
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8), 0 0 40px rgba(229, 9, 20, 0.4);
+}
+
+.carousel-3d-card.is-active .card-image-wrapper {
+    border-color: rgba(229, 9, 20, 0.5);
+}
+
+/* Responsividade Básica */
+@media (max-width: 768px) {
+    .carousel-3d-card {
+        width: 160px;
+        height: 240px;
+    }
 }

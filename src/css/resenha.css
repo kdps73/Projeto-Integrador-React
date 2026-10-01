@@ -63,7 +63,10 @@ ul {
             rgba(0, 0, 0, 0.78) 0%,
             rgba(0, 0, 0, 0.60) 55%,
             rgba(20, 20, 20, 0.98) 100%),
-        url('https://placehold.co/1920x900/0d0d0d/1a1a1a?text=') center center / cover no-repeat;
+        var(--bg-image, none);
+    background-position: center;
+    background-size: cover;
+    background-repeat: no-repeat;
     overflow: auto;
 }
 
@@ -134,32 +137,55 @@ ul {
     box-shadow: var(--sombra-brilho);
 }
 
-/* Stars – CSS-only rating (RTL trick) */
+/* Stars – React rating */
 .stars-row {
     display: flex;
-    flex-direction: row-reverse;
+    flex-direction: row;
     justify-content: center;
     gap: 0.15rem;
 }
 
-.star-input {
-    display: none;
-}
-
-.star-label {
+.star-rating-container {
+    position: relative;
+    display: inline-block;
     font-size: 1.8rem;
-    color: #444;
-    cursor: pointer;
-    transition: color 0.2s, transform 0.15s;
     line-height: 1;
+    transition: transform 0.15s;
 }
 
-/* Quando uma estrela for checked, ela e todas as anteriores ficam douradas */
-.star-input:checked~.star-label,
-.star-label:hover,
-.star-label:hover~.star-label {
-    color: #f5c518;
+.star-rating-container.is-active {
     transform: scale(1.12);
+}
+
+.star-base {
+    color: #444;
+}
+
+.star-filled {
+    position: absolute;
+    left: 0;
+    top: 0;
+    overflow: hidden;
+    color: #f5c518;
+    white-space: nowrap;
+    transition: width 0.15s ease-in-out;
+}
+
+.star-half {
+    position: absolute;
+    top: 0;
+    width: 50%;
+    height: 100%;
+    cursor: pointer;
+    z-index: 2;
+}
+
+.star-half-left {
+    left: 0;
+}
+
+.star-half-right {
+    right: 0;
 }
 
 .media-nota {
@@ -851,6 +877,54 @@ ul {
     transform: translateY(-2px);
 }
 
+@keyframes slideInUpFadeOut {
+    0% {
+        transform: translateY(100px);
+        opacity: 0;
+    }
+
+    10% {
+        transform: translateY(0);
+        opacity: 1;
+    }
+
+    80% {
+        transform: translateY(0);
+        opacity: 1;
+    }
+
+    100% {
+        transform: translateY(0);
+        opacity: 0;
+    }
+}
+
+.toast-xp {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    padding: 15px 25px;
+    border-radius: 8px;
+    color: white;
+    font-weight: bold;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+    z-index: 9999;
+    animation: slideInUpFadeOut 3s ease-in-out forwards;
+}
+
+.toast-xp.positivo {
+    background-color: #e50914;
+}
+
+.toast-xp.negativo {
+    background-color: #111;
+    border: 1px solid #333;
+}
+
 /* Footer styles inherited from index.css */
 
 /* ===== RESPONSIVIDADE ===== */
@@ -894,4 +968,28 @@ ul {
     .novo-coment-form {
         flex-direction: column;
     }
+}
+
+.loading-message {
+    color: white;
+    text-align: center;
+    margin-top: 100px;
+}
+
+.star-rating-container {
+    display: inline-flex;
+    flex-direction: row-reverse;
+}
+
+.no-comments-message {
+    color: #888;
+    margin-bottom: 30px;
+}
+
+.login-prompt-message {
+    color: #888;
+}
+
+.login-prompt-link {
+    color: #e50914;
 }

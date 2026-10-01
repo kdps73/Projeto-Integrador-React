@@ -16,11 +16,10 @@ function Filtro({ nome, opcoes }) {
             >
                 {nome}
                 <svg
-                    className="dropdown-arrow"
+                    className={`dropdown-arrow ${isOpen ? 'open' : ''}`}
                     viewBox="0 0 24 24"
                     fill="none"
                     xmlns="http://www.w3.org/2000/svg"
-                    style={{ transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)' }}
                 >
                     <path
                         d="M6 9L12 15L18 9"
@@ -31,16 +30,7 @@ function Filtro({ nome, opcoes }) {
                     />
                 </svg>
             </button>
-            <ul 
-                className="dropdown-menu"
-                style={{ 
-                    display: isOpen ? 'flex' : 'none', 
-                    opacity: isOpen ? 1 : 0, 
-                    visibility: isOpen ? 'visible' : 'hidden',
-                    pointerEvents: isOpen ? 'auto' : 'none',
-                    flexDirection: 'column'
-                }}
-            >
+            <ul className={`dropdown-menu ${isOpen ? 'open' : ''}`}>
                 {opcoes.map((op, idx) => (
                     <li key={idx}>
                         <a 
