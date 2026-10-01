@@ -1,13 +1,17 @@
-/* ==================================================
-   CONFIGURAÇÕES GERAIS
-================================================== */
+/* =========================================================
+   CINEPLANNER - LISTAS.CSS (FEED DE PLAYLISTS & PUBLICAÇÕES)
+   ========================================================= */
 
-* {
-    margin: 0;
-    padding: 0;
+.pagina-listas {
+    min-height: 100vh;
+    background-color: #141414;
+    color: var(--branco, #ffffff);
+    font-family: var(--fonte-corpo, 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif);
+    padding: 100px 20px 80px;
     box-sizing: border-box;
 }
 
+<<<<<<< Updated upstream
 /* Garante que a raiz do React e o wrapper do nav não limitem a largura */
 #root {
     width: 100%;
@@ -150,498 +154,805 @@ a {
     max-width: 100%;
     margin: 0 auto;
     padding: 65px 3rem 90px;
+=======
+.listas-container {
+    max-width: 1250px;
+    margin: 0 auto;
+    width: 100%;
+>>>>>>> Stashed changes
 }
 
-
-/* ==================================================
+/* =========================================================
    CABEÇALHO DA PÁGINA
-================================================== */
-.page-heading {
-    margin-bottom: 65px;
+   ========================================================= */
+
+.listas-page-header {
+    margin-bottom: 40px;
 }
 
-.page-heading h1 {
-    font-size: clamp(35px, 5vw, 54px);
+.header-badge-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(229, 9, 20, 0.12);
+    color: #e50914;
+    border: 1px solid rgba(229, 9, 20, 0.35);
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    margin-bottom: 14px;
+}
 
-    margin-top: 50px;
+.pulse-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background-color: #e50914;
+    box-shadow: 0 0 10px #e50914;
+    animation: pulse-glow 2s infinite ease-in-out;
+}
 
+@keyframes pulse-glow {
+    0%, 100% { transform: scale(1); opacity: 0.8; }
+    50% { transform: scale(1.4); opacity: 1; }
+}
+
+.listas-page-title {
+    font-size: clamp(2.2rem, 4vw, 3.2rem);
     font-weight: 900;
-
-    letter-spacing: 2px;
+    letter-spacing: 1.5px;
+    color: #ffffff;
+    margin: 0;
+    text-transform: uppercase;
+    line-height: 1.1;
 }
 
-.red-line {
-    width: 55px;
+.listas-page-title span {
+    color: #e50914;
+    text-shadow: 0 0 20px rgba(229, 9, 20, 0.4);
+}
+
+.red-line-glow {
+    width: 65px;
     height: 4px;
-
-    margin: 13px 0;
-
-    background: #e50914;
+    background: linear-gradient(90deg, #e50914, #ff3b47);
+    border-radius: 2px;
+    margin: 14px 0 16px;
+    box-shadow: 0 0 12px rgba(229, 9, 20, 0.6);
 }
 
-.page-heading p {
-    color: #888888;
-
-    font-size: 14px;
+.listas-page-subtitle {
+    color: #a0a0a0;
+    font-size: 1rem;
+    max-width: 750px;
+    line-height: 1.5;
+    margin-bottom: 28px;
 }
 
+/* =========================================================
+   TOOLBAR (BUSCA E ABAS DE FILTRO)
+   ========================================================= */
 
-/* ==================================================
-   SEÇÃO
-================================================== */
-
-.movie-section {
-    margin-bottom: 75px;
-}
-
-.section-heading {
+.listas-toolbar {
     display: flex;
-
-    align-items: flex-end;
-
+    flex-wrap: wrap;
     justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    background: #191919;
+    padding: 16px 20px;
+    border-radius: 12px;
+    border: 1px solid #282828;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+    margin-top: 20px;
+}
 
+.listas-search-box {
+    position: relative;
+    display: flex;
+    align-items: center;
+    flex: 1;
+    min-width: 260px;
+    max-width: 440px;
+    background: #111111;
+    border: 1px solid #333333;
+    border-radius: 25px;
+    padding: 0 16px;
+    transition: all 0.3s ease;
+}
+
+.listas-search-box:focus-within {
+    border-color: #e50914;
+    box-shadow: 0 0 12px rgba(229, 9, 20, 0.25);
+}
+
+.search-icon {
+    color: #777777;
+    margin-right: 10px;
+    flex-shrink: 0;
+}
+
+.search-input {
+    width: 100%;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: #ffffff;
+    font-size: 0.9rem;
+    padding: 10px 0;
+}
+
+.search-input::placeholder {
+    color: #666666;
+}
+
+.btn-clear-search {
+    background: transparent;
+    border: none;
+    color: #888888;
+    cursor: pointer;
+    font-size: 12px;
+    padding: 4px;
+    transition: color 0.2s;
+}
+
+.btn-clear-search:hover {
+    color: #ffffff;
+}
+
+.listas-filter-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.filter-tab {
+    background: #111111;
+    border: 1px solid #303030;
+    color: #b0b0b0;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.25s ease;
+}
+
+.filter-tab:hover {
+    background: #222222;
+    color: #ffffff;
+    border-color: #555555;
+}
+
+.filter-tab.ativo {
+    background: #e50914;
+    color: #ffffff;
+    border-color: #e50914;
+    box-shadow: 0 0 14px rgba(229, 9, 20, 0.4);
+}
+
+/* =========================================================
+   ESTADOS DE CARREGAMENTO E VAZIO
+   ========================================================= */
+
+.listas-loading-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 80px 20px;
+    color: #a0a0a0;
+    gap: 16px;
+}
+
+.loading-spinner {
+    width: 44px;
+    height: 44px;
+    border: 4px solid #222;
+    border-top: 4px solid #e50914;
+    border-radius: 50%;
+    animation: spin 0.9s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.listas-empty-state {
+    text-align: center;
+    background: #181818;
+    border: 1px dashed #333333;
+    border-radius: 14px;
+    padding: 60px 24px;
+    margin: 40px 0;
+}
+
+.empty-icon-box {
+    margin-bottom: 16px;
+}
+
+.listas-empty-state h3 {
+    font-size: 1.3rem;
+    font-weight: 700;
+    margin-bottom: 8px;
+}
+
+.listas-empty-state p {
+    color: #888888;
+    font-size: 0.95rem;
     margin-bottom: 20px;
 }
 
-.section-heading h2 {
-    font-size: 24px;
-
-    font-weight: 800;
-
-    margin-bottom: 7px;
-}
-
-.section-heading h2::before {
-    content: "";
-
-    display: inline-block;
-
-    width: 4px;
-    height: 22px;
-
-    margin-right: 10px;
-
+.btn-reset-filters {
     background: #e50914;
-
-    vertical-align: -3px;
-}
-
-.section-heading p {
-    margin-left: 14px;
-
-    color: #777777;
-
-    font-size: 12px;
-}
-
-.section-heading>a {
-    color: #e50914;
-
-    font-size: 12px;
-
-    font-weight: bold;
-}
-
-.section-heading>a:hover {
-    text-decoration: underline;
-}
-
-
-/* ==================================================
-   CARROSSEL
-================================================== */
-
-.carousel {
-    width: 100%;
-
-    position: relative;
-}
-
-
-/* ÁREA VISÍVEL */
-
-.carousel-window {
-    width: calc(100% - 100px);
-
-    margin: 0 auto;
-
-    overflow: hidden;
-}
-
-/* LINHA DOS CARDS */
-
-.carousel-track {
-    display: flex;
-
-    gap: 20px;
-
-    transition: transform 0.5s ease;
-}
-
-/* Remove scrollbar */
-
-.carousel-window::-webkit-scrollbar {
-    display: none;
-}
-
-/* ==================================================
-   CARDS
-================================================== */
-
-.movie-card {
-    flex: 0 0 calc((100% - 40px) / 3);
-
-    background: #151515;
-
-    border: 1px solid #272727;
-
-    border-radius: 6px;
-
-    overflow: hidden;
-
-    transition:
-        transform 0.3s ease,
-        border-color 0.3s ease;
-
+    color: #ffffff;
+    border: none;
+    padding: 10px 22px;
+    border-radius: 20px;
+    font-weight: 600;
     cursor: pointer;
+    transition: background 0.3s ease;
 }
 
-.movie-card:hover {
-    transform: translateY(-7px);
-
-    border-color: #e50914;
+.btn-reset-filters:hover {
+    background: #b30710;
 }
 
+/* =========================================================
+   FEED DE PUBLICAÇÕES DE PLAYLISTS
+   ========================================================= */
 
-/* IMAGEM */
+.listas-feed {
+    display: flex;
+    flex-direction: column;
+    gap: 45px;
+    margin-top: 35px;
+}
 
-.movie-card img {
+/* CARD DA PUBLICAÇÃO (POST ESTILO PLAYLIST) */
+.playlist-post-card {
+    background: #171717;
+    border: 1px solid #292929;
+    border-radius: 16px;
+    padding: 24px;
+    position: relative;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+    transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+    overflow: hidden;
+}
+
+.playlist-post-card:hover {
+    border-color: #3d3d3d;
+    box-shadow: 0 10px 35px rgba(0, 0, 0, 0.6);
+}
+
+.playlist-post-card.minha-publicacao {
+    border-color: rgba(229, 9, 20, 0.45);
+    background: linear-gradient(180deg, #1d1515 0%, #171717 100%);
+}
+
+.playlist-post-card.minha-publicacao::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 4px;
+    background: #e50914;
+    box-shadow: 0 0 10px #e50914;
+}
+
+.playlist-post-card.publicacao-oficial {
+    border-color: rgba(255, 180, 0, 0.3);
+}
+
+/* =========================================================
+   CABEÇALHO DA PUBLICAÇÃO (PERFIL DO CRIADOR)
+   ========================================================= */
+
+.post-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #252525;
+    padding-bottom: 18px;
+    margin-bottom: 18px;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.post-user-info {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+}
+
+/* Avatar e Acessórios do Post */
+.post-avatar-wrapper {
+    position: relative;
+    width: 58px;
+    height: 58px;
+    flex-shrink: 0;
+}
+
+.post-avatar-circle {
+    width: 58px;
+    height: 58px;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 2px solid #e50914;
+    background: #0f0f0f;
+    box-shadow: 0 0 12px rgba(229, 9, 20, 0.3);
+}
+
+.post-avatar-img {
     width: 100%;
-
-    aspect-ratio: 2 / 3;
-
-    display: block;
-
+    height: 100%;
     object-fit: cover;
+}
 
-    background: #1d1d1d;
+.post-hat-accessory {
+    position: absolute;
+    top: -16px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 44px;
+    height: auto;
+    z-index: 5;
+    pointer-events: none;
+}
 
+.post-hand-accessory {
+    position: absolute;
+    bottom: -6px;
+    right: -10px;
+    width: 28px;
+    height: auto;
+    z-index: 5;
+    pointer-events: none;
+}
+
+/* Meta dados do autor */
+.post-author-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.post-author-top-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.post-author-name {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #ffffff;
+}
+
+.post-author-handle {
+    font-size: 0.85rem;
+    color: #888888;
+}
+
+.post-author-level-badge {
+    background: #252525;
+    border: 1px solid #3d3d3d;
+    color: #f1c40f;
+    font-size: 0.68rem;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 10px;
+    letter-spacing: 0.5px;
+}
+
+.post-badge-minha-lista {
+    background: rgba(229, 9, 20, 0.2);
+    border: 1px solid #e50914;
+    color: #ff4d58;
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 12px;
+}
+
+.post-badge-oficial {
+    background: rgba(255, 180, 0, 0.15);
+    border: 1px solid rgba(255, 180, 0, 0.5);
+    color: #f39c12;
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 12px;
+}
+
+.post-author-bio {
+    font-size: 0.82rem;
+    color: #999999;
+    max-width: 600px;
+    margin: 0;
+    line-height: 1.3;
+}
+
+/* Lado direito do cabeçalho da publicação */
+.post-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.post-count-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #111111;
+    border: 1px solid #333333;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: #e50914;
+    letter-spacing: 0.5px;
+}
+
+.btn-gerenciar-link {
+    background: #252525;
+    color: #ffffff;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    text-decoration: none;
+    border: 1px solid #444;
+    transition: all 0.2s ease;
+}
+
+.btn-gerenciar-link:hover {
+    background: #e50914;
+    border-color: #e50914;
+    color: #ffffff;
+}
+
+/* =========================================================
+   INFORMAÇÕES DA PLAYLIST NA PUBLICAÇÃO
+   ========================================================= */
+
+.post-playlist-info {
+    margin-bottom: 20px;
+}
+
+.post-title-wrapper {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+.playlist-icon-indicator {
+    background: rgba(229, 9, 20, 0.12);
+    border: 1px solid rgba(229, 9, 20, 0.3);
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+.playlist-text-group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.post-playlist-title {
+    font-size: 1.35rem;
+    font-weight: 800;
+    color: #ffffff;
+    margin: 0;
+    letter-spacing: 0.4px;
+}
+
+.post-playlist-desc {
+    color: #888888;
+    font-size: 0.88rem;
+    margin: 0;
+}
+
+/* =========================================================
+   CARROSSEL DE FILMES ESTILO PLAYLIST
+   ========================================================= */
+
+.post-carousel-container {
+    position: relative;
+    width: 100%;
+    margin-top: 8px;
+}
+
+.post-movies-carousel {
+    display: flex;
+    gap: 16px;
+    overflow-x: auto;
+    scroll-behavior: smooth;
+    padding: 10px 4px 16px;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    scrollbar-color: #333333 transparent;
+}
+
+.post-movies-carousel::-webkit-scrollbar {
+    height: 6px;
+}
+
+.post-movies-carousel::-webkit-scrollbar-track {
+    background: #111111;
+    border-radius: 3px;
+}
+
+.post-movies-carousel::-webkit-scrollbar-thumb {
+    background: #333333;
+    border-radius: 3px;
+}
+
+.post-movies-carousel::-webkit-scrollbar-thumb:hover {
+    background: #e50914;
+}
+
+/* BOTÕES DE NAVEGAÇÃO DO CARROSSEL */
+.carousel-nav-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-60%);
+    width: 42px;
+    height: 64px;
+    background: rgba(10, 10, 10, 0.88);
+    border: 1px solid #333;
+    border-radius: 6px;
+    color: #ffffff;
+    font-size: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 10;
+    transition: all 0.25s ease;
+    backdrop-filter: blur(4px);
+}
+
+.carousel-nav-prev {
+    left: -12px;
+}
+
+.carousel-nav-next {
+    right: -12px;
+}
+
+.carousel-nav-btn:hover {
+    background: #e50914;
+    border-color: #e50914;
+    box-shadow: 0 0 15px rgba(229, 9, 20, 0.6);
+    transform: translateY(-60%) scale(1.05);
+}
+
+/* =========================================================
+   CARDS DE FILMES (PADRÃO IDÊNTICO AO USUARIO.JSX & FILMES.JSX)
+   ========================================================= */
+
+.pagina-listas .filme-card {
+    flex: 0 0 190px;
+    max-width: 190px;
+    background: #181818;
+    border: 1px solid #2a2a2a;
+    border-radius: 10px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.3s cubic-bezier(0.2, 0, 0, 1), border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.pagina-listas .filme-card:hover {
+    transform: translateY(-6px);
+    border-color: #e50914;
+    box-shadow: 0 8px 24px rgba(229, 9, 20, 0.25);
+}
+
+.pagina-listas .card-link {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    text-decoration: none;
+    color: inherit;
+}
+
+.pagina-listas .card-poster {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 2 / 3;
+    background: #111111;
+    overflow: hidden;
+}
+
+.pagina-listas .poster-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
     transition: transform 0.4s ease;
 }
 
-.movie-card:hover img {
-    transform: scale(1.04);
+.pagina-listas .filme-card:hover .poster-img {
+    transform: scale(1.06);
 }
 
-
-/* ==================================================
-   INFORMAÇÕES DO FILME
-================================================== */
-
-.movie-info {
-    min-height: 72px;
-
-    padding: 13px;
-}
-
-.movie-info h3 {
-    margin-bottom: 7px;
-
-    color: #ffffff;
-
-    font-size: 14px;
-
-    line-height: 1.35;
-
-    font-weight: bold;
-
-    white-space: nowrap;
-
-    overflow: hidden;
-
-    text-overflow: ellipsis;
-}
-
-.movie-info span {
-    color: #999999;
-
-    font-size: 11px;
-}
-
-
-/* ==================================================
-   SETAS
-================================================== */
-.carousel-window::scroll-button(left) {
-
-    content: "❮";
-
+.pagina-listas .card-overlay {
     position: absolute;
-
-    left: 0;
-
-    top: 50%;
-
-    transform: translateY(-50%);
-
-    width: 42px;
-
-    height: 62px;
-
-    border: 1px solid #333;
-
-    border-radius: 4px;
-
-    background: #000;
-
-    color: #fff;
-
-    font-size: 25px;
-
-    cursor: pointer;
-
-    z-index: 10;
-
+    inset: 0;
+    background: linear-gradient(180deg, transparent 50%, rgba(0, 0, 0, 0.85) 100%);
+    opacity: 0;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    padding-bottom: 14px;
+    transition: opacity 0.3s ease;
 }
 
-/* ==================================================
-   SETA DIREITA
-================================================== */
-
-.carousel-window::scroll-button(right) {
-
-    content: "❯";
-
-    position: absolute;
-
-    right: 0;
-
-    top: 50%;
-
-    transform: translateY(-50%);
-
-    width: 42px;
-
-    height: 62px;
-
-    border: 1px solid #333;
-    border-radius: 4px;
-
-    background: #000;
-
-    color: #fff;
-
-    font-size: 25px;
-
-    cursor: pointer;
-
-    z-index: 10;
-
+.pagina-listas .filme-card:hover .card-overlay {
+    opacity: 1;
 }
 
-/* ==================================================
-   HOVER DAS SETAS
-================================================== */
-
-.carousel-window::scroll-button(left):hover,
-.carousel-window::scroll-button(right):hover {
-
+.pagina-listas .card-overlay-text {
     background: #e50914;
-
-    border-color: #e50914;
-
+    color: #ffffff;
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 4px 12px;
+    border-radius: 14px;
+    letter-spacing: 0.5px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
 }
 
-/* ==================================================
-   SETA DESABILITADA
-================================================== */
-
-.carousel-window::scroll-button(left):disabled,
-.carousel-window::scroll-button(right):disabled {
-
-    opacity: 0.2;
-
-    cursor: default;
-
+.pagina-listas .card-info {
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
 }
 
-/* ==================================================
-   FOOTER
-================================================== */
-
-footer {
-    padding: 40px 20px;
-
-    background: #000000;
-
-    border-top: 1px solid #222222;
-
-    text-align: center;
+.pagina-listas .card-titulo {
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: #ffffff;
+    margin: 0 0 4px 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.3;
 }
 
-.footer-logo {
-    margin-bottom: 10px;
-
-    font-size: 20px;
-
-    font-weight: 900;
-}
-
-.footer-logo span {
+.pagina-listas .card-genero {
+    font-size: 0.72rem;
     color: #e50914;
+    margin-bottom: 6px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-weight: 600;
 }
 
-footer p {
-    color: #666666;
-
-    font-size: 11px;
+.pagina-listas .card-nota {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.75rem;
+    color: #bbb;
+    margin-top: auto;
 }
 
+.pagina-listas .estrela {
+    color: #f1c40f;
+    font-size: 0.85rem;
+}
 
-/* ==================================================
-   TABLET
-================================================== */
+.pagina-listas .nota-valor {
+    font-weight: 600;
+}
+
+.pagina-listas .card-sinopse {
+    font-size: 0.72rem;
+    color: #888888;
+    margin: 6px 0 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.3;
+}
+
+/* =========================================================
+   RESPONSIVIDADE (TABLETS E CELULARES)
+   ========================================================= */
 
 @media (max-width: 900px) {
-
-    .navbar {
-        padding: 15px 4%;
-
-        flex-wrap: wrap;
+    .pagina-listas {
+        padding: 85px 15px 60px;
     }
 
-    .nav-menu {
-        order: 3;
-
-        width: 100%;
+    .listas-toolbar {
+        flex-direction: column;
+        align-items: stretch;
     }
 
-    .nav-menu a {
-        flex: 1;
-
-        text-align: center;
+    .listas-search-box {
+        max-width: 100%;
     }
 
-    .search {
-        width: 220px;
+    .carousel-nav-btn {
+        width: 36px;
+        height: 52px;
+        font-size: 22px;
     }
 
+    .carousel-nav-prev { left: -4px; }
+    .carousel-nav-next { right: -4px; }
 
-    /*
-       Tablet:
-       2 cards visíveis.
-    */
-
-    .movie-card {
-        flex-basis: calc((100% - 20px) / 2);
+    .pagina-listas .filme-card {
+        flex: 0 0 160px;
+        max-width: 160px;
     }
-
-    .carousel-window {
-        width: calc(100% - 85px);
-    }
-
-
-    #assistir-2:checked~.carousel-window .carousel-track,
-    #lancamentos-2:checked~.carousel-window .carousel-track,
-    #avaliados-2:checked~.carousel-window .carousel-track {
-        transform: translateX(calc(-50% - 10px));
-    }
-
 }
 
-
-/* ==================================================
-   CELULAR
-================================================== */
-
 @media (max-width: 600px) {
+    .pagina-listas {
+        padding: 75px 12px 50px;
+    }
 
-    .navbar {
-        padding: 15px 5%;
+    .listas-page-title {
+        font-size: 1.8rem;
+    }
 
+    .playlist-post-card {
+        padding: 16px;
+    }
+
+    .post-header {
+        flex-direction: column;
+        align-items: flex-start;
         gap: 12px;
     }
 
-    .logo {
-        font-size: 19px;
-    }
-
-    .search {
+    .post-header-actions {
         width: 100%;
-
-        order: 2;
+        justify-content: space-between;
     }
 
-    .nav-menu {
-        order: 3;
+    .post-avatar-wrapper {
+        width: 48px;
+        height: 48px;
     }
 
-    .nav-menu a {
-        padding: 12px 5px;
-
-        font-size: 10px;
+    .post-avatar-circle {
+        width: 48px;
+        height: 48px;
     }
 
-
-    .container {
-        width: 92%;
-
-        padding-top: 45px;
+    .post-playlist-title {
+        font-size: 1.15rem;
     }
 
-    .page-heading {
-        margin-bottom: 45px;
+    .carousel-nav-btn {
+        display: none; /* Em telas muito pequenas o scroll touch é natural */
     }
 
-    .page-heading h1 {
-        font-size: 36px;
+    .pagina-listas .filme-card {
+        flex: 0 0 140px;
+        max-width: 140px;
     }
-
-
-    .movie-section {
-        margin-bottom: 55px;
-    }
-
-    .section-heading h2 {
-        font-size: 19px;
-    }
-
-    .section-heading p {
-        font-size: 10px;
-    }
-
-    .section-heading>a {
-        font-size: 10px;
-    }
-
-
-    /*
-       Celular:
-       1 card visível.
-    */
-
-    .carousel-window {
-        width: calc(100% - 70px);
-    }
-
-    .movie-card {
-        flex-basis: 100%;
-    }
-
-
-    #assistir-2:checked~.carousel-window .carousel-track,
-    #lancamentos-2:checked~.carousel-window .carousel-track,
-    #avaliados-2:checked~.carousel-window .carousel-track {
-        transform: translateX(calc(-100% - 20px));
-    }
-
-
-    .arrow {
-        width: 32px;
-        height: 52px;
-
-        font-size: 24px;
-    }
-
 }
