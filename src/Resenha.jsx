@@ -15,6 +15,12 @@ function Resenha() {
     const [toastXP, setToastXP] = useState(null);
     const usuarioLogado = localStorage.getItem("user") ? JSON.parse(localStorage.getItem("user")) : null;
 
+    // Estados do sistema de avaliações
+    const [estatisticasLocais, setEstatisticasLocais] = useState({ count: 0, soma: 0 });
+    const [notaUsuario, setNotaUsuario] = useState(null);
+    const [hoverNota, setHoverNota] = useState(null);
+    const [jaAvaliou, setJaAvaliou] = useState(false);
+
     const API_KEY = '168817e9845280fe6d28f3a939f4bc67';
 
     async function handleCurtir(comentId, jaCurtiu) {
@@ -45,7 +51,7 @@ function Resenha() {
         }
     }
 
-    async function handlePublicarComentario(){
+    async function handleUpdateFilme() {
         const filmeData = {
             id: Number(id),
             titulo: filme.title
@@ -56,6 +62,10 @@ function Resenha() {
         if(errorFilme) {
             console.error("Erro ao inserir/atualizar filme:", errorFilme);
         }
+    }
+    
+    async function handlePublicarComentario(){
+        handleUpdateFilme();
 
         const comentario = {
             id_filme: Number(id),
@@ -81,7 +91,6 @@ function Resenha() {
             console.log("XP adicionado com sucesso!");
             localStorage.setItem("user", JSON.stringify({ ...usuarioLogado, xp_total: Number(usuarioLogado.xp_total) + xp }));
             
-            // Ativa o toast e programa para sumir logo após o fim da animação de 3 segundos
             setToastXP({ xp, msg: xp > 0 ? `+${xp} XP Ganhos!` : `${xp} XP Perdidos` });
             setTimeout(() => setToastXP(null), 3100);
         }else{
@@ -98,11 +107,105 @@ function Resenha() {
         }
     }
     
+    async function fetchMinhaAvaliacao() {
+        if (!usuarioLogado) return;
+        const { data, error } = await supabase.from('avaliacoes')
+            .select('nota')
+            .eq('id_filme', Number(id))
+            .eq('id_usuario', Number(usuarioLogado.id))
+            .single();
+        if (data) {
+            setNotaUsuario(data.nota);
+            setJaAvaliou(true);
+        } else {
+            setNotaUsuario(null);
+            setJaAvaliou(false);
+        }
+    }
+
+    async function fetchEstatisticasLocais() {
+        const { data, error } = await supabase.rpc('get_estatisticas_filme', {
+            filme_id: Number(id)
+        });
+
+        if (!error && data && data.length > 0) {
+            setEstatisticasLocais({
+                count: Number(data[0].total_avaliacoes) || 0,
+                soma: Number(data[0].soma_notas) || 0
+            });
+        }
+    }
+
+    async function submitRating(notaDada) {
+        if (!usuarioLogado) {
+            alert("Você precisa estar logado para avaliar.");
+            return;
+        }
+
+        const avaliacao = {
+            id_filme: Number(id),
+            id_usuario: Number(usuarioLogado.id)
+        };
+        const notaAntiga = notaUsuario;
+
+        if (jaAvaliou && notaDada === notaUsuario) {
+            // Atualização Otimista
+            setNotaUsuario(null);
+            setJaAvaliou(false);
+            setEstatisticasLocais(prev => ({
+                count: prev.count - 1,
+                soma: prev.soma - notaAntiga
+            }));
+
+            // Remover avaliação (clicou na mesma estrela)
+            const { error } = await supabase.from('avaliacoes').delete().match(avaliacao);
+            if (!error) {
+                fetchEstatisticasLocais();
+                ganhaXP(-20);
+            } else {
+                console.error("Erro ao remover avaliação:", error);
+            }
+        } else {
+            const ehNova = !jaAvaliou;
+            
+            // Atualização Otimista
+            setNotaUsuario(notaDada);
+            setJaAvaliou(true);
+            setEstatisticasLocais(prev => ({
+                count: ehNova ? prev.count + 1 : prev.count,
+                soma: prev.soma - (ehNova ? 0 : notaAntiga) + notaDada
+            }));
+
+            // Adicionar ou atualizar avaliação
+            await handleUpdateFilme();
+
+            if (!ehNova) {
+                // Atualizar
+                const { error } = await supabase.from('avaliacoes').update({ nota: notaDada }).match(avaliacao);
+                if (!error) {
+                    fetchEstatisticasLocais();
+                } else {
+                    console.error("Erro ao atualizar avaliação:", error);
+                }
+            } else {
+                // Inserir nova
+                const { error } = await supabase.from('avaliacoes').insert({ ...avaliacao, nota: notaDada });
+                if (!error) {
+                    fetchEstatisticasLocais();
+                    ganhaXP(20);
+                } else {
+                    console.error("Erro ao adicionar avaliação:", error);
+                }
+            }
+        }
+    }
+
     async function fetchDetalhes() {
             try {
                 const res = await fetch(`https://api.themoviedb.org/3/movie/${id}?language=pt-BR&append_to_response=credits,release_dates&api_key=${API_KEY}`);
                 const data = await res.json();
                 setFilme(data);
+                fetchEstatisticasLocais();
             } catch (err) {
                 console.error(err);
             }
@@ -112,10 +215,18 @@ function Resenha() {
         if(id) {
             fetchDetalhes()
             fetchComentarios()
+            fetchMinhaAvaliacao()
         }
     }, [id]);
 
     if (!filme) return <p className="loading-message">Carregando...</p>;
+
+    const tmdbVoteCount = filme.vote_count || 0;
+    const tmdbVoteAverage = filme.vote_average || 0;
+    const totalVotosFinal = tmdbVoteCount + estatisticasLocais.count;
+    const mediaFinal = totalVotosFinal > 0 
+        ? ((tmdbVoteAverage * tmdbVoteCount) + estatisticasLocais.soma) / totalVotosFinal 
+        : tmdbVoteAverage;
 
     const certificacaoBR = filme.release_dates?.results?.find(r => r.iso_3166_1 === 'BR')?.release_dates[0]?.certification || '14+';
     const elenco = filme.credits?.cast?.slice(0, 4) || [];
@@ -123,6 +234,17 @@ function Resenha() {
     const posterUrl = filme.poster_path ? `https://image.tmdb.org/t/p/w500${filme.poster_path}` : 'https://placehold.co/420x630/1a1a1a/e50914?text=Sem+Poster';
     const duracaoH = Math.floor((filme.runtime || 0) / 60);
     const duracaoM = (filme.runtime || 0) % 60;
+
+    const activeRating = hoverNota !== null ? hoverNota : (notaUsuario || 0);
+
+    const getStarFillWidth = (starIndex) => {
+        const fullValue = starIndex * 2;
+        const halfValue = fullValue - 1;
+
+        if (activeRating >= fullValue) return "100%";
+        if (activeRating >= halfValue) return "50%";
+        return "0%";
+    };
 
     return (
         <>
@@ -144,19 +266,45 @@ function Resenha() {
                             />
                         </div>
                         <div className="poster-rating" id="poster-rating">
-                            <div className="stars-row">
-                                {[5, 4, 3, 2, 1].map(num => (
-                                    <span key={num} className="star-rating-container">
-                                        <input type="radio" name="avaliacao" id={`star${num}`} value={num} className="star-input" />
-                                        <label htmlFor={`star${num}`} className="star-label" title={`${num} estrelas`}>★</label>
-                                    </span>
-                                ))}
+                            <div className="stars-row" onMouseLeave={() => setHoverNota(null)}>
+                                {[1, 2, 3, 4, 5].map(starIndex => {
+                                    const leftValue = starIndex * 2 - 1;
+                                    const rightValue = starIndex * 2;
+                                    const isActive = activeRating >= leftValue;
+                                    
+                                    return (
+                                        <span 
+                                            key={starIndex} 
+                                            className={`star-rating-container ${isActive ? 'is-active' : ''}`}
+                                        >
+                                            <span className="star-base">★</span>
+                                            <span 
+                                                className="star-filled"
+                                                style={{ width: getStarFillWidth(starIndex) }}
+                                            >
+                                                ★
+                                            </span>
+                                            <span 
+                                                className="star-half star-half-left"
+                                                onMouseEnter={() => setHoverNota(leftValue)}
+                                                onClick={() => submitRating(leftValue)}
+                                                title={`${leftValue / 2} estrelas`}
+                                            />
+                                            <span 
+                                                className="star-half star-half-right"
+                                                onMouseEnter={() => setHoverNota(rightValue)}
+                                                onClick={() => submitRating(rightValue)}
+                                                title={`${rightValue / 2} estrelas`}
+                                            />
+                                        </span>
+                                    );
+                                })}
                             </div>
                             <div className="media-nota">
                                 <span className="estrela-media">★</span>
-                                <span className="nota-numero">{filme.vote_average ? filme.vote_average.toFixed(1) : 'N/A'}</span>
+                                <span className="nota-numero">{mediaFinal !== null ? mediaFinal.toFixed(1) : (filme.vote_average ? filme.vote_average.toFixed(1) : 'N/A')}</span>
                                 <span className="nota-total">/ 10</span>
-                                <span className="nota-votos">({filme.vote_count} votos)</span>
+                                <span className="nota-votos">({totalVotosFinal !== null ? totalVotosFinal : (filme.vote_count || 0)} votos)</span>
                             </div>
                         </div>
                     </div>
