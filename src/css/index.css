@@ -170,7 +170,8 @@ div:has(> nav.navbar) {
 .hero {
     position: relative;
     width: 100%;
-    min-height: 80vh; /* Puxa a página para cima */
+    min-height: 80vh;
+    /* Puxa a página para cima */
     display: flex;
     align-items: center;
     justify-content: center;
@@ -645,7 +646,8 @@ div:has(> nav.navbar) {
     display: flex;
     align-items: center;
     justify-content: center;
-    transform: translateY(-6vh); /* Aproxima da navbar */
+    transform: translateY(-6vh);
+    /* Aproxima da navbar */
     perspective: 1200px;
     overflow: hidden;
     z-index: 1;
