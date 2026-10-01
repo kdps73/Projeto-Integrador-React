@@ -304,12 +304,38 @@ function Usuario() {
         async function carregarFilmesUsuario() {
             setCarregandoFilmes(true);
             try {
+                // Obter usuário salvo localmente caso exista
+                let currentUserId = usuario.id;
+                const userSalvoStr = localStorage.getItem("user");
+                if (userSalvoStr) {
+                    try {
+                        const userSalvo = JSON.parse(userSalvoStr);
+                        if (userSalvo?.id) {
+                            currentUserId = userSalvo.id;
+                            setUsuario(prev => ({
+                                ...prev,
+                                id: userSalvo.id,
+                                nome: userSalvo.nome || prev.nome,
+                                username: userSalvo.username || prev.username,
+                                email: userSalvo.email || prev.email,
+                                bio: userSalvo.bio || prev.bio,
+                                xpTotal: userSalvo.xp_total ?? prev.xpTotal,
+                                nivel: userSalvo.nivel ?? prev.nivel,
+                                avatarUrl: userSalvo.url_img ? obterUrlItem(userSalvo.url_img) : (userSalvo.avatar_url || prev.avatarUrl)
+                            }));
+                            setInputBio(userSalvo.bio || "");
+                        }
+                    } catch (e) {
+                        console.warn("Erro ao ler usuário do localStorage", e);
+                    }
+                }
+
                 // A) Buscar Perfil no Supabase se disponível
-                if (supabase) {
+                if (supabase && currentUserId) {
                     const { data: dadosUsuario } = await supabase
                         .from('usuario')
                         .select('*, id_item_chapeu(*), id_item_mao(*), id_item_mascote(*)')
-                        .eq('id', usuario.id)
+                        .eq('id', currentUserId)
                         .maybeSingle();
 
                     if (dadosUsuario) {
@@ -339,12 +365,12 @@ function Usuario() {
                 }
 
                 // B) Sincronizar Playlists (Favoritos, Assistir Mais Tarde e Personalizadas) direto do Supabase
-                if (supabase && usuario?.id) {
+                if (supabase && currentUserId) {
                     try {
                         const { data: dadosPlaylists, error: errPlaylists } = await supabase
                             .from('playlists')
                             .select('*')
-                            .eq('id_usuario', usuario.id);
+                            .eq('id_usuario', currentUserId);
 
                         if (!errPlaylists && dadosPlaylists) {
                             let favPlaylist = dadosPlaylists.find(p => p.nome === "Favoritos");
@@ -354,7 +380,7 @@ function Usuario() {
                             if (!favPlaylist) {
                                 const { data: novaFav } = await supabase
                                     .from('playlists')
-                                    .insert([{ id_usuario: usuario.id, nome: "Favoritos", filmes: [], publica: true }])
+                                    .insert([{ id_usuario: currentUserId, nome: "Favoritos", filmes: [], publica: true }])
                                     .select()
                                     .single();
                                 if (novaFav) favPlaylist = novaFav;
@@ -364,7 +390,7 @@ function Usuario() {
                             if (!watchPlaylist) {
                                 const { data: novaWatch } = await supabase
                                     .from('playlists')
-                                    .insert([{ id_usuario: usuario.id, nome: "Assistir Mais Tarde", filmes: [], publica: false }])
+                                    .insert([{ id_usuario: currentUserId, nome: "Assistir Mais Tarde", filmes: [], publica: false }])
                                     .select()
                                     .single();
                                 if (novaWatch) watchPlaylist = novaWatch;
@@ -383,6 +409,8 @@ function Usuario() {
                     } catch (e) {
                         console.warn("Erro ao carregar playlists do Supabase:", e);
                     }
+
+
                 }
 
             } catch (err) {
@@ -396,7 +424,7 @@ function Usuario() {
     }, []);
 
     // =========================================================
-    // 5. ATUALIZAÇÃO DA BIO
+    // 5. ATUALIZAÇÃO DA BIO E LOGOUT
     // =========================================================
     const handleSalvarBio = async () => {
         setUsuario(prev => ({ ...prev, bio: inputBio }));
@@ -413,6 +441,23 @@ function Usuario() {
         }
     };
 
+    const handleLogout = async () => {
+        try {
+            if (supabase?.auth) {
+                await supabase.auth.signOut();
+            }
+        } catch (err) {
+            console.warn("Erro ao deslogar do Supabase:", err);
+        }
+
+        // Limpa a sessão local
+        localStorage.removeItem("user");
+        localStorage.removeItem("supabase_token");
+        window.dispatchEvent(new Event("authChanged"));
+
+        // Redireciona para o login ou tela inicial
+        navigate("/login");
+    };
     const handleEquiparItem = async (item) => {
         const xpAtual = Number(usuario.xpTotal || 0);
         const valorItem = Number(item.valor || 0);
@@ -479,37 +524,45 @@ function Usuario() {
 
                 {/* CARD DE PERFIL DO USUÁRIO */}
                 <section className="profile-card" aria-label="Card de Perfil">
-                    <div className="avatar-container">
-                        {usuario.chapeuUrl && (
-                            <img
-                                className="hat-accessory"
-                                src={usuario.chapeuUrl}
-                                alt="Chapéu do Avatar"
-                            />
-                        )}
+                    <div className="avatar-wrapper">
+                        <div className="avatar-container">
+                            {usuario.chapeuUrl && (
+                                <img
+                                    className="hat-accessory"
+                                    src={usuario.chapeuUrl}
+                                    alt="Chapéu do Avatar"
+                                />
+                            )}
 
-                        <div className="avatar-circle">
-                            <img
-                                src={usuario.avatarUrl}
-                                alt={`Avatar de ${usuario.username}`}
-                                className="avatar-img"
-                                onError={(e) => {
-                                    e.target.onerror = null;
-                                    e.target.src = "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=300&q=80";
-                                }}
-                            />
+                            <div className="avatar-circle">
+                                <img
+                                    src={usuario.avatarUrl}
+                                    alt={`Avatar de ${usuario.username}`}
+                                    className="avatar-img"
+                                    onError={(e) => {
+                                        e.target.onerror = null;
+                                        e.target.src = "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=300&q=80";
+                                    }}
+                                />
+                            </div>
+
+                            {usuario.maoUrl && (
+                                <img
+                                    className="accessory"
+                                    src={usuario.maoUrl}
+                                    alt="Acessório do Avatar"
+                                />
+                            )}
                         </div>
-                        <button onClick={handleLogout} className="logout-btn">
+
+                        <button onClick={handleLogout} className="logout-btn" title="Sair da conta">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                                <polyline points="16 17 21 12 16 7"></polyline>
+                                <line x1="21" y1="12" x2="9" y2="12"></line>
+                            </svg>
                             Sair
                         </button>
-
-                        {usuario.maoUrl && (
-                            <img
-                                className="accessory"
-                                src={usuario.maoUrl}
-                                alt="Acessório do Avatar"
-                            />
-                        )}
                     </div>
 
                     <div className="user-info">
@@ -565,20 +618,20 @@ function Usuario() {
                                     >
                                         Editar Bio
                                     </button>
-                                    <button 
-                                        className="btn-inventario" 
+                                    <button
+                                        className="btn-inventario"
                                         onClick={() => setModalItensAberto(true)}
                                         type="button"
                                         title="Abrir Itens"
                                     >
-                                        <svg 
-                                            width="12" 
-                                            height="12" 
-                                            viewBox="0 0 24 24" 
-                                            fill="none" 
-                                            stroke="currentColor" 
-                                            strokeWidth="2" 
-                                            strokeLinecap="round" 
+                                        <svg
+                                            width="12"
+                                            height="12"
+                                            viewBox="0 0 24 24"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            strokeWidth="2"
+                                            strokeLinecap="round"
                                             strokeLinejoin="round"
                                         >
                                             <circle cx="9" cy="21" r="1"></circle>
