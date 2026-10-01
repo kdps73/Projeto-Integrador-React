@@ -112,13 +112,6 @@ function Menu() {
                                 Listas
                             </Link>
                         </li>
-                        {!user && (
-                            <li>
-                                <Link to="/usuario" className="nav-link">
-                                    Usuário
-                                </Link>
-                            </li>
-                        )}
                     </ul>
 
                     {/* Barra de pesquisa */}
