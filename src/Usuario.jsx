@@ -60,6 +60,51 @@ function obterUrlItem(caminhoOuUrl) {
     return caminhoOuUrl;
 }
 
+// =========================================================
+// SISTEMA DE NÍVEL PROGRESSIVO
+// Curva quadrática calibrada:
+//   - XP total para nível 100 ≈ 5000 XP
+//   - Itens de 100 XP desbloqueiam  ≈ nível  9
+//   - Itens de 200 XP desbloqueiam ≈ nível 13
+//   - Itens de 300 XP desbloqueiam ≈ nível 16
+//   - Itens de 400 XP desbloqueiam ≈ nível 18
+//   - Itens de 500 XP desbloqueiam ≈ nível 21
+// XP necessário para subir do nível N para N+1:
+//   xpParaSubir(n) = 10 + Math.floor(n * n * 0.5)
+// =========================================================
+function xpAcumuladoAteNivel(nivel) {
+    let total = 0;
+    for (let n = 1; n < nivel; n++) {
+        total += 10 + Math.floor(n * n * 0.5);
+    }
+    return total;
+}
+
+function xpParaProximoNivel(nivelAtual) {
+    return 10 + Math.floor(nivelAtual * nivelAtual * 0.5);
+}
+
+function calcularNivel(xpTotal) {
+    let nivel = 1;
+    let xpAcumulado = 0;
+    while (nivel < 100) {
+        const custoProximo = xpParaProximoNivel(nivel);
+        if (xpAcumulado + custoProximo > xpTotal) break;
+        xpAcumulado += custoProximo;
+        nivel++;
+    }
+    return nivel;
+}
+
+function calcularProgressoNivel(xpTotal) {
+    const nivelAtual = calcularNivel(xpTotal);
+    const xpBase = xpAcumuladoAteNivel(nivelAtual);
+    const xpNecessario = xpParaProximoNivel(nivelAtual);
+    const xpNoNivel = xpTotal - xpBase;
+    const porcentagem = Math.min(Math.round((xpNoNivel / xpNecessario) * 100), 100);
+    return { nivelAtual, xpNoNivel, xpNecessario, porcentagem };
+}
+
 function Usuario() {
     const navigate = useNavigate();
     // =========================================================
@@ -89,10 +134,9 @@ function Usuario() {
     const [statusBio, setStatusBio] = useState("");
     const [isEditingBio, setIsEditingBio] = useState(false);
 
-    // Sistema de XP e Nível
-    const xpPorNivel = 600;
-    const xpAtualNoNivel = usuario.xpTotal % xpPorNivel;
-    const porcentagemXp = Math.min(Math.round((xpAtualNoNivel / xpPorNivel) * 100), 100);
+    // Sistema de XP e Nível (progressivo, derivado do xpTotal)
+    const { nivelAtual, xpNoNivel, xpNecessario, porcentagem: porcentagemXp } = calcularProgressoNivel(usuario.xpTotal);
+    const nivelCalculado = nivelAtual;
 
     // =========================================================
     // 2. ESTADOS DE FILMES E PLAYLISTS PERSONALIZADAS
@@ -135,16 +179,36 @@ function Usuario() {
     // =========================================================
     // 3. PERSISTÊNCIA DAS LISTAS E FUNÇÕES TOGGLE
     // =========================================================
+    // Extrai apenas os IDs dos filmes para salvar no banco (Supabase recebe [id1, id2, ...])
+    const extrairIds = (lista) => lista.map(f => (typeof f === 'object' && f !== null) ? Number(f.id) : Number(f));
+
     const salvarFavoritos = async (novaLista) => {
         setFavoritos(novaLista);
 
         if (supabase && usuario?.id) {
             try {
-                await supabase
+                const apenasIds = extrairIds(novaLista);
+                const { data: listFav } = await supabase
                     .from('playlists')
-                    .update({ filmes: novaLista })
+                    .select('id')
                     .eq('id_usuario', usuario.id)
                     .eq('nome', 'Favoritos');
+
+                if (listFav && listFav.length > 0) {
+                    await supabase
+                        .from('playlists')
+                        .update({ filmes: apenasIds })
+                        .eq('id', listFav[0].id);
+
+                    if (listFav.length > 1) {
+                        const dupIds = listFav.slice(1).map(p => p.id);
+                        await supabase.from('playlists').delete().in('id', dupIds);
+                    }
+                } else {
+                    await supabase
+                        .from('playlists')
+                        .insert([{ id_usuario: usuario.id, nome: 'Favoritos', filmes: apenasIds }]);
+                }
             } catch (err) {
                 console.warn("Erro ao salvar favoritos no Supabase:", err);
             }
@@ -156,11 +220,28 @@ function Usuario() {
 
         if (supabase && usuario?.id) {
             try {
-                await supabase
+                const apenasIds = extrairIds(novaLista);
+                const { data: listWatch } = await supabase
                     .from('playlists')
-                    .update({ filmes: novaLista })
+                    .select('id')
                     .eq('id_usuario', usuario.id)
                     .eq('nome', 'Assistir Mais Tarde');
+
+                if (listWatch && listWatch.length > 0) {
+                    await supabase
+                        .from('playlists')
+                        .update({ filmes: apenasIds })
+                        .eq('id', listWatch[0].id);
+
+                    if (listWatch.length > 1) {
+                        const dupIds = listWatch.slice(1).map(p => p.id);
+                        await supabase.from('playlists').delete().in('id', dupIds);
+                    }
+                } else {
+                    await supabase
+                        .from('playlists')
+                        .insert([{ id_usuario: usuario.id, nome: 'Assistir Mais Tarde', filmes: apenasIds }]);
+                }
             } catch (err) {
                 console.warn("Erro ao salvar watchlist no Supabase:", err);
             }
@@ -172,59 +253,98 @@ function Usuario() {
     };
 
     // Verificadores de estado
-    const eFavorito = (id) => favoritos.some(f => f.id === id);
-    const naWatchlist = (id) => assistirMaisTarde.some(f => f.id === id);
+    const eFavorito = (id) => favoritos.some(f => Number(f.id) === Number(id));
+    const naWatchlist = (id) => assistirMaisTarde.some(f => Number(f.id) === Number(id));
 
     // Verificador se o filme está em alguma playlist (Assistir Mais Tarde ou qualquer Playlist Personalizada)
     const estaEmAlgumaPlaylist = (id) => {
         if (naWatchlist(id)) return true;
-        return playlists.some(p => p.filmes && p.filmes.some(f => f.id === id));
+        return playlists.some(p => p.filmes && p.filmes.some(f => Number(f.id) === Number(id)));
     };
 
     // Toggle para o Botão Coração (Favoritos)
     const toggleFavorito = (filme) => {
-        if (eFavorito(filme.id)) {
-            const novaLista = favoritos.filter(f => f.id !== filme.id);
+        const fId = Number(filme.id);
+        const fObj = {
+            id: fId,
+            titulo: filme.titulo || filme.title || "",
+            poster_url: filme.poster_url || (filme.poster_path ? `https://image.tmdb.org/t/p/w500${filme.poster_path}` : null),
+            avaliacao: filme.avaliacao || filme.vote_average || 0,
+            duracao: filme.duracao || filme.runtime || 0,
+            sinopse: filme.sinopse || filme.overview || "",
+            ano_lancamento: filme.ano_lancamento || filme.release_date || "",
+            generos: filme.generos || ""
+        };
+
+        if (eFavorito(fId)) {
+            const novaLista = favoritos.filter(f => Number(f.id) !== fId);
             salvarFavoritos(novaLista);
         } else {
-            salvarFavoritos([filme, ...favoritos]);
+            salvarFavoritos([fObj, ...favoritos.filter(f => Number(f.id) !== fId)]);
         }
     };
 
     // Toggle para o Botão Playlist (Assistir Mais Tarde)
     const toggleAssistirMaisTarde = (filme) => {
-        if (naWatchlist(filme.id)) {
-            const novaLista = assistirMaisTarde.filter(f => f.id !== filme.id);
+        const fId = Number(filme.id);
+        const fObj = {
+            id: fId,
+            titulo: filme.titulo || filme.title || "",
+            poster_url: filme.poster_url || (filme.poster_path ? `https://image.tmdb.org/t/p/w500${filme.poster_path}` : null),
+            avaliacao: filme.avaliacao || filme.vote_average || 0,
+            duracao: filme.duracao || filme.runtime || 0,
+            sinopse: filme.sinopse || filme.overview || "",
+            ano_lancamento: filme.ano_lancamento || filme.release_date || "",
+            generos: filme.generos || ""
+        };
+
+        if (naWatchlist(fId)) {
+            const novaLista = assistirMaisTarde.filter(f => Number(f.id) !== fId);
             salvarWatchlist(novaLista);
         } else {
-            salvarWatchlist([filme, ...assistirMaisTarde]);
+            salvarWatchlist([fObj, ...assistirMaisTarde.filter(f => Number(f.id) !== fId)]);
         }
     };
 
     // Criar uma nova playlist personalizada no Supabase
     const handleCriarPlaylist = async (e) => {
         e.preventDefault();
-        if (!novaPlaylistNome.trim()) return;
+        if (!novaPlaylistNome.trim() || !usuario?.id) return;
+
+        const currentUserId = Number(usuario.id);
+        const fObj = filmeParaModal ? {
+            id: Number(filmeParaModal.id),
+            titulo: filmeParaModal.titulo || filmeParaModal.title || "",
+            poster_url: filmeParaModal.poster_url || (filmeParaModal.poster_path ? `https://image.tmdb.org/t/p/w500${filmeParaModal.poster_path}` : null),
+            avaliacao: filmeParaModal.avaliacao || filmeParaModal.vote_average || 0,
+            duracao: filmeParaModal.duracao || filmeParaModal.runtime || 0,
+            sinopse: filmeParaModal.sinopse || filmeParaModal.overview || "",
+            ano_lancamento: filmeParaModal.ano_lancamento || filmeParaModal.release_date || "",
+            generos: filmeParaModal.generos || ""
+        } : null;
+
+        const filmesIniciais = fObj ? [fObj] : [];
+        // Banco recebe apenas IDs
+        const idsIniciais = fObj ? [Number(fObj.id)] : [];
 
         const novaPlaylist = {
             id: Date.now(),
-            id_usuario: usuario.id,
+            id_usuario: currentUserId,
             nome: novaPlaylistNome.trim(),
-            publica: true,
-            filmes: []
+            filmes: filmesIniciais,
+            public: true
         };
 
         if (supabase) {
             try {
                 const { data, error } = await supabase
                     .from('playlists')
-                    .insert([{ id_usuario: usuario.id, nome: novaPlaylistNome.trim(), publica: true, filmes: [] }])
+                    .insert([{ id_usuario: currentUserId, nome: novaPlaylistNome.trim(), filmes: idsIniciais, public: true }])
                     .select()
                     .single();
 
                 if (!error && data) {
                     novaPlaylist.id = data.id;
-                    novaPlaylist.publica = data.publica ?? true;
                 }
             } catch (err) {
                 console.warn("Erro ao salvar playlist no Supabase:", err);
@@ -238,26 +358,24 @@ function Usuario() {
 
     // Alternar visibilidade pública/privada da playlist
     const togglePublicaPlaylist = async (playlistId) => {
-        const playlistAtual = playlists.find(p => p.id === playlistId);
-        const novoStatus = !(playlistAtual?.publica ?? true);
-
         const novasPlaylists = playlists.map(p => {
             if (p.id === playlistId) {
-                return { ...p, publica: novoStatus };
+                return { ...p, public: !(p.public ?? false) };
             }
             return p;
         });
-
         salvarPlaylists(novasPlaylists);
 
+        // Persiste no Supabase com o nome correto da coluna: 'public'
         if (supabase) {
+            const playlistAtualizada = novasPlaylists.find(p => p.id === playlistId);
             try {
                 await supabase
                     .from('playlists')
-                    .update({ publica: novoStatus })
+                    .update({ public: playlistAtualizada?.public ?? false })
                     .eq('id', playlistId);
             } catch (err) {
-                console.warn("Erro ao atualizar visibilidade da playlist no Supabase:", err);
+                console.warn("Erro ao atualizar visibilidade da playlist:", err);
             }
         }
     };
@@ -278,15 +396,29 @@ function Usuario() {
 
     // Adicionar/remover filme de uma playlist personalizada no Supabase
     const toggleFilmeEmPlaylist = async (playlistId, filme) => {
+        const fId = Number(filme.id);
+        const fObj = {
+            id: fId,
+            titulo: filme.titulo || filme.title || "",
+            poster_url: filme.poster_url || (filme.poster_path ? `https://image.tmdb.org/t/p/w500${filme.poster_path}` : null),
+            avaliacao: filme.avaliacao || filme.vote_average || 0,
+            duracao: filme.duracao || filme.runtime || 0,
+            sinopse: filme.sinopse || filme.overview || "",
+            ano_lancamento: filme.ano_lancamento || filme.release_date || "",
+            generos: filme.generos || ""
+        };
+
         const novasPlaylists = playlists.map(p => {
             if (p.id === playlistId) {
-                const jaExiste = p.filmes && p.filmes.some(f => f.id === filme.id);
+                const jaExiste = p.filmes && p.filmes.some(f => Number(f.id) === fId);
                 const novosFilmes = jaExiste
-                    ? p.filmes.filter(f => f.id !== filme.id)
-                    : [filme, ...(p.filmes || [])];
+                    ? p.filmes.filter(f => Number(f.id) !== fId)
+                    : [fObj, ...(p.filmes || []).filter(f => Number(f.id) !== fId)];
 
+                // Banco recebe apenas IDs
                 if (supabase) {
-                    supabase.from('playlists').update({ filmes: novosFilmes }).eq('id', playlistId).then().catch(err => console.warn(err));
+                    const apenasIds = extrairIds(novosFilmes);
+                    supabase.from('playlists').update({ filmes: apenasIds }).eq('id', playlistId).then().catch(err => console.warn(err));
                 }
 
                 return { ...p, filmes: novosFilmes };
@@ -373,46 +505,77 @@ function Usuario() {
                             .eq('id_usuario', currentUserId);
 
                         if (!errPlaylists && dadosPlaylists) {
-                            let favPlaylist = dadosPlaylists.find(p => p.nome === "Favoritos");
-                            let watchPlaylist = dadosPlaylists.find(p => p.nome === "Assistir Mais Tarde");
+                            const favPlaylists = dadosPlaylists.filter(p => p.nome === "Favoritos");
+                            let favPlaylist = favPlaylists.find(p => p.filmes && Array.isArray(p.filmes) && p.filmes.length > 0) || favPlaylists[0];
+
+                            const watchPlaylists = dadosPlaylists.filter(p => p.nome === "Assistir Mais Tarde");
+                            let watchPlaylist = watchPlaylists.find(p => p.filmes && Array.isArray(p.filmes) && p.filmes.length > 0) || watchPlaylists[0];
 
                             // Se não existir playlist "Favoritos" para o usuário, cria no banco
                             if (!favPlaylist) {
                                 const { data: novaFav } = await supabase
                                     .from('playlists')
-                                    .insert([{ id_usuario: currentUserId, nome: "Favoritos", filmes: [], publica: true }])
+                                    .insert([{ id_usuario: currentUserId, nome: "Favoritos", filmes: [] }])
                                     .select()
                                     .single();
                                 if (novaFav) favPlaylist = novaFav;
-                            } 
+                            }
 
                             // Se não existir playlist "Assistir Mais Tarde" para o usuário, cria no banco
                             if (!watchPlaylist) {
                                 const { data: novaWatch } = await supabase
                                     .from('playlists')
-                                    .insert([{ id_usuario: currentUserId, nome: "Assistir Mais Tarde", filmes: [], publica: false }])
+                                    .insert([{ id_usuario: currentUserId, nome: "Assistir Mais Tarde", filmes: [] }])
                                     .select()
                                     .single();
                                 if (novaWatch) watchPlaylist = novaWatch;
                             }
 
-                            // Carrega os filmes do Supabase para os estados
-                            setFavoritos(favPlaylist?.filmes || []);
-                            setAssistirMaisTarde(watchPlaylist?.filmes || []);
+                            // Função auxiliar para resolver IDs/objetos do banco em objetos completos via API TMDB
+                            const resolverFilmes = async (lista) => {
+                                if (!lista || !Array.isArray(lista) || lista.length === 0) return [];
+                                const promises = lista.map(async (item) => {
+                                    // Se for apenas um número (ID), busca na API
+                                    if (typeof item === 'number' || typeof item === 'string') {
+                                        return await buscarDetalhesFilme(Number(item));
+                                    }
+                                    // Se for objeto com ID mas sem título, busca na API
+                                    if (typeof item === 'object' && item !== null) {
+                                        if (item.id && !item.titulo && !item.title) {
+                                            return await buscarDetalhesFilme(Number(item.id));
+                                        }
+                                        // Objeto completo (retrocompatibilidade)
+                                        return item;
+                                    }
+                                    return null;
+                                });
+                                return (await Promise.all(promises)).filter(Boolean);
+                            };
+
+                            // Carrega os filmes do Supabase resolvendo IDs via API TMDB
+                            const favFilmes = await resolverFilmes(favPlaylist?.filmes);
+                            const watchFilmes = await resolverFilmes(watchPlaylist?.filmes);
+                            setFavoritos(favFilmes);
+                            setAssistirMaisTarde(watchFilmes);
 
                             // Playlists personalizadas são aquelas diferentes das 2 fixas
                             const personalizadas = dadosPlaylists.filter(
                                 p => p.nome !== "Favoritos" && p.nome !== "Assistir Mais Tarde"
                             );
-                            setPlaylists(personalizadas);
+
+                            // Resolve os filmes de cada playlist personalizada
+                            const playlistsResolvidas = await Promise.all(
+                                personalizadas.map(async (pl) => ({
+                                    ...pl,
+                                    filmes: await resolverFilmes(pl.filmes)
+                                }))
+                            );
+                            setPlaylists(playlistsResolvidas);
                         }
                     } catch (e) {
                         console.warn("Erro ao carregar playlists do Supabase:", e);
                     }
-
-
                 }
-
             } catch (err) {
                 console.error("Erro ao carregar dados do usuário:", err);
             } finally {
@@ -506,15 +669,15 @@ function Usuario() {
                     <div className="xp-header">
                         <div className="xp-title">
                             <span>PROGRESSO DO PERFIL</span>
-                            <span className="xp-badge">LEVEL {usuario.nivel}</span>
+                            <span className="xp-badge">LEVEL {nivelCalculado}</span>
                         </div>
                         <div className="xp-stats">
-                            <span className="xp-current">{usuario.xpTotal.toLocaleString()} XP</span>
-                            <span className="xp-target">/ {porcentagemXp}% para o próximo nível</span>
+                            <span className="xp-current">{usuario.xpTotal.toLocaleString()} XP total</span>
+                            <span className="xp-target">{xpNoNivel} / {xpNecessario} XP para o nível {nivelCalculado + 1}</span>
                         </div>
                     </div>
 
-                    <div className="xp-bar-container" title={`${porcentagemXp}% concluído`}>
+                    <div className="xp-bar-container" title={`${porcentagemXp}% concluído para o próximo nível`}>
                         <div
                             className="xp-fill"
                             style={{ '--progress-width': `${porcentagemXp}%` }}
@@ -530,7 +693,6 @@ function Usuario() {
                                 <img
                                     className="hat-accessory"
                                     src={usuario.chapeuUrl}
-                                    alt="Chapéu do Avatar"
                                 />
                             )}
 
@@ -550,7 +712,6 @@ function Usuario() {
                                 <img
                                     className="accessory"
                                     src={usuario.maoUrl}
-                                    alt="Acessório do Avatar"
                                 />
                             )}
                         </div>
@@ -650,7 +811,6 @@ function Usuario() {
                         <img
                             className="pet-accessory"
                             src={usuario.mascoteUrl}
-                            alt="Mascote de Companhia"
                         />
                     )}
                 </section>
@@ -960,11 +1120,11 @@ function Usuario() {
                                         <button
                                             type="button"
                                             onClick={() => togglePublicaPlaylist(pl.id)}
-                                            className={`btn-playlist-visibilidade ${(pl.publica ?? true) ? 'publica' : 'privada'}`}
-                                            title={(pl.publica ?? true) ? "Playlist Pública (Clique para tornar Privada)" : "Playlist Privada (Clique para tornar Pública)"}
-                                            aria-label={(pl.publica ?? true) ? "Playlist Pública" : "Playlist Privada"}
+                                            className={`btn-playlist-visibilidade ${(pl.public ?? false) ? 'publica' : 'privada'}`}
+                                            title={(pl.public ?? false) ? "Playlist Pública (Clique para tornar Privada)" : "Playlist Privada (Clique para tornar Pública)"}
+                                            aria-label={(pl.public ?? false) ? "Playlist Pública" : "Playlist Privada"}
                                         >
-                                            {(pl.publica ?? true) ? (
+                                            {(pl.public ?? false) ? (
                                                 /* SVG DE GLOBO (PÚBLICA) */
                                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                                     <circle cx="12" cy="12" r="10" />
@@ -1121,7 +1281,7 @@ function Usuario() {
 
                             {/* PLAYLISTS PERSONALIZADAS CRIADAS PELO USUÁRIO */}
                             {playlists.map((pl) => {
-                                const jaPertence = pl.filmes && pl.filmes.some(f => f.id === filmeParaModal.id);
+                                const jaPertence = pl.filmes && pl.filmes.some(f => Number(f.id) === Number(filmeParaModal.id));
                                 return (
                                     <button
                                         key={pl.id}
@@ -1138,25 +1298,40 @@ function Usuario() {
                             })}
                         </div>
 
-                        <div className="modal-footer">
-                            <button
-                                type="button"
-                                className="btn-modal-criar"
-                                onClick={() => {
-                                    setFilmeParaModal(null);
-                                    setIsCriandoPlaylist(true);
-                                }}
-                            >
-                                + Criar Nova Playlist
-                            </button>
-                            <button
-                                type="button"
-                                className="btn-modal-fechar"
-                                onClick={() => setFilmeParaModal(null)}
-                            >
-                                Concluído
-                            </button>
-                        </div>
+                        {isCriandoPlaylist ? (
+                            <form onSubmit={handleCriarPlaylist} className="form-criar-playlist-inline" style={{ marginTop: "12px", display: "flex", flexDirection: "column", gap: "10px" }}>
+                                <input
+                                    type="text"
+                                    placeholder="Nome da nova playlist..."
+                                    value={novaPlaylistNome}
+                                    onChange={(e) => setNovaPlaylistNome(e.target.value)}
+                                    className="input-nome-playlist"
+                                    autoFocus
+                                    style={{ padding: "10px", borderRadius: "6px", background: "#111", border: "1px solid #333", color: "#fff" }}
+                                />
+                                <div className="form-criar-actions" style={{ display: "flex", gap: "8px", justifyContent: "flex-end" }}>
+                                    <button type="submit" className="btn-confirmar-criar" style={{ padding: "8px 16px", borderRadius: "6px", background: "#e50914", color: "#fff", border: "none", cursor: "pointer", fontWeight: "bold" }}>Criar</button>
+                                    <button type="button" className="btn-cancelar-criar" onClick={() => setIsCriandoPlaylist(false)} style={{ padding: "8px 14px", borderRadius: "6px", background: "#333", color: "#aaa", border: "none", cursor: "pointer" }}>Cancelar</button>
+                                </div>
+                            </form>
+                        ) : (
+                            <div className="modal-footer">
+                                <button
+                                    type="button"
+                                    className="btn-modal-criar"
+                                    onClick={() => setIsCriandoPlaylist(true)}
+                                >
+                                    + Criar Nova Playlist
+                                </button>
+                                <button
+                                    type="button"
+                                    className="btn-modal-fechar"
+                                    onClick={() => { setFilmeParaModal(null); setIsCriandoPlaylist(false); }}
+                                >
+                                    Concluído
+                                </button>
+                            </div>
+                        )}
                     </div>
                 </div>
             )}

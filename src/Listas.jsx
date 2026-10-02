@@ -4,6 +4,75 @@ import { supabase } from "./supabase";
 import "./css/index.css";
 import "./css/listas.css";
 
+// Função utilitária para obter a URL pública de itens do Supabase Storage e TMDB
+function obterUrlItem(caminhoOuUrl) {
+    if (!caminhoOuUrl) return "";
+    if (typeof caminhoOuUrl !== "string") return "";
+
+    if (caminhoOuUrl.startsWith("http://") || caminhoOuUrl.startsWith("https://")) {
+        return caminhoOuUrl;
+    }
+
+    // Caminhos relativos do TMDB (ex: "/q6725aR8Zs4IwGMXzZT8aC8lh41.jpg")
+    if (caminhoOuUrl.startsWith("/") && (caminhoOuUrl.endsWith(".jpg") || caminhoOuUrl.endsWith(".png") || caminhoOuUrl.endsWith(".webp") || caminhoOuUrl.includes(".jpg?") || caminhoOuUrl.includes(".png?"))) {
+        return `https://image.tmdb.org/t/p/w500${caminhoOuUrl}`;
+    }
+
+    if (caminhoOuUrl.startsWith("./") || caminhoOuUrl.startsWith("/")) {
+        return caminhoOuUrl;
+    }
+
+    if (supabase) {
+        const nomeArquivo = caminhoOuUrl.startsWith("itens/")
+            ? caminhoOuUrl.replace(/^itens\//, "")
+            : caminhoOuUrl;
+
+        const { data } = supabase.storage.from("itens").getPublicUrl(nomeArquivo);
+        return data?.publicUrl || caminhoOuUrl;
+    }
+    return caminhoOuUrl;
+}
+
+// Função para pré-carregar imagens na memória antes de exibir a tela
+function preCarregarImagens(urls) {
+    const urlsUnicas = Array.from(new Set(urls.filter(Boolean)));
+    const promises = urlsUnicas.map(url => {
+        return new Promise((resolve) => {
+            const img = new Image();
+            img.onload = () => resolve(url);
+            img.onerror = () => resolve(url);
+            img.src = url;
+        });
+    });
+    return Promise.all(promises);
+}
+
+// =========================================================
+// API TMDB
+// =========================================================
+const API_KEY = '168817e9845280fe6d28f3a939f4bc67';
+const BASE_URL = 'https://api.themoviedb.org/3';
+
+async function fetchFilmePorId(id) {
+    try {
+        const response = await fetch(`${BASE_URL}/movie/${id}?language=pt-BR&api_key=${API_KEY}`);
+        if (!response.ok) return null;
+        const data = await response.json();
+        return {
+            id: data.id,
+            titulo: data.title,
+            poster_url: data.poster_path ? `https://image.tmdb.org/t/p/w500${data.poster_path}` : null,
+            avaliacao: data.vote_average,
+            ano_lancamento: data.release_date,
+            duracao: data.runtime,
+            generos: data.genres?.map(g => g.name).join(", "),
+            sinopse: data.overview
+        };
+    } catch (e) {
+        return null;
+    }
+}
+
 // =========================================================
 // 4 LISTAS GENÉRICAS / OFICIAIS (FALLBACK E CURADORIA)
 // =========================================================
@@ -18,13 +87,16 @@ const LISTAS_GENERICAS = [
             username: "MarvelUniverse",
             avatarUrl: "https://images.unsplash.com/photo-1635805737707-575885ab0820?auto=format&fit=crop&w=300&q=80",
             nivel: 99,
-            cargo: "Curador Oficial"
+            cargo: "Curador Oficial",
+            chapeuUrl: "./img/hat-red-dead.png",
+            maoUrl: "./img/hand-red-dead.png",
+            mascoteUrl: "./img/pet-red-dead.png"
         },
         filmes: [
             {
                 id: 299536,
                 titulo: "Vingadores: Guerra Infinita",
-                poster_url: "https://image.tmdb.org/t/p/w500/7WsyChQLEftFiDOVTGkv3hFpyyt.jpg",
+                poster_url: "https://image.tmdb.org/t/p/w500/A4kvp7vY1BDLrrQIagRCffLKj1t.jpg",
                 avaliacao: 8.3,
                 ano_lancamento: "2018-04-25",
                 duracao: 149,
@@ -44,7 +116,7 @@ const LISTAS_GENERICAS = [
             {
                 id: 533535,
                 titulo: "Deadpool & Wolverine",
-                poster_url: "https://image.tmdb.org/t/p/w500/9bXnN0c4w7RzP3bL2fR6A1W2Z2.jpg",
+                poster_url: "https://image.tmdb.org/t/p/w500/cJFqqiDYprqExaXatu4AaoMzDG2.jpg",
                 avaliacao: 7.7,
                 ano_lancamento: "2024-07-24",
                 duracao: 128,
@@ -54,7 +126,7 @@ const LISTAS_GENERICAS = [
             {
                 id: 1726,
                 titulo: "Homem de Ferro",
-                poster_url: "https://image.tmdb.org/t/p/w500/7Ahvsr09kUSJ7rWnO3xT1iA3w7G.jpg",
+                poster_url: "https://image.tmdb.org/t/p/w500/mqN7RxojEiPoh3FTSTwOtwg7KAu.jpg",
                 avaliacao: 7.6,
                 ano_lancamento: "2008-04-30",
                 duracao: 126,
@@ -64,7 +136,7 @@ const LISTAS_GENERICAS = [
             {
                 id: 284054,
                 titulo: "Pantera Negra",
-                poster_url: "https://image.tmdb.org/t/p/w500/2yQUnpc1HG899990A45yCgP7K6A.jpg",
+                poster_url: "https://image.tmdb.org/t/p/w500/ubXNpxL2ASSzY0f8Hxv08pOsV2L.jpg",
                 avaliacao: 7.4,
                 ano_lancamento: "2018-02-13",
                 duracao: 134,
@@ -74,7 +146,7 @@ const LISTAS_GENERICAS = [
             {
                 id: 634649,
                 titulo: "Homem-Aranha: Sem Volta Para Casa",
-                poster_url: "https://image.tmdb.org/t/p/w500/8c4HGVN1LN1g2422fd3uvhTeQ4K.jpg",
+                poster_url: "https://image.tmdb.org/t/p/w500/xaKydnMw6wR1MBAjS5seGPVusbs.jpg",
                 avaliacao: 8.0,
                 ano_lancamento: "2021-12-15",
                 duracao: 148,
@@ -84,7 +156,7 @@ const LISTAS_GENERICAS = [
             {
                 id: 284053,
                 titulo: "Thor: Ragnarok",
-                poster_url: "https://image.tmdb.org/t/p/w500/kaIfm5ryEOwYg8vrqOk793epIH.jpg",
+                poster_url: "https://image.tmdb.org/t/p/w500/2K45Fp6koAVoeeYS6aMb9BeNt4F.jpg",
                 avaliacao: 7.6,
                 ano_lancamento: "2017-10-25",
                 duracao: 130,
@@ -103,13 +175,16 @@ const LISTAS_GENERICAS = [
             username: "DC_Comics_Fan",
             avatarUrl: "https://images.unsplash.com/photo-1509347528160-9a9e33742cdb?auto=format&fit=crop&w=300&q=80",
             nivel: 95,
-            cargo: "Curador Oficial"
+            cargo: "Curador Oficial",
+            chapeuUrl: "./img/hat-red-dead.png",
+            maoUrl: "./img/hand-red-dead.png",
+            mascoteUrl: "./img/pet-red-dead.png"
         },
         filmes: [
             {
                 id: 155,
                 titulo: "Batman: O Cavaleiro das Trevas",
-                poster_url: "https://image.tmdb.org/t/p/w500/iG5aq164dQknyv0JUPk6T1m2Tsh.jpg",
+                poster_url: "https://image.tmdb.org/t/p/w500/4lj1ikfsSmMZNyfdi8R8Tv5tsgb.jpg",
                 avaliacao: 8.5,
                 ano_lancamento: "2008-07-16",
                 duracao: 152,
@@ -119,7 +194,7 @@ const LISTAS_GENERICAS = [
             {
                 id: 414906,
                 titulo: "The Batman",
-                poster_url: "https://image.tmdb.org/t/p/w500/74xTEgt7R36Fpooo50r9T25onhq.jpg",
+                poster_url: "https://image.tmdb.org/t/p/w500/wd7b4Nv9QBHDTIjc2m7sr0IUMoh.jpg",
                 avaliacao: 7.7,
                 ano_lancamento: "2022-03-01",
                 duracao: 176,
@@ -129,7 +204,7 @@ const LISTAS_GENERICAS = [
             {
                 id: 475557,
                 titulo: "Coringa",
-                poster_url: "https://image.tmdb.org/t/p/w500/xLxgVXgp0Whss1A7SpEwWIX40oZ.jpg",
+                poster_url: "https://image.tmdb.org/t/p/w500/xLxgVxFWvb9hhUyCDDXxRPPnFck.jpg",
                 avaliacao: 8.2,
                 ano_lancamento: "2019-10-02",
                 duracao: 122,
@@ -139,7 +214,7 @@ const LISTAS_GENERICAS = [
             {
                 id: 791373,
                 titulo: "Liga da Justiça de Zack Snyder",
-                poster_url: "https://image.tmdb.org/t/p/w500/ArWn549AhwQm2t9QcqE44zZgBs0.jpg",
+                poster_url: "https://image.tmdb.org/t/p/w500/lsZ5dmMuvZVNMBrkozvJedujbgU.jpg",
                 avaliacao: 8.1,
                 ano_lancamento: "2021-03-18",
                 duracao: 242,
@@ -149,7 +224,7 @@ const LISTAS_GENERICAS = [
             {
                 id: 49521,
                 titulo: "O Homem de Aço",
-                poster_url: "https://image.tmdb.org/t/p/w500/xW10c2Z4lS12k3nC6e4jZgB0c9P.jpg",
+                poster_url: "https://image.tmdb.org/t/p/w500/cheo9jDPfyW1GevfPjXtnO91KNe.jpg",
                 avaliacao: 6.6,
                 ano_lancamento: "2013-06-12",
                 duracao: 143,
@@ -159,7 +234,7 @@ const LISTAS_GENERICAS = [
             {
                 id: 297762,
                 titulo: "Mulher-Maravilha",
-                poster_url: "https://image.tmdb.org/t/p/w500/gfJGlJ0Ce22vyvL7bF19pT0x7Pz.jpg",
+                poster_url: "https://image.tmdb.org/t/p/w500/ujQthWB6c0ojlARk28NSTmqidbF.jpg",
                 avaliacao: 7.2,
                 ano_lancamento: "2017-05-30",
                 duracao: 141,
@@ -178,13 +253,16 @@ const LISTAS_GENERICAS = [
             username: "CinemaRomantico",
             avatarUrl: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80",
             nivel: 88,
-            cargo: "Curador Oficial"
+            cargo: "Curador Oficial",
+            chapeuUrl: "./img/hat-red-dead.png",
+            maoUrl: "./img/hand-red-dead.png",
+            mascoteUrl: "./img/pet-red-dead.png"
         },
         filmes: [
             {
                 id: 313369,
                 titulo: "La La Land: Cantando Estações",
-                poster_url: "https://image.tmdb.org/t/p/w500/uDO8zWDhfWwoFdKS4fzkVJt0Rf0.jpg",
+                poster_url: "https://image.tmdb.org/t/p/w500/AvMietG6xuobpSSdmVnKuTjv4bL.jpg",
                 avaliacao: 7.9,
                 ano_lancamento: "2016-11-29",
                 duracao: 128,
@@ -194,7 +272,7 @@ const LISTAS_GENERICAS = [
             {
                 id: 597,
                 titulo: "Titanic",
-                poster_url: "https://image.tmdb.org/t/p/w500/9xjZS2rlVxm8SFx8kPC3aIGCOYQ.jpg",
+                poster_url: "https://image.tmdb.org/t/p/w500/As0zX43h3w6kD2NS4uVHu9HKdEh.jpg",
                 avaliacao: 7.9,
                 ano_lancamento: "1997-11-18",
                 duracao: 194,
@@ -204,7 +282,7 @@ const LISTAS_GENERICAS = [
             {
                 id: 11036,
                 titulo: "Diário de uma Paixão",
-                poster_url: "https://image.tmdb.org/t/p/w500/qom1SZLi09sFiEdsp2ATJJ9VoUN.jpg",
+                poster_url: "https://image.tmdb.org/t/p/w500/hO6k34ZNDwWzgcnzFbqYf2Rjg5W.jpg",
                 avaliacao: 7.9,
                 ano_lancamento: "2004-06-25",
                 duracao: 123,
@@ -214,7 +292,7 @@ const LISTAS_GENERICAS = [
             {
                 id: 296096,
                 titulo: "Como Eu Era Antes de Você",
-                poster_url: "https://image.tmdb.org/t/p/w500/teBczB2jA5yD1b0V5k90Lg8W2K2.jpg",
+                poster_url: "https://image.tmdb.org/t/p/w500/1a60KPNTC4JKYphNQveAB37Lyif.jpg",
                 avaliacao: 7.9,
                 ano_lancamento: "2016-03-03",
                 duracao: 110,
@@ -224,7 +302,7 @@ const LISTAS_GENERICAS = [
             {
                 id: 122906,
                 titulo: "Questão de Tempo",
-                poster_url: "https://image.tmdb.org/t/p/w500/i9n4Qz7JbQ2fD21K4L5lX3T9V9.jpg",
+                poster_url: "https://image.tmdb.org/t/p/w500/uqEzxvGDYNzoQE7rayv7gRXBomt.jpg",
                 avaliacao: 7.8,
                 ano_lancamento: "2013-09-04",
                 duracao: 123,
@@ -234,7 +312,7 @@ const LISTAS_GENERICAS = [
             {
                 id: 398818,
                 titulo: "Me Chame Pelo Seu Nome",
-                poster_url: "https://image.tmdb.org/t/p/w500/tcM5mN40R29v628sP9P5Lw8lO9.jpg",
+                poster_url: "https://image.tmdb.org/t/p/w500/qnf5Onsk236CdE5Lff93IX69gHf.jpg",
                 avaliacao: 8.1,
                 ano_lancamento: "2017-09-01",
                 duracao: 132,
@@ -253,13 +331,16 @@ const LISTAS_GENERICAS = [
             username: "TopFilmesGlobal",
             avatarUrl: "https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?auto=format&fit=crop&w=300&q=80",
             nivel: 100,
-            cargo: "Curador Oficial"
+            cargo: "Curador Oficial",
+            chapeuUrl: "./img/hat-red-dead.png",
+            maoUrl: "./img/hand-red-dead.png",
+            mascoteUrl: "./img/pet-red-dead.png"
         },
         filmes: [
             {
                 id: 157336,
                 titulo: "Interestelar",
-                poster_url: "https://image.tmdb.org/t/p/w500/gEU2QniE6E77NI6lCU6MxlNBvIx.jpg",
+                poster_url: "https://image.tmdb.org/t/p/w500/tR1XVa5bxgdh2bRw2u0DzrgkO2l.jpg",
                 avaliacao: 8.4,
                 ano_lancamento: "2014-11-05",
                 duracao: 169,
@@ -269,7 +350,7 @@ const LISTAS_GENERICAS = [
             {
                 id: 693134,
                 titulo: "Duna: Parte 2",
-                poster_url: "https://image.tmdb.org/t/p/w500/8b8R8l88Qje9dn9OE8PY05Nxl1X.jpg",
+                poster_url: "https://image.tmdb.org/t/p/w500/VMy4UGsI2u3f4fALGeCqCdsQBb.jpg",
                 avaliacao: 8.2,
                 ano_lancamento: "2024-02-27",
                 duracao: 166,
@@ -279,7 +360,7 @@ const LISTAS_GENERICAS = [
             {
                 id: 872585,
                 titulo: "Oppenheimer",
-                poster_url: "https://image.tmdb.org/t/p/w500/8Gxv8gSFCU0XGDykEGv7zR1n2ua.jpg",
+                poster_url: "https://image.tmdb.org/t/p/w500/dUPQszWoRSE9FucJTbVp2bwEi9G.jpg",
                 avaliacao: 8.1,
                 ano_lancamento: "2023-07-19",
                 duracao: 181,
@@ -289,7 +370,7 @@ const LISTAS_GENERICAS = [
             {
                 id: 278,
                 titulo: "Um Sonho de Liberdade",
-                poster_url: "https://image.tmdb.org/t/p/w500/umXLM3k6s4w14m9T2B07V2T5T0k.jpg",
+                poster_url: "https://image.tmdb.org/t/p/w500/umX3lBhHoTV7Lsci140Yr8VpXyN.jpg",
                 avaliacao: 8.7,
                 ano_lancamento: "1994-09-23",
                 duracao: 142,
@@ -299,7 +380,7 @@ const LISTAS_GENERICAS = [
             {
                 id: 238,
                 titulo: "O Poderoso Chefão",
-                poster_url: "https://image.tmdb.org/t/p/w500/3bhkrj58Vtu7enYsRolD1fZdja1.jpg",
+                poster_url: "https://image.tmdb.org/t/p/w500/wOMxE93W6KcZTuCeNUByNTSaLLt.jpg",
                 avaliacao: 8.7,
                 ano_lancamento: "1972-03-14",
                 duracao: 175,
@@ -309,7 +390,7 @@ const LISTAS_GENERICAS = [
             {
                 id: 496243,
                 titulo: "Parasita",
-                poster_url: "https://image.tmdb.org/t/p/w500/7IiTTgloJzvGI1TAYymCfbfl3vT.jpg",
+                poster_url: "https://image.tmdb.org/t/p/w500/bNGW8zYA91VqTZfV3jnKHPEKKvB.jpg",
                 avaliacao: 8.5,
                 ano_lancamento: "2019-05-30",
                 duracao: 132,
@@ -324,14 +405,25 @@ function Lista() {
     // =========================================================
     // 1. ESTADOS PRINCIPAIS
     // =========================================================
-    const [usuarioLogado, setUsuarioLogado] = useState(null);
+    const [usuarioLogado, setUsuarioLogado] = useState(() => {
+        const userStr = localStorage.getItem("user");
+        if (userStr) {
+            try {
+                return JSON.parse(userStr);
+            } catch (e) {
+                return null;
+            }
+        }
+        return null;
+    });
     const [listasExibicao, setListasExibicao] = useState([]);
     const [carregando, setCarregando] = useState(true);
     const [termoBusca, setTermoBusca] = useState("");
     const [filtroAtivo, setFiltroAtivo] = useState("todas"); // 'todas', 'minhas', 'comunidade', 'oficiais'
+    const [curtidasMap, setCurtidasMap] = useState({});
 
     // =========================================================
-    // 2. RECUPERAR USUÁRIO LOGADO
+    // 2. RECUPERAR USUÁRIO LOGADO EM MUDANÇAS DE AUTH
     // =========================================================
     useEffect(() => {
         const carregarUsuario = () => {
@@ -348,7 +440,6 @@ function Lista() {
             }
         };
 
-        carregarUsuario();
         window.addEventListener("authChanged", carregarUsuario);
         return () => window.removeEventListener("authChanged", carregarUsuario);
     }, []);
@@ -372,66 +463,99 @@ function Lista() {
 
                         if (!userErr && usuariosData) {
                             usuariosData.forEach(u => {
-                                usuariosMap[u.id] = {
+                                const chapeuRaw = u.id_item_chapeu?.url_item || u.id_item_chapeu?.url_imagem;
+                                const maoRaw = u.id_item_mao?.url_item || u.id_item_mao?.url_imagem;
+                                const mascoteRaw = u.id_item_mascote?.url_item || u.id_item_mascote?.url_imagem;
+
+                                const perfData = {
                                     id: u.id,
                                     nome: u.nome || u.username || "Usuário",
                                     username: u.username || `user_${u.id}`,
-                                    avatarUrl: u.url_img || u.avatar_url || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=300&q=80",
+                                    avatarUrl: u.url_img ? obterUrlItem(u.url_img) : (u.avatar_url || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=300&q=80"),
                                     bio: u.bio || "Cinéfilo apaixonado por boas histórias.",
                                     xpTotal: u.xp_total || 0,
                                     nivel: u.nivel || Math.max(1, Math.floor((u.xp_total || 0) / 600)),
-                                    chapeuUrl: u.id_item_chapeu?.url_imagem || null,
-                                    maoUrl: u.id_item_mao?.url_imagem || null,
-                                    mascoteUrl: u.id_item_mascote?.url_imagem || null
+                                    chapeuUrl: chapeuRaw ? obterUrlItem(chapeuRaw) : "./img/hat-red-dead.png",
+                                    maoUrl: maoRaw ? obterUrlItem(maoRaw) : "./img/hand-red-dead.png",
+                                    mascoteUrl: mascoteRaw ? obterUrlItem(mascoteRaw) : "./img/pet-red-dead.png"
                                 };
+
+                                usuariosMap[u.id] = perfData;
+                                usuariosMap[String(u.id)] = perfData;
                             });
                         }
                     } catch (errUser) {
                         console.warn("Erro ao buscar usuários do Supabase:", errUser);
                     }
 
-                    // B) Buscar Playlists Públicas e Playlists do Usuário Logado
+                    // B) Buscar Playlists do Supabase (excluindo 'Favoritos' e 'Assistir Mais Tarde')
                     try {
                         const { data: playlistsData, error: plErr } = await supabase
                             .from("playlists")
                             .select("*");
 
                         if (!plErr && playlistsData && playlistsData.length > 0) {
-                            // Filtra apenas as que são públicas OU pertencem ao usuário logado
-                            const usuarioIdAtual = usuarioLogado?.id || (localStorage.getItem("user") ? JSON.parse(localStorage.getItem("user"))?.id : 11);
-
                             const listasValidas = playlistsData.filter(pl => {
-                                const ehDono = pl.id_usuario === usuarioIdAtual;
-                                const ehPublica = pl.publica === true || pl.publica === undefined || pl.publica === null;
-                                return (ehDono || ehPublica) && pl.filmes && Array.isArray(pl.filmes) && pl.filmes.length > 0;
+                                const nomeNorm = pl.nome ? pl.nome.trim().toLowerCase() : "";
+                                const ehListaFixa = nomeNorm === "assistir mais tarde" || nomeNorm === "favoritos";
+                                if (ehListaFixa) return false;
+                                if (!pl.filmes || !Array.isArray(pl.filmes) || pl.filmes.length === 0) return false;
+
+                                // Playlists privadas (public !== true) não aparecem em Listas
+                                // O banco usa `public` com default false → só exibe se explicitamente true
+                                if (!pl.public) return false;
+
+                                return true;
                             });
 
-                            listasDoBanco = listasValidas.map(pl => {
-                                const criador = usuariosMap[pl.id_usuario] || {
+                            listasDoBanco = await Promise.all(listasValidas.map(async pl => {
+                                const idLogado = usuarioLogado?.id || 11;
+                                const isUserOwner = String(pl.id_usuario) === String(idLogado);
+
+                                const criadorBase = usuariosMap[pl.id_usuario] || usuariosMap[String(pl.id_usuario)] || {
                                     id: pl.id_usuario,
-                                    nome: `Usuário #${pl.id_usuario || ""}`,
-                                    username: `cinefilo_${pl.id_usuario || "membro"}`,
-                                    avatarUrl: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=300&q=80",
+                                    nome: isUserOwner ? (usuarioLogado?.nome || "DevNinja") : `Usuário #${pl.id_usuario || ""}`,
+                                    username: isUserOwner ? (usuarioLogado?.username || "dev_ninja") : `cinefilo_${pl.id_usuario || "membro"}`,
+                                    avatarUrl: isUserOwner ? (usuarioLogado?.avatarUrl || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=300&q=80") : "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=300&q=80",
                                     bio: "Colecionador de filmes e fã de cinema.",
                                     xpTotal: 2500,
                                     nivel: 5,
-                                    chapeuUrl: null,
-                                    maoUrl: null,
-                                    mascoteUrl: null
+                                    chapeuUrl: "./img/hat-red-dead.png",
+                                    maoUrl: "./img/hand-red-dead.png",
+                                    mascoteUrl: "./img/pet-red-dead.png"
                                 };
+
+                                // Busca dados na API se for ID, ou reaproveita o objeto (retrocompatibilidade)
+                                const filmesPromises = (pl.filmes || []).map(async (f) => {
+                                    if (typeof f === 'number' || typeof f === 'string') {
+                                        return await fetchFilmePorId(f);
+                                    }
+                                    if (typeof f === 'object' && f !== null) {
+                                        // Se o objeto tiver apenas ID e não tiver título, busca os dados da API
+                                        if (f.id && !f.titulo && !f.title) {
+                                            return await fetchFilmePorId(f.id);
+                                        }
+                                        return {
+                                            ...f,
+                                            poster_url: obterUrlItem(f.poster_url || (f.poster_path ? `https://image.tmdb.org/t/p/w500${f.poster_path}` : "")) || "https://placehold.co/300x450/1a1a1a/e50914?text=Sem+Poster"
+                                        };
+                                    }
+                                    return null;
+                                });
+
+                                const filmesFormatados = (await Promise.all(filmesPromises)).filter(Boolean);
 
                                 return {
                                     id: `pl-${pl.id}`,
                                     bancoId: pl.id,
                                     nome: pl.nome,
-                                    descricao: pl.descricao || `Lista personalizada criada por @${criador.username}.`,
+                                    descricao: pl.descricao || `Lista personalizada criada por @${criadorBase.username}.`,
                                     isOficial: false,
                                     id_usuario: pl.id_usuario,
-                                    publica: pl.publica ?? true,
-                                    autor: criador,
-                                    filmes: pl.filmes || []
+                                    autor: criadorBase,
+                                    filmes: filmesFormatados
                                 };
-                            });
+                            }));
                         }
                     } catch (errPl) {
                         console.warn("Erro ao buscar playlists do Supabase:", errPl);
@@ -446,15 +570,53 @@ function Lista() {
                 // =========================================================
                 const idLogado = usuarioLogado?.id || (localStorage.getItem("user") ? JSON.parse(localStorage.getItem("user"))?.id : 11);
 
-                const minhasListas = listasDoBanco.filter(pl => pl.id_usuario === idLogado);
-                const listasOutrosUsuarios = listasDoBanco.filter(pl => pl.id_usuario !== idLogado);
+                const minhasListas = listasDoBanco.filter(pl => String(pl.id_usuario) === String(idLogado));
+                const listasOutrosUsuarios = listasDoBanco.filter(pl => String(pl.id_usuario) !== String(idLogado));
+
+                // Garante que todas as listas de curadoria oficial tenham os filmes e posters buscados diretamente da API TMDB
+                const listasOficiaisFormatadas = await Promise.all(LISTAS_GENERICAS.map(async l => {
+                    const filmesPromises = (l.filmes || []).map(async f => {
+                        const id = typeof f === 'object' && f !== null ? f.id : f;
+                        const apiFilme = await fetchFilmePorId(id);
+                        if (apiFilme) return apiFilme;
+                        if (typeof f === 'object') return { ...f, poster_url: obterUrlItem(f.poster_url) };
+                        return null;
+                    });
+                    const filmesFormatados = (await Promise.all(filmesPromises)).filter(Boolean);
+                    return {
+                        ...l,
+                        filmes: filmesFormatados
+                    };
+                }));
 
                 // Monta a coleção final de exibição
                 const colecaoFinal = [
                     ...minhasListas,
                     ...listasOutrosUsuarios,
-                    ...LISTAS_GENERICAS
+                    ...listasOficiaisFormatadas
                 ];
+
+                // Coleta todas as URLs de avatares, acessórios e pôsteres para pré-carregamento
+                const urlsParaPreCarregar = [];
+                colecaoFinal.forEach(lista => {
+                    if (lista.autor?.avatarUrl) urlsParaPreCarregar.push(obterUrlItem(lista.autor.avatarUrl));
+                    if (lista.autor?.chapeuUrl) urlsParaPreCarregar.push(obterUrlItem(lista.autor.chapeuUrl));
+                    if (lista.autor?.maoUrl) urlsParaPreCarregar.push(obterUrlItem(lista.autor.maoUrl));
+                    if (lista.autor?.mascoteUrl) urlsParaPreCarregar.push(obterUrlItem(lista.autor.mascoteUrl));
+
+                    if (lista.filmes && Array.isArray(lista.filmes)) {
+                        lista.filmes.forEach(f => {
+                            if (f.poster_url) urlsParaPreCarregar.push(obterUrlItem(f.poster_url));
+                        });
+                    }
+                });
+
+                // Aguarda o pré-carregamento na memória de TODAS as imagens antes de exibir a tela.
+                // Aumentamos o tempo de fallback para garantir que o React espere o carregamento completo das imagens.
+                await Promise.race([
+                    preCarregarImagens(urlsParaPreCarregar),
+                    new Promise(resolve => setTimeout(resolve, 15000))
+                ]);
 
                 setListasExibicao(colecaoFinal);
             } catch (erroGeral) {
@@ -482,15 +644,24 @@ function Lista() {
         }
     };
 
+    // Alternar Curtida do Post
+    const toggleCurtidaPost = (postId) => {
+        setCurtidasMap(prev => ({
+            ...prev,
+            [postId]: !prev[postId]
+        }));
+    };
+
     // =========================================================
     // 5. FILTRAGEM E BUSCA DE LISTAS
     // =========================================================
     const idAtual = usuarioLogado?.id || (localStorage.getItem("user") ? JSON.parse(localStorage.getItem("user"))?.id : 11);
 
     const listasFiltradas = listasExibicao.filter((lista) => {
+        const ehMinha = String(lista.id_usuario) === String(idAtual);
         // Filtro por Abas
-        if (filtroAtivo === "minhas" && lista.id_usuario !== idAtual) return false;
-        if (filtroAtivo === "comunidade" && (lista.isOficial || lista.id_usuario === idAtual)) return false;
+        if (filtroAtivo === "minhas" && !ehMinha) return false;
+        if (filtroAtivo === "comunidade" && (lista.isOficial || ehMinha)) return false;
         if (filtroAtivo === "oficiais" && !lista.isOficial) return false;
 
         // Filtro por Texto de Busca
@@ -549,38 +720,21 @@ function Lista() {
                             )}
                         </div>
 
-                        {/* ABAS DE FILTRO RÁPIDO */}
-                        <div className="listas-filter-tabs">
-                            <button
-                                type="button"
-                                className={`filter-tab ${filtroAtivo === 'todas' ? 'ativo' : ''}`}
-                                onClick={() => setFiltroAtivo('todas')}
+                        {/* FILTRO DROPDOWN MENOR */}
+                        <div className="listas-filter-select-wrapper">
+                            <select
+                                className="listas-filter-select"
+                                value={filtroAtivo}
+                                onChange={(e) => setFiltroAtivo(e.target.value)}
+                                aria-label="Filtrar playlists"
                             >
-                                Todas ({listasExibicao.length})
-                            </button>
-                            {usuarioLogado && (
-                                <button
-                                    type="button"
-                                    className={`filter-tab ${filtroAtivo === 'minhas' ? 'ativo' : ''}`}
-                                    onClick={() => setFiltroAtivo('minhas')}
-                                >
-                                    Minhas Listas
-                                </button>
-                            )}
-                            <button
-                                type="button"
-                                className={`filter-tab ${filtroAtivo === 'comunidade' ? 'ativo' : ''}`}
-                                onClick={() => setFiltroAtivo('comunidade')}
-                            >
-                                Comunidade
-                            </button>
-                            <button
-                                type="button"
-                                className={`filter-tab ${filtroAtivo === 'oficiais' ? 'ativo' : ''}`}
-                                onClick={() => setFiltroAtivo('oficiais')}
-                            >
-                                Curadoria CinePlanner
-                            </button>
+                                <option value="todas">Todas as Listas ({listasExibicao.length})</option>
+                                {usuarioLogado && (
+                                    <option value="minhas">Minhas Listas</option>
+                                )}
+                                <option value="comunidade">Comunidade</option>
+                                <option value="oficiais">Curadoria CinePlanner</option>
+                            </select>
                         </div>
                     </div>
                 </header>
@@ -612,25 +766,32 @@ function Lista() {
                 ) : (
                     <section className="listas-feed">
                         {listasFiltradas.map((playlist, index) => {
-                            const ehMinhaLista = playlist.id_usuario === idAtual;
+                            const ehMinhaLista = String(playlist.id_usuario) === String(idAtual);
                             const carouselId = `feed-carousel-${playlist.id || index}`;
+                            const postId = playlist.id || `post-${index}`;
+                            const jaCurtiu = curtidasMap[postId] || false;
+
+                            const chapeu = playlist.autor?.chapeuUrl || "./img/hat-red-dead.png";
+                            const mao = playlist.autor?.maoUrl || "./img/hand-red-dead.png";
+                            const mascote = playlist.autor?.mascoteUrl || "./img/pet-red-dead.png";
 
                             return (
                                 <article
                                     key={playlist.id || index}
-                                    className={`playlist-post-card ${ehMinhaLista ? 'minha-publicacao' : ''} ${playlist.isOficial ? 'publicacao-oficial' : ''}`}
+                                    className={`playlist-post-card minha-publicacao ${playlist.isOficial ? 'publicacao-oficial' : ''}`}
                                     id={`post-playlist-${playlist.id}`}
                                 >
-                                    {/* CABEÇALHO DA PUBLICAÇÃO (CARD DE PERFIL DO USUÁRIO CRIADOR) */}
+                                    {/* CABEÇALHO DA PUBLICAÇÃO (PADRÃO POST-HEADER COM AVATAR E ÍCONES) */}
                                     <div className="post-header">
                                         <div className="post-user-info">
-                                            {/* AVATAR COM SUPORTE A ACESSÓRIOS */}
+                                            {/* AVATAR COM ÍCONES DE ACESSÓRIOS EQUIPADOS */}
                                             <div className="post-avatar-wrapper">
-                                                {playlist.autor?.chapeuUrl && (
+                                                {chapeu && (
                                                     <img
-                                                        src={playlist.autor.chapeuUrl}
-                                                        alt="Acessório de Chapéu"
+                                                        src={chapeu}
+                                                        alt="Chapéu Equipado"
                                                         className="post-hat-accessory"
+                                                        onError={(e) => { e.target.style.display = 'none'; }}
                                                     />
                                                 )}
                                                 <div className="post-avatar-circle">
@@ -644,16 +805,25 @@ function Lista() {
                                                         }}
                                                     />
                                                 </div>
-                                                {playlist.autor?.maoUrl && (
+                                                {mao && (
                                                     <img
-                                                        src={playlist.autor.maoUrl}
+                                                        src={mao}
                                                         alt="Acessório de Mão"
                                                         className="post-hand-accessory"
+                                                        onError={(e) => { e.target.style.display = 'none'; }}
+                                                    />
+                                                )}
+                                                {mascote && (
+                                                    <img
+                                                        src={mascote}
+                                                        alt="Mascote de Companhia"
+                                                        className="post-pet-accessory"
+                                                        onError={(e) => { e.target.style.display = 'none'; }}
                                                     />
                                                 )}
                                             </div>
 
-                                            {/* DADOS DO AUTOR */}
+                                            {/* DADOS DO AUTOR E METADADOS COM ÍCONES */}
                                             <div className="post-author-meta">
                                                 <div className="post-author-top-row">
                                                     <span className="post-author-name">
@@ -663,7 +833,10 @@ function Lista() {
                                                         @{playlist.autor?.username || "membro"}
                                                     </span>
                                                     {playlist.autor?.nivel && (
-                                                        <span className="post-author-level-badge">
+                                                        <span className="post-author-level-badge" title="Nível do Usuário">
+                                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="11" height="11" fill="#f1c40f" style={{ marginRight: 3 }}>
+                                                                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                                                            </svg>
                                                             NV. {playlist.autor.nivel}
                                                         </span>
                                                     )}
@@ -685,19 +858,22 @@ function Lista() {
                                             </div>
                                         </div>
 
-                                        {/* TAGS E STATUS DA LISTA NO TOPO DIREITO */}
+                                        {/* TAGS E ÍCONES DE AÇÃO NO TOPO DIREITO DO POST-HEADER */}
                                         <div className="post-header-actions">
+                                            <div className="post-visibility-badge" title="Visibilidade da Playlist">
+                                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2">
+                                                    <circle cx="12" cy="12" r="10" />
+                                                    <line x1="2" y1="12" x2="22" y2="12" />
+                                                    <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+                                                </svg>
+                                            </div>
+
                                             <div className="post-count-badge">
-                                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+                                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="15" height="15" fill="currentColor">
                                                     <path d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H8V4h12v12z" />
                                                 </svg>
                                                 <span>{(playlist.filmes?.length || 0).toString().padStart(2, '0')} FILMES</span>
                                             </div>
-                                            {ehMinhaLista ? (
-                                                <Link to="/usuario" className="btn-gerenciar-link" title="Gerenciar no Meu Perfil">
-                                                    Gerenciar
-                                                </Link>
-                                            ) : null}
                                         </div>
                                     </div>
 
@@ -745,7 +921,7 @@ function Lista() {
                                                                 src={filme.poster_url || "https://placehold.co/300x450/1a1a1a/e50914?text=Sem+Poster"}
                                                                 alt={`Poster de ${filme.titulo}`}
                                                                 className="poster-img"
-                                                                loading="lazy"
+                                                                loading="eager"
                                                                 onError={(e) => {
                                                                     e.target.onerror = null;
                                                                     e.target.src = "https://placehold.co/300x450/1a1a1a/e50914?text=Sem+Poster";
