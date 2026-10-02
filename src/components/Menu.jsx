@@ -93,12 +93,32 @@ function Menu() {
         <div>
             <nav className="navbar" id="navbar">
                 <div className="navbar-container">
+                    {/* Logo */}
                     <Link to="/" className="navbar-logo" id="logo-link">
-                        <span className="logo-text">CiNEPLANNER</span>
-                        <img src="/favicon.svg" alt="CiNEPLANNER" className="logo-favicon" />
+                        <span className="logo-text desktop-only">CiNEPLANNER</span>
+                        <img src="/favicon.svg" alt="CiNEPLANNER" className="logo-favicon mobile-only" />
                     </Link>
 
-                    {/* Barra de pesquisa */}
+                    {/* Links Desktop */}
+                    <ul className="navbar-links desktop-only">
+                        <li>
+                            <Link to="/#hero" className="nav-link" onClick={() => setIsMobileMenuOpen(false)}>
+                                Início
+                            </Link>
+                        </li>
+                        <li>
+                            <Link to="/#filmes" className="nav-link" onClick={() => setIsMobileMenuOpen(false)}>
+                                Filmes
+                            </Link>
+                        </li>
+                        <li>
+                            <Link to="/listas" className="nav-link" onClick={() => setIsMobileMenuOpen(false)}>
+                                Listas
+                            </Link>
+                        </li>
+                    </ul>
+
+                    {/* Barra de pesquisa no centro */}
                     <div className="search-wrapper">
                         <div className={`search-container ${searchTerm ? 'has-text' : ''}`}>
                             <svg
@@ -118,7 +138,6 @@ function Menu() {
                             </svg>
                             <input
                                 type="text"
-                                placeholder="Pesquisar filmes..."
                                 value={searchTerm}
                                 onChange={handleSearchChange}
                                 onKeyDown={handleSearchKeyDown}
@@ -148,55 +167,69 @@ function Menu() {
                         </div>
                     </div>
 
-                    <button className="mobile-menu-btn" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    {/* Ações Desktop (Perfil/Entrar) */}
+                    <div className="navbar-actions desktop-only">
+                        {user ? (
+                            <Link to="/usuario" className="navbar-user-link">
+                                {avatarUrl ? (
+                                    <img src={avatarUrl} alt="Avatar" className="navbar-user-avatar" />
+                                ) : (
+                                    <div className="navbar-user-avatar-placeholder">
+                                        {userName.charAt(0).toUpperCase()}
+                                    </div>
+                                )}
+                                <span className="navbar-user-name">{userName}</span>
+                            </Link>
+                        ) : (
+                            <Link to="/login" className="btn-login">
+                                Entrar
+                            </Link>
+                        )}
+                    </div>
+
+                    {/* Botão Menu Mobile */}
+                    <button className={`mobile-menu-btn mobile-only ${isMobileMenuOpen ? 'open' : ''}`} onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
+                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                             <line x1="3" y1="12" x2="21" y2="12"></line>
                             <line x1="3" y1="6" x2="21" y2="6"></line>
                             <line x1="3" y1="18" x2="21" y2="18"></line>
                         </svg>
                     </button>
+                </div>
 
-                    <div className={`navbar-menu-backdrop ${isMobileMenuOpen ? 'open' : ''}`} onClick={() => setIsMobileMenuOpen(false)}></div>
+                {/* Overlay com Blur */}
+                <div className={`menu-overlay mobile-only ${isMobileMenuOpen ? 'open' : ''}`} onClick={() => setIsMobileMenuOpen(false)}></div>
 
-                    <div className={`navbar-menu-sidebar ${isMobileMenuOpen ? 'open' : ''}`}>
-                        <button className="sidebar-close-btn" onClick={() => setIsMobileMenuOpen(false)}>
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                <polyline points="15 18 9 12 15 6"></polyline>
-                            </svg>
-                            Voltar
-                        </button>
-                        <ul className="navbar-links">
-                            <li>
-                                <Link to="/#hero" className="nav-link" onClick={() => setIsMobileMenuOpen(false)}>
-                                    Início
-                                </Link>
-                            </li>
-                            <li>
-                                <Link to="/#filmes" className="nav-link" onClick={() => setIsMobileMenuOpen(false)}>
-                                    Filmes
-                                </Link>
-                            </li>
-                            <li>
-                                <Link to="/listas" className="nav-link active" onClick={() => setIsMobileMenuOpen(false)}>
-                                    Listas
-                                </Link>
-                            </li>
-                        </ul>
-
-                        <div className="navbar-actions">
+                {/* Dropdown Mobile */}
+                <div className={`navbar-dropdown mobile-only ${isMobileMenuOpen ? 'open' : ''}`}>
+                    <ul className="navbar-links-dropdown">
+                        <li>
+                            <Link to="/#hero" className="nav-link" onClick={() => setIsMobileMenuOpen(false)}>
+                                Início
+                            </Link>
+                        </li>
+                        <li>
+                            <Link to="/#filmes" className="nav-link" onClick={() => setIsMobileMenuOpen(false)}>
+                                Filmes
+                            </Link>
+                        </li>
+                        <li>
+                            <Link to="/listas" className="nav-link" onClick={() => setIsMobileMenuOpen(false)}>
+                                Listas
+                            </Link>
+                        </li>
+                        <li className="navbar-actions-dropdown">
                             {user ? (
-                                <div className="navbar-user-actions">
-                                    <Link to="/usuario" className="navbar-user-link" onClick={() => setIsMobileMenuOpen(false)}>
-                                        {avatarUrl ? (
-                                            <img src={avatarUrl} alt="Avatar" className="navbar-user-avatar" />
-                                        ) : (
-                                            <div className="navbar-user-avatar-placeholder">
-                                                {userName.charAt(0).toUpperCase()}
-                                            </div>
-                                        )}
-                                        <span className="navbar-user-name">{userName}</span>
-                                    </Link>
-                                </div>
+                                <Link to="/usuario" className="navbar-user-link" onClick={() => setIsMobileMenuOpen(false)}>
+                                    {avatarUrl ? (
+                                        <img src={avatarUrl} alt="Avatar" className="navbar-user-avatar" />
+                                    ) : (
+                                        <div className="navbar-user-avatar-placeholder">
+                                            {userName.charAt(0).toUpperCase()}
+                                        </div>
+                                    )}
+                                    <span className="navbar-user-name">{userName}</span>
+                                </Link>
                             ) : (
                                 <Link
                                     to="/login"
@@ -207,8 +240,8 @@ function Menu() {
                                     Entrar
                                 </Link>
                             )}
-                        </div>
-                    </div>
+                        </li>
+                    </ul>
                 </div>
             </nav>
         </div>
