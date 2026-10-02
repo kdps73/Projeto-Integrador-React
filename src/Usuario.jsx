@@ -60,6 +60,51 @@ function obterUrlItem(caminhoOuUrl) {
     return caminhoOuUrl;
 }
 
+// =========================================================
+// SISTEMA DE NÍVEL PROGRESSIVO
+// Curva quadrática calibrada:
+//   - XP total para nível 100 ≈ 5000 XP
+//   - Itens de 100 XP desbloqueiam  ≈ nível  9
+//   - Itens de 200 XP desbloqueiam ≈ nível 13
+//   - Itens de 300 XP desbloqueiam ≈ nível 16
+//   - Itens de 400 XP desbloqueiam ≈ nível 18
+//   - Itens de 500 XP desbloqueiam ≈ nível 21
+// XP necessário para subir do nível N para N+1:
+//   xpParaSubir(n) = 10 + Math.floor(n * n * 0.5)
+// =========================================================
+function xpAcumuladoAteNivel(nivel) {
+    let total = 0;
+    for (let n = 1; n < nivel; n++) {
+        total += 10 + Math.floor(n * n * 0.5);
+    }
+    return total;
+}
+
+function xpParaProximoNivel(nivelAtual) {
+    return 10 + Math.floor(nivelAtual * nivelAtual * 0.5);
+}
+
+function calcularNivel(xpTotal) {
+    let nivel = 1;
+    let xpAcumulado = 0;
+    while (nivel < 100) {
+        const custoProximo = xpParaProximoNivel(nivel);
+        if (xpAcumulado + custoProximo > xpTotal) break;
+        xpAcumulado += custoProximo;
+        nivel++;
+    }
+    return nivel;
+}
+
+function calcularProgressoNivel(xpTotal) {
+    const nivelAtual = calcularNivel(xpTotal);
+    const xpBase = xpAcumuladoAteNivel(nivelAtual);
+    const xpNecessario = xpParaProximoNivel(nivelAtual);
+    const xpNoNivel = xpTotal - xpBase;
+    const porcentagem = Math.min(Math.round((xpNoNivel / xpNecessario) * 100), 100);
+    return { nivelAtual, xpNoNivel, xpNecessario, porcentagem };
+}
+
 function Usuario() {
     const navigate = useNavigate();
     // =========================================================
@@ -89,10 +134,9 @@ function Usuario() {
     const [statusBio, setStatusBio] = useState("");
     const [isEditingBio, setIsEditingBio] = useState(false);
 
-    // Sistema de XP e Nível
-    const xpPorNivel = 600;
-    const xpAtualNoNivel = usuario.xpTotal % xpPorNivel;
-    const porcentagemXp = Math.min(Math.round((xpAtualNoNivel / xpPorNivel) * 100), 100);
+    // Sistema de XP e Nível (progressivo, derivado do xpTotal)
+    const { nivelAtual, xpNoNivel, xpNecessario, porcentagem: porcentagemXp } = calcularProgressoNivel(usuario.xpTotal);
+    const nivelCalculado = nivelAtual;
 
     // =========================================================
     // 2. ESTADOS DE FILMES E PLAYLISTS PERSONALIZADAS
@@ -287,14 +331,15 @@ function Usuario() {
             id: Date.now(),
             id_usuario: currentUserId,
             nome: novaPlaylistNome.trim(),
-            filmes: filmesIniciais
+            filmes: filmesIniciais,
+            public: true
         };
 
         if (supabase) {
             try {
                 const { data, error } = await supabase
                     .from('playlists')
-                    .insert([{ id_usuario: currentUserId, nome: novaPlaylistNome.trim(), filmes: idsIniciais }])
+                    .insert([{ id_usuario: currentUserId, nome: novaPlaylistNome.trim(), filmes: idsIniciais, public: true }])
                     .select()
                     .single();
 
@@ -315,22 +360,22 @@ function Usuario() {
     const togglePublicaPlaylist = async (playlistId) => {
         const novasPlaylists = playlists.map(p => {
             if (p.id === playlistId) {
-                return { ...p, publica: !(p.publica ?? true) };
+                return { ...p, public: !(p.public ?? false) };
             }
             return p;
         });
         salvarPlaylists(novasPlaylists);
 
-        // Persiste no Supabase
+        // Persiste no Supabase com o nome correto da coluna: 'public'
         if (supabase) {
             const playlistAtualizada = novasPlaylists.find(p => p.id === playlistId);
             try {
                 await supabase
                     .from('playlists')
-                    .update({ publica: playlistAtualizada?.publica ?? false })
+                    .update({ public: playlistAtualizada?.public ?? false })
                     .eq('id', playlistId);
             } catch (err) {
-                console.warn("Erro ao atualizar visibilidade da playlist no Supabase:", err);
+                console.warn("Erro ao atualizar visibilidade da playlist:", err);
             }
         }
     };
@@ -474,7 +519,7 @@ function Usuario() {
                                     .select()
                                     .single();
                                 if (novaFav) favPlaylist = novaFav;
-                            } 
+                            }
 
                             // Se não existir playlist "Assistir Mais Tarde" para o usuário, cria no banco
                             if (!watchPlaylist) {
@@ -624,15 +669,15 @@ function Usuario() {
                     <div className="xp-header">
                         <div className="xp-title">
                             <span>PROGRESSO DO PERFIL</span>
-                            <span className="xp-badge">LEVEL {usuario.nivel}</span>
+                            <span className="xp-badge">LEVEL {nivelCalculado}</span>
                         </div>
                         <div className="xp-stats">
-                            <span className="xp-current">{usuario.xpTotal.toLocaleString()} XP</span>
-                            <span className="xp-target">/ {porcentagemXp}% para o próximo nível</span>
+                            <span className="xp-current">{usuario.xpTotal.toLocaleString()} XP total</span>
+                            <span className="xp-target">{xpNoNivel} / {xpNecessario} XP para o nível {nivelCalculado + 1}</span>
                         </div>
                     </div>
 
-                    <div className="xp-bar-container" title={`${porcentagemXp}% concluído`}>
+                    <div className="xp-bar-container" title={`${porcentagemXp}% concluído para o próximo nível`}>
                         <div
                             className="xp-fill"
                             style={{ '--progress-width': `${porcentagemXp}%` }}
@@ -648,7 +693,6 @@ function Usuario() {
                                 <img
                                     className="hat-accessory"
                                     src={usuario.chapeuUrl}
-                                    alt="Chapéu do Avatar"
                                 />
                             )}
 
@@ -668,7 +712,6 @@ function Usuario() {
                                 <img
                                     className="accessory"
                                     src={usuario.maoUrl}
-                                    alt="Acessório do Avatar"
                                 />
                             )}
                         </div>
@@ -768,7 +811,6 @@ function Usuario() {
                         <img
                             className="pet-accessory"
                             src={usuario.mascoteUrl}
-                            alt="Mascote de Companhia"
                         />
                     )}
                 </section>
@@ -1078,11 +1120,11 @@ function Usuario() {
                                         <button
                                             type="button"
                                             onClick={() => togglePublicaPlaylist(pl.id)}
-                                            className={`btn-playlist-visibilidade ${(pl.publica ?? true) ? 'publica' : 'privada'}`}
-                                            title={(pl.publica ?? true) ? "Playlist Pública (Clique para tornar Privada)" : "Playlist Privada (Clique para tornar Pública)"}
-                                            aria-label={(pl.publica ?? true) ? "Playlist Pública" : "Playlist Privada"}
+                                            className={`btn-playlist-visibilidade ${(pl.public ?? false) ? 'publica' : 'privada'}`}
+                                            title={(pl.public ?? false) ? "Playlist Pública (Clique para tornar Privada)" : "Playlist Privada (Clique para tornar Pública)"}
+                                            aria-label={(pl.public ?? false) ? "Playlist Pública" : "Playlist Privada"}
                                         >
-                                            {(pl.publica ?? true) ? (
+                                            {(pl.public ?? false) ? (
                                                 /* SVG DE GLOBO (PÚBLICA) */
                                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                                     <circle cx="12" cy="12" r="10" />

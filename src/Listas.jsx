@@ -501,9 +501,9 @@ function Lista() {
                                 if (ehListaFixa) return false;
                                 if (!pl.filmes || !Array.isArray(pl.filmes) || pl.filmes.length === 0) return false;
 
-                                // Playlists privadas (publica === false) não aparecem em Listas para ninguém
-                                // Apenas em Usuário. null/undefined = pública por padrão
-                                if (pl.publica === false) return false;
+                                // Playlists privadas (public !== true) não aparecem em Listas
+                                // O banco usa `public` com default false → só exibe se explicitamente true
+                                if (!pl.public) return false;
 
                                 return true;
                             });
