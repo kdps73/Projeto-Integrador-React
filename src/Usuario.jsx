@@ -135,11 +135,15 @@ function Usuario() {
     // =========================================================
     // 3. PERSISTÊNCIA DAS LISTAS E FUNÇÕES TOGGLE
     // =========================================================
+    // Extrai apenas os IDs dos filmes para salvar no banco (Supabase recebe [id1, id2, ...])
+    const extrairIds = (lista) => lista.map(f => (typeof f === 'object' && f !== null) ? Number(f.id) : Number(f));
+
     const salvarFavoritos = async (novaLista) => {
         setFavoritos(novaLista);
 
         if (supabase && usuario?.id) {
             try {
+                const apenasIds = extrairIds(novaLista);
                 const { data: listFav } = await supabase
                     .from('playlists')
                     .select('id')
@@ -149,7 +153,7 @@ function Usuario() {
                 if (listFav && listFav.length > 0) {
                     await supabase
                         .from('playlists')
-                        .update({ filmes: novaLista })
+                        .update({ filmes: apenasIds })
                         .eq('id', listFav[0].id);
 
                     if (listFav.length > 1) {
@@ -159,7 +163,7 @@ function Usuario() {
                 } else {
                     await supabase
                         .from('playlists')
-                        .insert([{ id_usuario: usuario.id, nome: 'Favoritos', filmes: novaLista }]);
+                        .insert([{ id_usuario: usuario.id, nome: 'Favoritos', filmes: apenasIds }]);
                 }
             } catch (err) {
                 console.warn("Erro ao salvar favoritos no Supabase:", err);
@@ -172,6 +176,7 @@ function Usuario() {
 
         if (supabase && usuario?.id) {
             try {
+                const apenasIds = extrairIds(novaLista);
                 const { data: listWatch } = await supabase
                     .from('playlists')
                     .select('id')
@@ -181,7 +186,7 @@ function Usuario() {
                 if (listWatch && listWatch.length > 0) {
                     await supabase
                         .from('playlists')
-                        .update({ filmes: novaLista })
+                        .update({ filmes: apenasIds })
                         .eq('id', listWatch[0].id);
 
                     if (listWatch.length > 1) {
@@ -191,7 +196,7 @@ function Usuario() {
                 } else {
                     await supabase
                         .from('playlists')
-                        .insert([{ id_usuario: usuario.id, nome: 'Assistir Mais Tarde', filmes: novaLista }]);
+                        .insert([{ id_usuario: usuario.id, nome: 'Assistir Mais Tarde', filmes: apenasIds }]);
                 }
             } catch (err) {
                 console.warn("Erro ao salvar watchlist no Supabase:", err);
@@ -275,6 +280,8 @@ function Usuario() {
         } : null;
 
         const filmesIniciais = fObj ? [fObj] : [];
+        // Banco recebe apenas IDs
+        const idsIniciais = fObj ? [Number(fObj.id)] : [];
 
         const novaPlaylist = {
             id: Date.now(),
@@ -287,7 +294,7 @@ function Usuario() {
             try {
                 const { data, error } = await supabase
                     .from('playlists')
-                    .insert([{ id_usuario: currentUserId, nome: novaPlaylistNome.trim(), filmes: filmesIniciais }])
+                    .insert([{ id_usuario: currentUserId, nome: novaPlaylistNome.trim(), filmes: idsIniciais }])
                     .select()
                     .single();
 
@@ -305,7 +312,7 @@ function Usuario() {
     };
 
     // Alternar visibilidade pública/privada da playlist
-    const togglePublicaPlaylist = (playlistId) => {
+    const togglePublicaPlaylist = async (playlistId) => {
         const novasPlaylists = playlists.map(p => {
             if (p.id === playlistId) {
                 return { ...p, publica: !(p.publica ?? true) };
@@ -313,6 +320,19 @@ function Usuario() {
             return p;
         });
         salvarPlaylists(novasPlaylists);
+
+        // Persiste no Supabase
+        if (supabase) {
+            const playlistAtualizada = novasPlaylists.find(p => p.id === playlistId);
+            try {
+                await supabase
+                    .from('playlists')
+                    .update({ publica: playlistAtualizada?.publica ?? false })
+                    .eq('id', playlistId);
+            } catch (err) {
+                console.warn("Erro ao atualizar visibilidade da playlist no Supabase:", err);
+            }
+        }
     };
 
     // Excluir playlist criada do Supabase
@@ -350,8 +370,10 @@ function Usuario() {
                     ? p.filmes.filter(f => Number(f.id) !== fId)
                     : [fObj, ...(p.filmes || []).filter(f => Number(f.id) !== fId)];
 
+                // Banco recebe apenas IDs
                 if (supabase) {
-                    supabase.from('playlists').update({ filmes: novosFilmes }).eq('id', playlistId).then().catch(err => console.warn(err));
+                    const apenasIds = extrairIds(novosFilmes);
+                    supabase.from('playlists').update({ filmes: apenasIds }).eq('id', playlistId).then().catch(err => console.warn(err));
                 }
 
                 return { ...p, filmes: novosFilmes };
@@ -464,15 +486,46 @@ function Usuario() {
                                 if (novaWatch) watchPlaylist = novaWatch;
                             }
 
-                            // Carrega os filmes do Supabase para os estados
-                            setFavoritos(favPlaylist?.filmes || []);
-                            setAssistirMaisTarde(watchPlaylist?.filmes || []);
+                            // Função auxiliar para resolver IDs/objetos do banco em objetos completos via API TMDB
+                            const resolverFilmes = async (lista) => {
+                                if (!lista || !Array.isArray(lista) || lista.length === 0) return [];
+                                const promises = lista.map(async (item) => {
+                                    // Se for apenas um número (ID), busca na API
+                                    if (typeof item === 'number' || typeof item === 'string') {
+                                        return await buscarDetalhesFilme(Number(item));
+                                    }
+                                    // Se for objeto com ID mas sem título, busca na API
+                                    if (typeof item === 'object' && item !== null) {
+                                        if (item.id && !item.titulo && !item.title) {
+                                            return await buscarDetalhesFilme(Number(item.id));
+                                        }
+                                        // Objeto completo (retrocompatibilidade)
+                                        return item;
+                                    }
+                                    return null;
+                                });
+                                return (await Promise.all(promises)).filter(Boolean);
+                            };
+
+                            // Carrega os filmes do Supabase resolvendo IDs via API TMDB
+                            const favFilmes = await resolverFilmes(favPlaylist?.filmes);
+                            const watchFilmes = await resolverFilmes(watchPlaylist?.filmes);
+                            setFavoritos(favFilmes);
+                            setAssistirMaisTarde(watchFilmes);
 
                             // Playlists personalizadas são aquelas diferentes das 2 fixas
                             const personalizadas = dadosPlaylists.filter(
                                 p => p.nome !== "Favoritos" && p.nome !== "Assistir Mais Tarde"
                             );
-                            setPlaylists(personalizadas);
+
+                            // Resolve os filmes de cada playlist personalizada
+                            const playlistsResolvidas = await Promise.all(
+                                personalizadas.map(async (pl) => ({
+                                    ...pl,
+                                    filmes: await resolverFilmes(pl.filmes)
+                                }))
+                            );
+                            setPlaylists(playlistsResolvidas);
                         }
                     } catch (e) {
                         console.warn("Erro ao carregar playlists do Supabase:", e);

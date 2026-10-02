@@ -1116,6 +1116,7 @@ ul {
     font-size: 1.2rem;
     cursor: pointer;
     transition: color 0.2s ease;
+    width: 50px;
 }
 
 .resenha-modal-content .btn-close-modal:hover {

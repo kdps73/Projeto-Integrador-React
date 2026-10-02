@@ -123,7 +123,7 @@ div:has(> nav.navbar) {
     margin-top: -23px;
 }
 
-.search-input {
+.search-container .search-input {
     background-color: transparent;
     border: none;
     color: #fff;
@@ -138,7 +138,7 @@ div:has(> nav.navbar) {
     cursor: pointer;
 }
 
-.search-input::placeholder {
+.search-container .search-input::placeholder {
     color: #888;
 }
 
