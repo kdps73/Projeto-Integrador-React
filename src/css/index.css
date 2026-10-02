@@ -643,8 +643,7 @@ div:has(> nav.navbar) {
     display: flex;
     align-items: center;
     justify-content: center;
-    transform: translateY(-6vh);
-    /* Aproxima da navbar */
+    transform: translateY(-6vh); /* Aproxima da navbar */
     perspective: 1200px;
     overflow: hidden;
     z-index: 1;

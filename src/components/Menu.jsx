@@ -14,7 +14,6 @@ function Menu() {
     const [searchTerm, setSearchTerm] = useState("");
     const [suggestions, setSuggestions] = useState([]);
     const [showSuggestions, setShowSuggestions] = useState(false);
-    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
     const navigate = useNavigate();
     const searchTimeoutRef = useRef(null);
