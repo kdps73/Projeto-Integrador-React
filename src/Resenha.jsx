@@ -5,6 +5,35 @@ import "./css/resenha.css";
 import { supabase } from "./supabase";
 import playlistIcon from "./assets/playlist_icon.svg";
 
+function obterUrlItem(caminhoOuUrl) {
+    if (!caminhoOuUrl) return null;
+    if (typeof caminhoOuUrl !== "string") return null;
+
+    if (caminhoOuUrl.startsWith("http://") || caminhoOuUrl.startsWith("https://")) {
+        return caminhoOuUrl;
+    }
+
+    if (caminhoOuUrl.startsWith("./") || caminhoOuUrl.startsWith("/")) {
+        return caminhoOuUrl;
+    }
+
+    if (supabase) {
+        if (caminhoOuUrl.startsWith("profile/") || caminhoOuUrl.startsWith("profile:")) {
+            const nomeArquivo = caminhoOuUrl.replace(/^profile[\/:]/, "");
+            const { data } = supabase.storage.from("profile").getPublicUrl(nomeArquivo);
+            return data?.publicUrl || caminhoOuUrl;
+        }
+
+        const nomeArquivo = caminhoOuUrl.startsWith("itens/")
+            ? caminhoOuUrl.replace(/^itens\//, "")
+            : caminhoOuUrl;
+
+        const { data } = supabase.storage.from("itens").getPublicUrl(nomeArquivo);
+        return data?.publicUrl || caminhoOuUrl;
+    }
+    return caminhoOuUrl || null;
+}
+
 function Resenha() {
 
     const { id } = useParams();
@@ -15,6 +44,7 @@ function Resenha() {
     const [novoComentario, setNovoComentario] = useState("");
     const [toastXP, setToastXP] = useState(null);
     const usuarioLogado = localStorage.getItem("user") ? JSON.parse(localStorage.getItem("user")) : null;
+    const [perfilUsuarioLogado, setPerfilUsuarioLogado] = useState(null);
 
     // Estados do sistema de avaliações
     const [estatisticasLocais, setEstatisticasLocais] = useState({ count: 0, soma: 0 });
@@ -108,7 +138,7 @@ function Resenha() {
     }
 
     async function fetchComentarios() {
-        const { data, error } = await supabase.from("comentarios").select("*, usuario!comentarios_id_usuario_fkey(*), curtidas(*)").eq("id_filme", id).order("id", { ascending: false });
+        const { data, error } = await supabase.from("comentarios").select("*, usuario!comentarios_id_usuario_fkey(*, id_item_chapeu(*), id_item_mao(*), id_item_mascote(*)), curtidas(*)").eq("id_filme", id).order("id", { ascending: false });
         if (error == null) {
             setComentarios(JSON.parse(JSON.stringify(data)))
         } else {
@@ -232,6 +262,20 @@ function Resenha() {
             fetchMinhaAvaliacao()
         }
     }, [id]);
+
+    useEffect(() => {
+        async function carregarPerfilLogado() {
+            if (supabase && usuarioLogado?.id) {
+                const { data } = await supabase
+                    .from("usuario")
+                    .select("*, id_item_chapeu(*), id_item_mao(*), id_item_mascote(*)")
+                    .eq("id", usuarioLogado.id)
+                    .maybeSingle();
+                if (data) setPerfilUsuarioLogado(data);
+            }
+        }
+        carregarPerfilLogado();
+    }, [usuarioLogado?.id]);
 
     // =========================================================
     // LÓGICA DE FAVORITOS E PLAYLISTS DO USUÁRIO NA RESENHA
@@ -696,11 +740,56 @@ function Resenha() {
                                     <div className="comentario-card" id={`coment-card-${coment.id}`}>
                                         <div className="coment-header">
                                             <div className="coment-user">
-                                                <img
-                                                    src={coment.usuario?.url_img || "https://placehold.co/44x44/2a2a2a/e50914?text=" + (coment.usuario?.nome || "U").charAt(0)}
-                                                    alt="Foto de perfil"
-                                                    className="user-avatar"
-                                                />
+                                                {(() => {
+                                                    const chapeuRaw = coment.usuario?.id_item_chapeu?.url_item || coment.usuario?.id_item_chapeu?.url_imagem;
+                                                    const maoRaw = coment.usuario?.id_item_mao?.url_item || coment.usuario?.id_item_mao?.url_imagem;
+                                                    const mascoteRaw = coment.usuario?.id_item_mascote?.url_item || coment.usuario?.id_item_mascote?.url_imagem;
+
+                                                    const chapeu = chapeuRaw ? obterUrlItem(chapeuRaw) : null;
+                                                    const mao = maoRaw ? obterUrlItem(maoRaw) : null;
+                                                    const mascote = mascoteRaw ? obterUrlItem(mascoteRaw) : null;
+                                                    const avatarUrl = coment.usuario?.url_img ? obterUrlItem(coment.usuario.url_img) : (coment.usuario?.avatar_url || null);
+
+                                                    return (
+                                                        <div className="user-avatar">
+                                                            {chapeu && (
+                                                                <img
+                                                                    src={chapeu}
+                                                                    alt="Chapéu Equipado"
+                                                                    className="post-hat-accessory"
+                                                                    onError={(e) => { e.target.style.display = 'none'; }}
+                                                                />
+                                                            )}
+                                                            <div className="post-avatar-circle">
+                                                                <img
+                                                                    src={avatarUrl || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%231c1c1c'/%3E%3Ccircle cx='50' cy='38' r='18' fill='%23444'/%3E%3Cellipse cx='50' cy='82' rx='30' ry='20' fill='%23444'/%3E%3C/svg%3E"}
+                                                                    alt={coment.usuario?.nome || "Cinéfilo"}
+                                                                    className="post-avatar-img"
+                                                                    onError={(e) => {
+                                                                        e.target.onerror = null;
+                                                                        e.target.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%231c1c1c'/%3E%3Ccircle cx='50' cy='38' r='18' fill='%23444'/%3E%3Cellipse cx='50' cy='82' rx='30' ry='20' fill='%23444'/%3E%3C/svg%3E";
+                                                                    }}
+                                                                />
+                                                            </div>
+                                                            {mao && (
+                                                                <img
+                                                                    src={mao}
+                                                                    alt="Acessório de Mão"
+                                                                    className="post-hand-accessory"
+                                                                    onError={(e) => { e.target.style.display = 'none'; }}
+                                                                />
+                                                            )}
+                                                            {mascote && (
+                                                                <img
+                                                                    src={mascote}
+                                                                    alt="Mascote de Companhia"
+                                                                    className="post-pet-accessory"
+                                                                    onError={(e) => { e.target.style.display = 'none'; }}
+                                                                />
+                                                            )}
+                                                        </div>
+                                                    );
+                                                })()}
                                                 <div className="user-info">
                                                     <span className="user-nome">{coment.usuario?.nome || coment.usuario?.username || "Usuário"}</span>
                                                     <span className="user-data">{dataFormatada}</span>
@@ -740,11 +829,57 @@ function Resenha() {
                         <h3 className="novo-coment-titulo">Deixe seu comentário</h3>
                         {usuarioLogado ? (
                             <div className="novo-coment-form">
-                                <img
-                                    src={usuarioLogado.url_img || "https://placehold.co/48x48/2a2a2a/e50914?text=" + (usuarioLogado.nome || "E").charAt(0)}
-                                    alt="Você"
-                                    className="user-avatar"
-                                />
+                                {(() => {
+                                    const uLog = perfilUsuarioLogado || usuarioLogado;
+                                    const chapeuRaw = uLog?.id_item_chapeu?.url_item || uLog?.id_item_chapeu?.url_imagem;
+                                    const maoRaw = uLog?.id_item_mao?.url_item || uLog?.id_item_mao?.url_imagem;
+                                    const mascoteRaw = uLog?.id_item_mascote?.url_item || uLog?.id_item_mascote?.url_imagem;
+
+                                    const chapeu = chapeuRaw ? obterUrlItem(chapeuRaw) : null;
+                                    const mao = maoRaw ? obterUrlItem(maoRaw) : null;
+                                    const mascote = mascoteRaw ? obterUrlItem(mascoteRaw) : null;
+                                    const avatarUrl = uLog?.url_img ? obterUrlItem(uLog.url_img) : (uLog?.avatar_url || null);
+
+                                    return (
+                                        <div className="user-avatar">
+                                            {chapeu && (
+                                                <img
+                                                    src={chapeu}
+                                                    alt="Chapéu Equipado"
+                                                    className="post-hat-accessory"
+                                                    onError={(e) => { e.target.style.display = 'none'; }}
+                                                />
+                                            )}
+                                            <div className="post-avatar-circle">
+                                                <img
+                                                    src={avatarUrl || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%231c1c1c'/%3E%3Ccircle cx='50' cy='38' r='18' fill='%23444'/%3E%3Cellipse cx='50' cy='82' rx='30' ry='20' fill='%23444'/%3E%3C/svg%3E"}
+                                                    alt={uLog?.nome || "Você"}
+                                                    className="post-avatar-img"
+                                                    onError={(e) => {
+                                                        e.target.onerror = null;
+                                                        e.target.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%231c1c1c'/%3E%3Ccircle cx='50' cy='38' r='18' fill='%23444'/%3E%3Cellipse cx='50' cy='82' rx='30' ry='20' fill='%23444'/%3E%3C/svg%3E";
+                                                    }}
+                                                />
+                                            </div>
+                                            {mao && (
+                                                <img
+                                                    src={mao}
+                                                    alt="Acessório de Mão"
+                                                    className="post-hand-accessory"
+                                                    onError={(e) => { e.target.style.display = 'none'; }}
+                                                />
+                                            )}
+                                            {mascote && (
+                                                <img
+                                                    src={mascote}
+                                                    alt="Mascote de Companhia"
+                                                    className="post-pet-accessory"
+                                                    onError={(e) => { e.target.style.display = 'none'; }}
+                                                />
+                                            )}
+                                        </div>
+                                    );
+                                })()}
                                 <div className="novo-coment-campo">
                                     <textarea
                                         className="novo-coment-textarea"

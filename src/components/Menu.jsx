@@ -86,7 +86,25 @@ function Menu() {
     }, []);
 
 
-    const avatarUrl = user?.url_img;
+    const obterUrlAvatar = (caminhoOuUrl) => {
+        if (!caminhoOuUrl) return "";
+        if (typeof caminhoOuUrl !== "string") return "";
+        if (caminhoOuUrl.startsWith("http://") || caminhoOuUrl.startsWith("https://") || caminhoOuUrl.startsWith("./") || caminhoOuUrl.startsWith("/")) {
+            return caminhoOuUrl;
+        }
+        if (supabase) {
+            if (caminhoOuUrl.startsWith("profile/") || caminhoOuUrl.startsWith("profile:")) {
+                const nomeArquivo = caminhoOuUrl.replace(/^profile[\/:]/, "");
+                const { data } = supabase.storage.from("profile").getPublicUrl(nomeArquivo);
+                return data?.publicUrl || caminhoOuUrl;
+            }
+            const { data } = supabase.storage.from("itens").getPublicUrl(caminhoOuUrl);
+            return data?.publicUrl || caminhoOuUrl;
+        }
+        return caminhoOuUrl;
+    };
+
+    const avatarUrl = obterUrlAvatar(user?.url_img);
     const userName = user?.nome || user?.username || user?.email?.split('@')[0] || "Usuário";
 
     return (

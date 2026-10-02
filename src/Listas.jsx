@@ -6,8 +6,8 @@ import "./css/listas.css";
 
 // Função utilitária para obter a URL pública de itens do Supabase Storage e TMDB
 function obterUrlItem(caminhoOuUrl) {
-    if (!caminhoOuUrl) return "";
-    if (typeof caminhoOuUrl !== "string") return "";
+    if (!caminhoOuUrl) return null;
+    if (typeof caminhoOuUrl !== "string") return null;
 
     if (caminhoOuUrl.startsWith("http://") || caminhoOuUrl.startsWith("https://")) {
         return caminhoOuUrl;
@@ -23,6 +23,14 @@ function obterUrlItem(caminhoOuUrl) {
     }
 
     if (supabase) {
+        // Se for avatar de perfil do bucket 'profile' (ex: 'profile/42' ou 'profile:42')
+        if (caminhoOuUrl.startsWith("profile/") || caminhoOuUrl.startsWith("profile:")) {
+            const nomeArquivo = caminhoOuUrl.replace(/^profile[\/:]/, "");
+            const { data } = supabase.storage.from("profile").getPublicUrl(nomeArquivo);
+            return data?.publicUrl || caminhoOuUrl;
+        }
+
+        // Caminho salvo no bucket 'itens' do Supabase Storage
         const nomeArquivo = caminhoOuUrl.startsWith("itens/")
             ? caminhoOuUrl.replace(/^itens\//, "")
             : caminhoOuUrl;
@@ -30,7 +38,7 @@ function obterUrlItem(caminhoOuUrl) {
         const { data } = supabase.storage.from("itens").getPublicUrl(nomeArquivo);
         return data?.publicUrl || caminhoOuUrl;
     }
-    return caminhoOuUrl;
+    return caminhoOuUrl || null;
 }
 
 // Função para pré-carregar imagens na memória antes de exibir a tela
@@ -471,7 +479,7 @@ function Lista() {
                                     id: u.id,
                                     nome: u.nome || u.username || "Usuário",
                                     username: u.username || `user_${u.id}`,
-                                    avatarUrl: u.url_img ? obterUrlItem(u.url_img) : (u.avatar_url || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=300&q=80"),
+                                    avatarUrl: u.url_img ? obterUrlItem(u.url_img) : (u.avatar_url || ""),
                                     bio: u.bio || "Cinéfilo apaixonado por boas histórias.",
                                     xpTotal: u.xp_total || 0,
                                     nivel: u.nivel || Math.max(1, Math.floor((u.xp_total || 0) / 600)),
@@ -796,12 +804,12 @@ function Lista() {
                                                 )}
                                                 <div className="post-avatar-circle">
                                                     <img
-                                                        src={playlist.autor?.avatarUrl || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=300&q=80"}
+                                                        src={playlist.autor?.avatarUrl || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%231c1c1c'/%3E%3Ccircle cx='50' cy='38' r='18' fill='%23444'/%3E%3Cellipse cx='50' cy='82' rx='30' ry='20' fill='%23444'/%3E%3C/svg%3E"}
                                                         alt={playlist.autor?.nome || "Cinéfilo"}
                                                         className="post-avatar-img"
                                                         onError={(e) => {
                                                             e.target.onerror = null;
-                                                            e.target.src = "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=300&q=80";
+                                                            e.target.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%231c1c1c'/%3E%3Ccircle cx='50' cy='38' r='18' fill='%23444'/%3E%3Cellipse cx='50' cy='82' rx='30' ry='20' fill='%23444'/%3E%3C/svg%3E";
                                                         }}
                                                     />
                                                 </div>

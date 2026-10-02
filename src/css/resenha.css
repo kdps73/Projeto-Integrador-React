@@ -427,12 +427,72 @@ ul {
 }
 
 .user-avatar {
+    position: relative;
+    width: 44px;
+    height: 44px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: visible;
+}
+
+.user-avatar .post-avatar-circle {
     width: 44px;
     height: 44px;
     border-radius: 50%;
-    object-fit: cover;
+    overflow: hidden;
     border: 1.5px solid rgba(229, 9, 20, 0.5);
-    flex-shrink: 0;
+    background: #0f0f0f;
+    position: relative;
+    z-index: 2;
+}
+
+.user-avatar .post-avatar-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.user-avatar .post-hat-accessory {
+    position: absolute;
+    top: -15px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 65px;
+    height: auto;
+    max-height: 65px;
+    object-fit: contain;
+    z-index: 5;
+    pointer-events: none;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.8));
+}
+
+.user-avatar .post-hand-accessory {
+    position: absolute;
+    bottom: -2px;
+    right: -50px;
+    width: 65px;
+    height: auto;
+    max-height: 65px;
+    object-fit: contain;
+    z-index: 5;
+    pointer-events: none;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.8));
+}
+
+.user-avatar .post-pet-accessory {
+    position: absolute;
+    bottom: -4px;
+    left: -20px;
+    width: 38px;
+    height: auto;
+    max-height: 38px;
+    object-fit: contain;
+    z-index: 5;
+    pointer-events: none;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.8));
 }
 
 .user-avatar--sm {

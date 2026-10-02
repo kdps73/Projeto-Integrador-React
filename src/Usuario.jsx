@@ -37,7 +37,9 @@ async function buscarDetalhesFilme(id) {
 
 // Função utilitária para obter a URL pública de itens do Supabase Storage
 function obterUrlItem(caminhoOuUrl) {
-    if (!caminhoOuUrl) return "";
+    if (!caminhoOuUrl) return null;
+    if (typeof caminhoOuUrl !== "string") return null;
+
     // Se já for uma URL completa externa ou caminho relativo local
     if (
         caminhoOuUrl.startsWith("http://") ||
@@ -47,9 +49,16 @@ function obterUrlItem(caminhoOuUrl) {
     ) {
         return caminhoOuUrl;
     }
-    // Se for o nome do arquivo ou caminho salvo no bucket do Supabase Storage ('itens')
+
     if (supabase) {
-        // Remove prefixo "itens/" se existir para evitar duplicação caso o bucket já seja 'itens'
+        // Se for avatar de perfil do bucket 'profile' (ex: 'profile/42' ou 'profile:42')
+        if (caminhoOuUrl.startsWith("profile/") || caminhoOuUrl.startsWith("profile:")) {
+            const nomeArquivo = caminhoOuUrl.replace(/^profile[\/:]/, "");
+            const { data } = supabase.storage.from("profile").getPublicUrl(nomeArquivo);
+            return data?.publicUrl || caminhoOuUrl;
+        }
+
+        // Caminho salvo no bucket 'itens' do Supabase Storage
         const nomeArquivo = caminhoOuUrl.startsWith("itens/")
             ? caminhoOuUrl.replace(/^itens\//, "")
             : caminhoOuUrl;
@@ -57,7 +66,7 @@ function obterUrlItem(caminhoOuUrl) {
         const { data } = supabase.storage.from("itens").getPublicUrl(nomeArquivo);
         return data?.publicUrl || caminhoOuUrl;
     }
-    return caminhoOuUrl;
+    return caminhoOuUrl || null;
 }
 
 // =========================================================
@@ -133,6 +142,10 @@ function Usuario() {
     const [inputBio, setInputBio] = useState(usuario.bio);
     const [statusBio, setStatusBio] = useState("");
     const [isEditingBio, setIsEditingBio] = useState(false);
+
+    // Upload de foto de perfil
+    const avatarInputRef = useRef(null);
+    const [uploadandoAvatar, setUploadandoAvatar] = useState(false);
 
     // Sistema de XP e Nível (progressivo, derivado do xpTotal)
     const { nivelAtual, xpNoNivel, xpNecessario, porcentagem: porcentagemXp } = calcularProgressoNivel(usuario.xpTotal);
@@ -604,6 +617,70 @@ function Usuario() {
         }
     };
 
+    // =========================================================
+    // UPLOAD DE FOTO DE PERFIL
+    // =========================================================
+    const handleClickAvatar = () => {
+        if (!uploadandoAvatar) {
+            avatarInputRef.current?.click();
+        }
+    };
+
+    const handleUploadAvatar = async (e) => {
+        const arquivo = e.target.files?.[0];
+        if (!arquivo) return;
+
+        // Preview imediato com URL local
+        const urlLocal = URL.createObjectURL(arquivo);
+        setUsuario(prev => ({ ...prev, avatarUrl: urlLocal }));
+        setUploadandoAvatar(true);
+
+        try {
+            if (supabase && usuario?.id) {
+                // Nome do arquivo no bucket 'profile' é o ID do usuário (ex: '42')
+                const nomeArquivo = `${usuario.id}`;
+
+                const { error: uploadError } = await supabase.storage
+                    .from('profile')
+                    .upload(nomeArquivo, arquivo, { upsert: true, contentType: arquivo.type });
+
+                if (!uploadError) {
+                    // Gera URL pública do bucket 'profile' com cache-buster para forçar refresh da imagem
+                    const { data: urlData } = supabase.storage.from('profile').getPublicUrl(nomeArquivo);
+                    const urlPublica = urlData?.publicUrl
+                        ? `${urlData.publicUrl}?t=${Date.now()}`
+                        : urlLocal;
+
+                    // Persiste a referência 'profile/{id}' no banco de dados
+                    const caminhoNoBanco = `profile/${usuario.id}`;
+                    await supabase.from('usuario').update({ url_img: caminhoNoBanco }).eq('id', usuario.id);
+                    setUsuario(prev => ({ ...prev, avatarUrl: urlPublica }));
+
+                    // Sincroniza no localStorage
+                    const userStr = localStorage.getItem('user');
+                    if (userStr) {
+                        try {
+                            const userSalvo = JSON.parse(userStr);
+                            localStorage.setItem('user', JSON.stringify({ ...userSalvo, url_img: caminhoNoBanco }));
+                        } catch (_) {}
+                    }
+                } else {
+                    console.warn('Erro no upload do avatar:', uploadError.message);
+                    if (uploadError.message?.toLowerCase().includes('row-level security') || uploadError.message?.toLowerCase().includes('rls')) {
+                        alert("Erro de permissão no Supabase Storage!\n\nO bucket 'profile' precisa de uma política de RLS (Row-Level Security) para permitir uploads. Adicione uma política de INSERT/UPDATE no Supabase.");
+                    } else {
+                        alert(`Erro no upload do avatar: ${uploadError.message}`);
+                    }
+                }
+            }
+        } catch (err) {
+            console.warn('Erro ao fazer upload do avatar:', err);
+        } finally {
+            setUploadandoAvatar(false);
+            if (avatarInputRef.current) avatarInputRef.current.value = '';
+        }
+    };
+
     const handleLogout = async () => {
         try {
             if (supabase?.auth) {
@@ -696,16 +773,53 @@ function Usuario() {
                                 />
                             )}
 
-                            <div className="avatar-circle">
-                                <img
-                                    src={usuario.avatarUrl}
-                                    alt={`Avatar de ${usuario.username}`}
-                                    className="avatar-img"
-                                    onError={(e) => {
-                                        e.target.onerror = null;
-                                        e.target.src = "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=300&q=80";
-                                    }}
-                                />
+                            {/* Input oculto para seleção de arquivo */}
+                            <input
+                                ref={avatarInputRef}
+                                type="file"
+                                accept="image/*"
+                                style={{ display: 'none' }}
+                                onChange={handleUploadAvatar}
+                            />
+
+                            <div
+                                className={`avatar-circle avatar-clickable${uploadandoAvatar ? ' avatar-uploading' : ''}`}
+                                onClick={handleClickAvatar}
+                                title="Clique para alterar sua foto de perfil"
+                                role="button"
+                                tabIndex={0}
+                                onKeyDown={(e) => e.key === 'Enter' && handleClickAvatar()}
+                            >
+                                {usuario.avatarUrl ? (
+                                    <img
+                                        src={usuario.avatarUrl}
+                                        alt={`Avatar de ${usuario.username}`}
+                                        className="avatar-img"
+                                        onError={(e) => {
+                                            e.target.onerror = null;
+                                            e.target.style.display = 'none';
+                                            e.target.parentElement.classList.add('avatar-sem-foto');
+                                        }}
+                                    />
+                                ) : (
+                                    <div className="avatar-placeholder">
+                                        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                            <circle cx="12" cy="7" r="4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                        </svg>
+                                    </div>
+                                )}
+                                <div className="avatar-overlay">
+                                    {uploadandoAvatar ? (
+                                        <div className="avatar-upload-spinner" />
+                                    ) : (
+                                        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" width="22" height="22">
+                                            <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                            <circle cx="12" cy="13" r="4" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                        </svg>
+                                    )}
+                                    <span>{uploadandoAvatar ? 'Enviando...' : 'Alterar foto'}</span>
+                                </div>
                             </div>
 
                             {usuario.maoUrl && (
