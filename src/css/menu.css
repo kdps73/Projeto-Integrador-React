@@ -148,7 +148,6 @@ div:has(> nav.navbar) {
     padding: 5px 10px;
     cursor: text;
 }
-
 .search-suggestions {
     position: absolute;
     top: 100%;

@@ -35,32 +35,55 @@ async function buscarDetalhesFilme(id) {
     }
 }
 
+// Função utilitária para obter a URL pública de itens do Supabase Storage
+function obterUrlItem(caminhoOuUrl) {
+    if (!caminhoOuUrl) return "";
+    // Se já for uma URL completa externa ou caminho relativo local
+    if (
+        caminhoOuUrl.startsWith("http://") ||
+        caminhoOuUrl.startsWith("https://") ||
+        caminhoOuUrl.startsWith("./") ||
+        caminhoOuUrl.startsWith("/")
+    ) {
+        return caminhoOuUrl;
+    }
+    // Se for o nome do arquivo ou caminho salvo no bucket do Supabase Storage ('itens')
+    if (supabase) {
+        // Remove prefixo "itens/" se existir para evitar duplicação caso o bucket já seja 'itens'
+        const nomeArquivo = caminhoOuUrl.startsWith("itens/")
+            ? caminhoOuUrl.replace(/^itens\//, "")
+            : caminhoOuUrl;
+
+        const { data } = supabase.storage.from("itens").getPublicUrl(nomeArquivo);
+        return data?.publicUrl || caminhoOuUrl;
+    }
+    return caminhoOuUrl;
+}
+
 function Usuario() {
     const navigate = useNavigate();
     // =========================================================
     // 1. ESTADOS DO USUÁRIO (Perfil, XP, Bio e Acessórios)
     // =========================================================
-    const [usuario, setUsuario] = useState(() => {
-        const userStr = localStorage.getItem("user");
-        let userLocal = null;
-        if (userStr) {
-            try { userLocal = JSON.parse(userStr); } catch(e){}
-        }
-
-        return {
-            id: userLocal?.id || 11,
-            nome: userLocal?.nome || "Usuário",
-            username: userLocal?.username || userLocal?.nome || "USUARIO",
-            email: userLocal?.email || "usuario@cineplanner.com",
-            bio: "Amante de ficção científica, cinema clássico e maratonas de fim de semana.",
-            xpTotal: userLocal?.xp || 25400,
-            nivel: userLocal?.nivel || Math.floor((userLocal?.xp || 25400) / 600) || 50,
-            chapeuUrl: "null",
-            maoUrl: "null",
-            mascoteUrl: "null",
-            avatarUrl: userLocal?.url_img || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=300&q=80"
-        };
+    const [usuario, setUsuario] = useState({
+        id: 1,
+        nome: "They Pro Filmes",
+        username: "THEY_PRO_FILMES",
+        email: "usuario@cineplanner.com",
+        bio: "Amante de ficção científica, cinema clássico e maratonas de fim de semana.",
+        xpTotal: 25400,
+        nivel: 50,
+        chapeuUrl: "./img/hat-red-dead.png",
+        maoUrl: "./img/acessorio-red-dead.png",
+        mascoteUrl: "./img/pet-red-dead.png",
+        avatarUrl: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=300&q=80",
+        idItemChapeu: null,
+        idItemMao: null,
+        idItemMascote: null
     });
+
+    const [itens, setItens] = useState([]);
+    const [modalItensAberto, setModalItensAberto] = useState(false);
 
     const [inputBio, setInputBio] = useState(usuario.bio);
     const [statusBio, setStatusBio] = useState("");
@@ -281,12 +304,38 @@ function Usuario() {
         async function carregarFilmesUsuario() {
             setCarregandoFilmes(true);
             try {
+                // Obter usuário salvo localmente caso exista
+                let currentUserId = usuario.id;
+                const userSalvoStr = localStorage.getItem("user");
+                if (userSalvoStr) {
+                    try {
+                        const userSalvo = JSON.parse(userSalvoStr);
+                        if (userSalvo?.id) {
+                            currentUserId = userSalvo.id;
+                            setUsuario(prev => ({
+                                ...prev,
+                                id: userSalvo.id,
+                                nome: userSalvo.nome || prev.nome,
+                                username: userSalvo.username || prev.username,
+                                email: userSalvo.email || prev.email,
+                                bio: userSalvo.bio || prev.bio,
+                                xpTotal: userSalvo.xp_total ?? prev.xpTotal,
+                                nivel: userSalvo.nivel ?? prev.nivel,
+                                avatarUrl: userSalvo.url_img ? obterUrlItem(userSalvo.url_img) : (userSalvo.avatar_url || prev.avatarUrl)
+                            }));
+                            setInputBio(userSalvo.bio || "");
+                        }
+                    } catch (e) {
+                        console.warn("Erro ao ler usuário do localStorage", e);
+                    }
+                }
+
                 // A) Buscar Perfil no Supabase se disponível
-                if (supabase) {
+                if (supabase && currentUserId) {
                     const { data: dadosUsuario } = await supabase
                         .from('usuario')
                         .select('*, id_item_chapeu(*), id_item_mao(*), id_item_mascote(*)')
-                        .eq('id', usuario.id)
+                        .eq('id', currentUserId)
                         .maybeSingle();
 
                     if (dadosUsuario) {
@@ -299,22 +348,29 @@ function Usuario() {
                             bio: dadosUsuario.bio || prev.bio,
                             xpTotal: dadosUsuario.xp_total ?? prev.xpTotal,
                             nivel: dadosUsuario.nivel ?? prev.nivel,
-                            avatarUrl: dadosUsuario.url_img || dadosUsuario.avatar_url || prev.avatarUrl,
-                            chapeuUrl: dadosUsuario.id_item_chapeu?.url_imagem || prev.chapeuUrl,
-                            maoUrl: dadosUsuario.id_item_mao?.url_imagem || prev.maoUrl,
-                            mascoteUrl: dadosUsuario.id_item_mascote?.url_imagem || prev.mascoteUrl
+                            avatarUrl: dadosUsuario.url_img ? obterUrlItem(dadosUsuario.url_img) : (dadosUsuario.avatar_url || prev.avatarUrl),
+                            chapeuUrl: dadosUsuario.id_item_chapeu?.url_item ? obterUrlItem(dadosUsuario.id_item_chapeu.url_item) : prev.chapeuUrl,
+                            maoUrl: dadosUsuario.id_item_mao?.url_item ? obterUrlItem(dadosUsuario.id_item_mao.url_item) : prev.maoUrl,
+                            mascoteUrl: dadosUsuario.id_item_mascote?.url_item ? obterUrlItem(dadosUsuario.id_item_mascote.url_item) : prev.mascoteUrl,
+                            idItemChapeu: dadosUsuario.id_item_chapeu?.id || null,
+                            idItemMao: dadosUsuario.id_item_mao?.id || null,
+                            idItemMascote: dadosUsuario.id_item_mascote?.id || null
                         }));
                         setInputBio(dadosUsuario.bio || "");
                     }
+
+                    // Buscar os itens
+                    const { data: dadosItens } = await supabase.from('itens').select('*');
+                    if (dadosItens) setItens(dadosItens);
                 }
 
                 // B) Sincronizar Playlists (Favoritos, Assistir Mais Tarde e Personalizadas) direto do Supabase
-                if (supabase && usuario?.id) {
+                if (supabase && currentUserId) {
                     try {
                         const { data: dadosPlaylists, error: errPlaylists } = await supabase
                             .from('playlists')
                             .select('*')
-                            .eq('id_usuario', usuario.id);
+                            .eq('id_usuario', currentUserId);
 
                         if (!errPlaylists && dadosPlaylists) {
                             let favPlaylist = dadosPlaylists.find(p => p.nome === "Favoritos");
@@ -324,7 +380,7 @@ function Usuario() {
                             if (!favPlaylist) {
                                 const { data: novaFav } = await supabase
                                     .from('playlists')
-                                    .insert([{ id_usuario: usuario.id, nome: "Favoritos", filmes: [], publica: true }])
+                                    .insert([{ id_usuario: currentUserId, nome: "Favoritos", filmes: [], publica: true }])
                                     .select()
                                     .single();
                                 if (novaFav) favPlaylist = novaFav;
@@ -334,7 +390,7 @@ function Usuario() {
                             if (!watchPlaylist) {
                                 const { data: novaWatch } = await supabase
                                     .from('playlists')
-                                    .insert([{ id_usuario: usuario.id, nome: "Assistir Mais Tarde", filmes: [], publica: false }])
+                                    .insert([{ id_usuario: currentUserId, nome: "Assistir Mais Tarde", filmes: [], publica: false }])
                                     .select()
                                     .single();
                                 if (novaWatch) watchPlaylist = novaWatch;
@@ -353,6 +409,8 @@ function Usuario() {
                     } catch (e) {
                         console.warn("Erro ao carregar playlists do Supabase:", e);
                     }
+
+
                 }
 
             } catch (err) {
@@ -366,7 +424,7 @@ function Usuario() {
     }, []);
 
     // =========================================================
-    // 5. ATUALIZAÇÃO DA BIO
+    // 5. ATUALIZAÇÃO DA BIO E LOGOUT
     // =========================================================
     const handleSalvarBio = async () => {
         setUsuario(prev => ({ ...prev, bio: inputBio }));
@@ -383,10 +441,54 @@ function Usuario() {
         }
     };
 
-    const handleLogout = () => {
+    const handleLogout = async () => {
+        try {
+            if (supabase?.auth) {
+                await supabase.auth.signOut();
+            }
+        } catch (err) {
+            console.warn("Erro ao deslogar do Supabase:", err);
+        }
+
+        // Limpa a sessão local
         localStorage.removeItem("user");
+        localStorage.removeItem("supabase_token");
         window.dispatchEvent(new Event("authChanged"));
+
+        // Redireciona para o login ou tela inicial
         navigate("/login");
+    };
+    const handleEquiparItem = async (item) => {
+        const xpAtual = Number(usuario.xpTotal || 0);
+        const valorItem = Number(item.valor || 0);
+
+        if (xpAtual < valorItem) return; // Item bloqueado
+
+        const atualizacoes = {};
+        if (item.tipo === 1) atualizacoes.id_item_chapeu = item.id;
+        else if (item.tipo === 2) atualizacoes.id_item_mao = item.id;
+        else if (item.tipo === 3) atualizacoes.id_item_mascote = item.id;
+
+        const urlFormatada = obterUrlItem(item.url_item);
+
+        // Atualiza a UI imediatamente para sensação de tempo real
+        setUsuario(prev => ({
+            ...prev,
+            chapeuUrl: item.tipo === 1 ? urlFormatada : prev.chapeuUrl,
+            maoUrl: item.tipo === 2 ? urlFormatada : prev.maoUrl,
+            mascoteUrl: item.tipo === 3 ? urlFormatada : prev.mascoteUrl,
+            idItemChapeu: item.tipo === 1 ? item.id : prev.idItemChapeu,
+            idItemMao: item.tipo === 2 ? item.id : prev.idItemMao,
+            idItemMascote: item.tipo === 3 ? item.id : prev.idItemMascote,
+        }));
+
+        if (supabase) {
+            try {
+                await supabase.from('usuario').update(atualizacoes).eq('id', usuario.id);
+            } catch (err) {
+                console.warn("Erro ao equipar item", err);
+            }
+        }
     };
 
     // =========================================================
@@ -422,37 +524,45 @@ function Usuario() {
 
                 {/* CARD DE PERFIL DO USUÁRIO */}
                 <section className="profile-card" aria-label="Card de Perfil">
-                    <div className="avatar-container">
-                        {usuario.chapeuUrl && (
-                            <img
-                                className="hat-accessory"
-                                src={usuario.chapeuUrl}
-                                alt="Chapéu do Avatar"
-                            />
-                        )}
+                    <div className="avatar-wrapper">
+                        <div className="avatar-container">
+                            {usuario.chapeuUrl && (
+                                <img
+                                    className="hat-accessory"
+                                    src={usuario.chapeuUrl}
+                                    alt="Chapéu do Avatar"
+                                />
+                            )}
 
-                        <div className="avatar-circle">
-                            <img
-                                src={usuario.avatarUrl}
-                                alt={`Avatar de ${usuario.username}`}
-                                className="avatar-img"
-                                onError={(e) => {
-                                    e.target.onerror = null;
-                                    e.target.src = "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=300&q=80";
-                                }}
-                            />
+                            <div className="avatar-circle">
+                                <img
+                                    src={usuario.avatarUrl}
+                                    alt={`Avatar de ${usuario.username}`}
+                                    className="avatar-img"
+                                    onError={(e) => {
+                                        e.target.onerror = null;
+                                        e.target.src = "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=300&q=80";
+                                    }}
+                                />
+                            </div>
+
+                            {usuario.maoUrl && (
+                                <img
+                                    className="accessory"
+                                    src={usuario.maoUrl}
+                                    alt="Acessório do Avatar"
+                                />
+                            )}
                         </div>
-                        <button onClick={handleLogout} className="logout-btn">
+
+                        <button onClick={handleLogout} className="logout-btn" title="Sair da conta">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                                <polyline points="16 17 21 12 16 7"></polyline>
+                                <line x1="21" y1="12" x2="9" y2="12"></line>
+                            </svg>
                             Sair
                         </button>
-
-                        {usuario.maoUrl && (
-                            <img
-                                className="accessory"
-                                src={usuario.maoUrl}
-                                alt="Acessório do Avatar"
-                            />
-                        )}
                     </div>
 
                     <div className="user-info">
@@ -500,13 +610,37 @@ function Usuario() {
                                 <p className="bio-text-display">
                                     {usuario.bio ? usuario.bio : "Nenhuma bio informada."}
                                 </p>
-                                <button
-                                    className="btn-editar-bio"
-                                    onClick={() => setIsEditingBio(true)}
-                                    type="button"
-                                >
-                                    Editar Bio
-                                </button>
+                                <div className="bio-botoes-acoes">
+                                    <button
+                                        className="btn-editar-bio"
+                                        onClick={() => setIsEditingBio(true)}
+                                        type="button"
+                                    >
+                                        Editar Bio
+                                    </button>
+                                    <button
+                                        className="btn-inventario"
+                                        onClick={() => setModalItensAberto(true)}
+                                        type="button"
+                                        title="Abrir Itens"
+                                    >
+                                        <svg
+                                            width="12"
+                                            height="12"
+                                            viewBox="0 0 24 24"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            strokeWidth="2"
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                        >
+                                            <circle cx="9" cy="21" r="1"></circle>
+                                            <circle cx="20" cy="21" r="1"></circle>
+                                            <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+                                        </svg>
+                                        Itens
+                                    </button>
+                                </div>
                                 {statusBio && <span className="bio-status-msg">{statusBio}</span>}
                             </div>
                         )}
@@ -1026,8 +1160,102 @@ function Usuario() {
                     </div>
                 </div>
             )}
+
+            {/* MODAL DE ITENS */}
+            {modalItensAberto && (
+                <div className="modal-overlay" style={{ backdropFilter: "blur(10px)", backgroundColor: "rgba(0, 0, 0, 0.7)" }} onClick={() => setModalItensAberto(false)}>
+                    <div className="modal-content itens-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: "800px", width: "90%", maxHeight: "90vh", display: "flex", flexDirection: "column" }}>
+                        <div className="modal-header">
+                            <h3>ITENS</h3>
+                            <button type="button" className="btn-close-modal" onClick={() => setModalItensAberto(false)}>✕</button>
+                        </div>
+
+                        <div className="itens-container" style={{ padding: "20px", overflowY: "auto", display: "flex", flexDirection: "column", gap: "30px" }}>
+
+                            {/* SEÇÃO 1: CHAPÉUS */}
+                            <div className="itens-secao">
+                                <h4 style={{ borderBottom: "1px solid rgba(255,255,255,0.2)", paddingBottom: "10px", marginBottom: "15px", color: "#fff" }}>CHAPÉUS</h4>
+                                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(130px, 1fr))", gap: "15px" }}>
+                                    {itens.filter(i => i.tipo === 1).map(item => renderizarItem(item))}
+                                    {itens.filter(i => i.tipo === 1).length === 0 && <span style={{ color: "#888" }}>Nenhum item...</span>}
+                                </div>
+                            </div>
+
+                            {/* SEÇÃO 2: MÃOS */}
+                            <div className="itens-secao">
+                                <h4 style={{ borderBottom: "1px solid rgba(255,255,255,0.2)", paddingBottom: "10px", marginBottom: "15px", color: "#fff" }}>MÃOS</h4>
+                                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(130px, 1fr))", gap: "15px" }}>
+                                    {itens.filter(i => i.tipo === 2).map(item => renderizarItem(item))}
+                                    {itens.filter(i => i.tipo === 2).length === 0 && <span style={{ color: "#888" }}>Nenhum item...</span>}
+                                </div>
+                            </div>
+
+                            {/* SEÇÃO 3: MASCOTES */}
+                            <div className="itens-secao">
+                                <h4 style={{ borderBottom: "1px solid rgba(255,255,255,0.2)", paddingBottom: "10px", marginBottom: "15px", color: "#fff" }}>MASCOTES</h4>
+                                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(130px, 1fr))", gap: "15px" }}>
+                                    {itens.filter(i => i.tipo === 3).map(item => renderizarItem(item))}
+                                    {itens.filter(i => i.tipo === 3).length === 0 && <span style={{ color: "#888" }}>Nenhum item...</span>}
+                                </div>
+                            </div>
+
+                        </div>
+
+                        <div className="modal-footer" style={{ justifyContent: "center" }}>
+                            <button type="button" className="btn-modal-fechar" onClick={() => setModalItensAberto(false)} style={{ width: "100%", padding: "12px", background: "#333", color: "#fff", border: "none", borderRadius: "8px", fontWeight: "bold", cursor: "pointer" }}>FECHAR</button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
+
+    function renderizarItem(item) {
+        const xpAtual = Number(usuario.xpTotal || 0);
+        const valorItem = Number(item.valor || 0);
+        const desbloqueado = xpAtual >= valorItem;
+
+        const equipado = (item.tipo === 1 && usuario.idItemChapeu === item.id) ||
+            (item.tipo === 2 && usuario.idItemMao === item.id) ||
+            (item.tipo === 3 && usuario.idItemMascote === item.id);
+
+        return (
+            <div
+                key={item.id}
+                onClick={() => desbloqueado && !equipado && handleEquiparItem(item)}
+                style={{
+                    border: equipado ? "2px solid #e50914" : "1px solid rgba(255,255,255,0.2)",
+                    borderRadius: "10px",
+                    padding: "10px",
+                    background: "rgba(255,255,255,0.05)",
+                    textAlign: "center",
+                    cursor: desbloqueado && !equipado ? "pointer" : (equipado ? "default" : "not-allowed"),
+                    opacity: desbloqueado ? 1 : 0.5,
+                    position: "relative",
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center"
+                }}
+            >
+                {!desbloqueado && (
+                    <div style={{ position: "absolute", top: "5px", right: "5px", background: "rgba(0,0,0,0.8)", borderRadius: "50%", padding: "4px", fontSize: "0.7rem" }}>
+                        🔒
+                    </div>
+                )}
+                <img src={obterUrlItem(item.url_item)} alt={`Item ${item.id}`} style={{ width: "60px", height: "60px", objectFit: "contain", marginBottom: "10px" }} />
+
+                <div style={{ marginTop: "auto", width: "100%" }}>
+                    {!desbloqueado ? (
+                        <span style={{ display: "block", fontSize: "0.75rem", color: "#ff9800", fontWeight: "bold" }}>🔒 {valorItem} XP</span>
+                    ) : equipado ? (
+                        <span style={{ display: "block", fontSize: "0.8rem", color: "#e50914", fontWeight: "bold" }}>✓ Equipado</span>
+                    ) : (
+                        <span style={{ display: "block", fontSize: "0.8rem", color: "#4caf50", fontWeight: "bold" }}>Equipar</span>
+                    )}
+                </div>
+            </div>
+        );
+    }
 }
 
 export default Usuario;
