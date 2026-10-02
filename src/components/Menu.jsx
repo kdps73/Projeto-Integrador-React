@@ -14,6 +14,7 @@ function Menu() {
     const [searchTerm, setSearchTerm] = useState("");
     const [suggestions, setSuggestions] = useState([]);
     const [showSuggestions, setShowSuggestions] = useState(false);
+    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
     const navigate = useNavigate();
     const searchTimeoutRef = useRef(null);
@@ -92,29 +93,32 @@ function Menu() {
         <div>
             <nav className="navbar" id="navbar">
                 <div className="navbar-container">
+                    {/* Logo */}
                     <Link to="/" className="navbar-logo" id="logo-link">
-                        <span className="logo-text">CiNEPLANNER</span>
+                        <span className="logo-text desktop-only">CiNEPLANNER</span>
+                        <img src="/favicon.svg" alt="CiNEPLANNER" className="logo-favicon mobile-only" />
                     </Link>
 
-                    <ul className="navbar-links">
+                    {/* Links Desktop */}
+                    <ul className="navbar-links desktop-only">
                         <li>
-                            <Link to="/#hero" className="nav-link">
+                            <Link to="/#hero" className="nav-link" onClick={() => setIsMobileMenuOpen(false)}>
                                 Início
                             </Link>
                         </li>
                         <li>
-                            <Link to="/#filmes" className="nav-link">
+                            <Link to="/#filmes" className="nav-link" onClick={() => setIsMobileMenuOpen(false)}>
                                 Filmes
                             </Link>
                         </li>
                         <li>
-                            <Link to="/listas" className="nav-link active">
+                            <Link to="/listas" className="nav-link" onClick={() => setIsMobileMenuOpen(false)}>
                                 Listas
                             </Link>
                         </li>
                     </ul>
 
-                    {/* Barra de pesquisa */}
+                    {/* Barra de pesquisa no centro */}
                     <div className="search-wrapper">
                         <div className={`search-container ${searchTerm ? 'has-text' : ''}`}>
                             <svg
@@ -134,7 +138,6 @@ function Menu() {
                             </svg>
                             <input
                                 type="text"
-                                placeholder="Pesquisar filmes..."
                                 value={searchTerm}
                                 onChange={handleSearchChange}
                                 onKeyDown={handleSearchKeyDown}
@@ -164,10 +167,60 @@ function Menu() {
                         </div>
                     </div>
 
-                    <div className="navbar-actions">
+                    {/* Ações Desktop (Perfil/Entrar) */}
+                    <div className="navbar-actions desktop-only">
                         {user ? (
-                            <div className="navbar-user-actions">
-                                <Link to="/usuario" className="navbar-user-link">
+                            <Link to="/usuario" className="navbar-user-link">
+                                {avatarUrl ? (
+                                    <img src={avatarUrl} alt="Avatar" className="navbar-user-avatar" />
+                                ) : (
+                                    <div className="navbar-user-avatar-placeholder">
+                                        {userName.charAt(0).toUpperCase()}
+                                    </div>
+                                )}
+                                <span className="navbar-user-name">{userName}</span>
+                            </Link>
+                        ) : (
+                            <Link to="/login" className="btn-login">
+                                Entrar
+                            </Link>
+                        )}
+                    </div>
+
+                    {/* Botão Menu Mobile */}
+                    <button className={`mobile-menu-btn mobile-only ${isMobileMenuOpen ? 'open' : ''}`} onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
+                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <line x1="3" y1="12" x2="21" y2="12"></line>
+                            <line x1="3" y1="6" x2="21" y2="6"></line>
+                            <line x1="3" y1="18" x2="21" y2="18"></line>
+                        </svg>
+                    </button>
+                </div>
+
+                {/* Overlay com Blur */}
+                <div className={`menu-overlay mobile-only ${isMobileMenuOpen ? 'open' : ''}`} onClick={() => setIsMobileMenuOpen(false)}></div>
+
+                {/* Dropdown Mobile */}
+                <div className={`navbar-dropdown mobile-only ${isMobileMenuOpen ? 'open' : ''}`}>
+                    <ul className="navbar-links-dropdown">
+                        <li>
+                            <Link to="/#hero" className="nav-link" onClick={() => setIsMobileMenuOpen(false)}>
+                                Início
+                            </Link>
+                        </li>
+                        <li>
+                            <Link to="/#filmes" className="nav-link" onClick={() => setIsMobileMenuOpen(false)}>
+                                Filmes
+                            </Link>
+                        </li>
+                        <li>
+                            <Link to="/listas" className="nav-link" onClick={() => setIsMobileMenuOpen(false)}>
+                                Listas
+                            </Link>
+                        </li>
+                        <li className="navbar-actions-dropdown">
+                            {user ? (
+                                <Link to="/usuario" className="navbar-user-link" onClick={() => setIsMobileMenuOpen(false)}>
                                     {avatarUrl ? (
                                         <img src={avatarUrl} alt="Avatar" className="navbar-user-avatar" />
                                     ) : (
@@ -177,17 +230,18 @@ function Menu() {
                                     )}
                                     <span className="navbar-user-name">{userName}</span>
                                 </Link>
-                            </div>
-                        ) : (
-                            <Link
-                                to="/login"
-                                className="btn-login"
-                                id="btn-entrar"
-                            >
-                                Entrar
-                            </Link>
-                        )}
-                    </div>
+                            ) : (
+                                <Link
+                                    to="/login"
+                                    className="btn-login"
+                                    id="btn-entrar"
+                                    onClick={() => setIsMobileMenuOpen(false)}
+                                >
+                                    Entrar
+                                </Link>
+                            )}
+                        </li>
+                    </ul>
                 </div>
             </nav>
         </div>

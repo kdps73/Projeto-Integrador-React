@@ -1,4 +1,7 @@
-/* Garante que a raiz do React e o wrapper do nav não limitem a largura */
+/* =============================================================
+   MENU.CSS – CinePlanner
+   ============================================================= */
+
 #root {
     width: 100%;
     max-width: 100%;
@@ -27,15 +30,17 @@ div:has(> nav.navbar) {
     margin: 0 auto;
     padding: 0 3rem;
     height: 64px;
+    /* Altura padrão para desktop */
     display: flex;
     align-items: center;
-    justify-content: center;
+    justify-content: space-between;
     gap: 1.5rem;
 }
 
 .navbar-logo {
     display: flex;
     align-items: center;
+    flex-shrink: 0;
 }
 
 .logo-text {
@@ -52,10 +57,18 @@ div:has(> nav.navbar) {
     text-shadow: 0 0 22px rgba(229, 9, 20, 0.9);
 }
 
+.logo-favicon {
+    display: block;
+    width: 38px;
+    height: 38px;
+}
+
 .navbar-links {
     display: flex;
-    align-items: center;
+    flex: 1;
     justify-content: center;
+    gap: 3rem !important;
+    list-style: none;
     margin: 0;
     padding: 0;
 }
@@ -68,6 +81,7 @@ div:has(> nav.navbar) {
     position: relative;
     transition: color var(--transicao);
     letter-spacing: 0.3px;
+    text-decoration: none;
 }
 
 .nav-link::after {
@@ -90,23 +104,11 @@ div:has(> nav.navbar) {
     color: var(--branco);
 }
 
-.btn-login {
-    background-color: var(--vermelho);
-    color: var(--branco);
-    font-family: var(--fonte-corpo);
-    font-size: 0.9rem;
-    font-weight: 600;
-    padding: 0.5rem 1.4rem;
-    border-radius: 25px;
-    transition: background-color var(--transicao), box-shadow var(--transicao), transform 0.15s;
-    margin-left: 10px;
-    margin-top: -8px;
-}
-
-.btn-login:hover {
-    background-color: var(--vermelho-escuro);
-    box-shadow: 0 0 16px rgba(229, 9, 20, 0.5);
-    transform: translateY(-1px);
+.search-wrapper {
+    display: flex;
+    justify-content: center;
+    position: relative;
+    flex: 0;
 }
 
 /* Barra de Pesquisa Animada */
@@ -118,9 +120,7 @@ div:has(> nav.navbar) {
     padding: 6px 12px;
     border: 1px solid #dc2626;
     box-shadow: 0 0 5px rgba(220, 38, 38, 0.3);
-    position: absolute;
     transition: background-color 2s ease;
-    margin-top: -23px;
 }
 
 .search-container .search-input {
@@ -129,8 +129,6 @@ div:has(> nav.navbar) {
     color: #fff;
     outline: none;
     font-size: 0.95rem;
-    
-    /* Estado fechado (zero width e invisível) */
     width: 0px;
     padding: 0;
     opacity: 0;
@@ -142,7 +140,6 @@ div:has(> nav.navbar) {
     color: #888;
 }
 
-/* Quando passa o mouse no container, quando clica dentro, ou se tiver texto digitado */
 .search-container:hover .search-input,
 .search-container:focus-within .search-input,
 .search-container.has-text .search-input {
@@ -157,7 +154,6 @@ div:has(> nav.navbar) {
     left: 0;
     right: 0;
     transform: translateY(15px) !important;
-
     background-color: #181818;
     border: 1px solid #333;
     border-radius: 12px;
@@ -187,14 +183,6 @@ div:has(> nav.navbar) {
     color: var(--branco);
 }
 
-.search-wrapper {
-    flex: 0;
-    display: flex;
-    justify-content: right;
-    padding: 0px;
-    position: relative;
-}
-
 .search-icon {
     margin-right: 8px;
     min-width: 16px;
@@ -203,13 +191,25 @@ div:has(> nav.navbar) {
 .navbar-actions {
     display: flex;
     align-items: center;
-    margin-left: auto;
+    justify-content: flex-end;
 }
 
-.navbar-user-actions {
-    display: flex;
-    align-items: center;
-    gap: 15px;
+.btn-login {
+    background-color: var(--vermelho);
+    color: var(--branco);
+    text-decoration: none;
+    font-family: var(--fonte-corpo);
+    font-size: 0.9rem;
+    font-weight: 600;
+    padding: 0.5rem 1.4rem;
+    border-radius: 25px;
+    transition: background-color var(--transicao), box-shadow var(--transicao), transform 0.15s;
+}
+
+.btn-login:hover {
+    background-color: var(--vermelho-escuro);
+    box-shadow: 0 0 16px rgba(229, 9, 20, 0.5);
+    transform: translateY(-1px);
 }
 
 .navbar-user-link {
@@ -244,4 +244,175 @@ div:has(> nav.navbar) {
 .navbar-user-name {
     font-weight: 500;
     font-size: 0.9rem;
+}
+
+.mobile-menu-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    background-color: var(--preto) !important;
+    border: none;
+    color: var(--branco) !important;
+    cursor: pointer;
+    padding: 0;
+    transition: transform 0.3s ease, color 0.3s ease, background-color 0.3s ease;
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    -webkit-tap-highlight-color: transparent; /* Evita fundo piscando ao tocar na tela */
+}
+
+.mobile-menu-btn.open {
+    background-color: var(--preto) !important;
+    color: var(--vermelho) !important;
+}
+
+/* Overlay de Blur */
+.menu-overlay {
+    position: fixed;
+    top: 100%; /* Engatado ao fundo da navbar */
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    z-index: -2; /* Atrás do dropdown e do background da navbar */
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.4s ease;
+}
+
+.menu-overlay.open {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+/* Dropdown Navbar */
+.navbar-dropdown {
+    position: absolute; /* Relativo ao navbar */
+    top: 100%; /* Exatamente no final da borda da navbar, independentemente da altura dela */
+    left: 0;
+    width: 100%;
+    background-color: #111;
+    z-index: -1; /* Joga o elemento para trás do background preto da navbar */
+    transform: translateY(-100%); /* Esconde completamente atrás da navbar/topo da tela */
+    opacity: 0;
+    visibility: hidden;
+    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease, visibility 0.4s;
+    border-bottom: 2px solid var(--vermelho);
+    box-shadow: 0 10px 15px rgba(0, 0, 0, 0.5);
+    padding-bottom: 0.5rem;
+}
+
+.navbar-dropdown.open {
+    transform: translateY(0);
+    opacity: 1;
+    visibility: visible;
+}
+
+.navbar-links-dropdown {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1.2rem; /* Reduzido para caber lado a lado em celulares */
+    padding: 0.8rem 0.5rem;
+    margin: 0;
+    list-style: none;
+    flex-wrap: wrap;
+    width: 100%;
+}
+
+.navbar-links-dropdown .nav-link {
+    font-size: 0.85rem; /* Fonte um pouco menor para caber em telas pequenas */
+}
+
+.navbar-actions-dropdown {
+    display: flex;
+    align-items: center;
+}
+
+/* Desktop view default visibilities */
+@media (min-width: 1025px) {
+    .mobile-only {
+        display: none !important;
+    }
+}
+
+/* Tablet & Mobile view */
+@media (max-width: 1024px) {
+    .desktop-only {
+        display: none !important;
+    }
+
+    .navbar-container {
+        padding: 0 0.8rem !important;
+        margin: 0 auto !important;
+        width: 100%;
+        max-width: 100%;
+        height: 56px;
+    }
+
+    .search-wrapper {
+        flex: 1;
+        width: 100%;
+        padding: 0 10px;
+        display: flex;
+    }
+
+    .search-container {
+        flex: 1;
+        width: 100%;
+        max-width: 100%;
+        display: flex;
+    }
+
+    .search-input,
+    .search-container:hover .search-input,
+    .search-container:focus-within .search-input,
+    .search-container.has-text .search-input {
+        width: 100%;
+        flex: 1;
+        opacity: 1;
+        padding: 5px 10px;
+    }
+
+    .navbar-logo {
+        margin-left: 0 !important;
+    }
+
+    .mobile-menu-btn {
+        margin-right: 0 !important;
+    }
+}
+
+@media (max-width: 768px) {
+    .navbar-container {
+        padding: 0 0.5rem !important;
+    }
+
+    .search-wrapper {
+        padding: 0 8px;
+    }
+
+    .search-container {
+        flex: 1;
+        width: 100%;
+        max-width: 100%;
+    }
+
+    .search-input,
+    .search-container:hover .search-input,
+    .search-container:focus-within .search-input,
+    .search-container.has-text .search-input {
+        width: 100%;
+        flex: 1;
+        opacity: 1;
+        padding: 5px 10px;
+    }
+
+    .navbar-links-dropdown {
+        gap: 1rem;
+    }
 }
