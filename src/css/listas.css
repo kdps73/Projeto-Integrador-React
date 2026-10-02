@@ -4,10 +4,23 @@
 
 .pagina-listas {
     min-height: 100vh;
+    width: 100%;
     background-color: #141414;
     color: var(--branco, #ffffff);
     font-family: var(--fonte-corpo, 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif);
-    padding: 100px 20px 80px;
+    padding: 85px 2rem 60px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+}
+
+.listas-container {
+    width: 100%;
+    max-width: 1400px;
+    margin: 0 auto;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
     box-sizing: border-box;
 }
 
@@ -35,6 +48,8 @@ body {
     font-family: Arial, Helvetica, sans-serif;
     overflow-x: hidden;
     width: 100%;
+    margin: 0;
+    padding: 0;
 }
 
 a {
@@ -262,17 +277,18 @@ a {
     background: #111111;
     border: 1px solid #333333;
     border-radius: 25px;
-    padding: 0 16px;
+    padding: 0 14px;
     transition: all 0.3s ease;
 }
 
 .listas-search-box:focus-within {
     border-color: #e50914;
-    box-shadow: 0 0 12px rgba(229, 9, 20, 0.25);
+    box-shadow: 0 0 14px rgba(229, 9, 20, 0.35);
+    background: #161616;
 }
 
 .search-icon {
-    color: #777777;
+    color: #888888;
     margin-right: 10px;
     flex-shrink: 0;
 }
@@ -282,58 +298,85 @@ a {
     background: transparent;
     border: none;
     outline: none;
-    color: #ffffff;
-    font-size: 0.9rem;
+    color: #ffffff !important;
+    font-size: 0.95rem;
+    font-family: inherit;
+    font-weight: 500;
     padding: 10px 0;
+    caret-color: #e50914;
 }
 
 .search-input::placeholder {
-    color: #666666;
+    color: #777777;
+    opacity: 1;
 }
 
 .btn-clear-search {
-    background: transparent;
+    background: rgba(255, 255, 255, 0.12);
     border: none;
-    color: #888888;
+    color: #cccccc;
     cursor: pointer;
-    font-size: 12px;
-    padding: 4px;
-    transition: color 0.2s;
+    font-size: 10px;
+    line-height: 1;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    margin-left: 8px;
+    flex-shrink: 0;
+    transition: all 0.2s ease;
 }
 
 .btn-clear-search:hover {
-    color: #ffffff;
-}
-
-.listas-filter-tabs {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-}
-
-.filter-tab {
-    background: #111111;
-    border: 1px solid #303030;
-    color: #b0b0b0;
-    padding: 8px 16px;
-    border-radius: 20px;
-    font-size: 0.82rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.25s ease;
-}
-
-.filter-tab:hover {
-    background: #222222;
-    color: #ffffff;
-    border-color: #555555;
-}
-
-.filter-tab.ativo {
     background: #e50914;
     color: #ffffff;
+    transform: scale(1.1);
+}
+
+.listas-filter-select-wrapper {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+}
+
+.listas-filter-select {
+    background: #111111;
+    border: 1px solid #303030;
+    color: #ffffff;
+    padding: 8px 36px 8px 16px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    outline: none;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%23ffffff' viewBox='0 0 16 16'><path d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/></svg>");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    transition: all 0.25s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.listas-filter-select:hover {
+    background-color: #1c1c1c;
     border-color: #e50914;
-    box-shadow: 0 0 14px rgba(229, 9, 20, 0.4);
+    box-shadow: 0 0 10px rgba(229, 9, 20, 0.3);
+}
+
+.listas-filter-select:focus {
+    border-color: #e50914;
+    box-shadow: 0 0 12px rgba(229, 9, 20, 0.4);
+}
+
+.listas-filter-select option {
+    background-color: #171717;
+    color: #ffffff;
+    padding: 10px;
 }
 
 /* =========================================================
@@ -481,34 +524,42 @@ a {
 /* Avatar e Acessórios do Post */
 .post-avatar-wrapper {
     position: relative;
-    width: 58px;
-    height: 58px;
+    width: 62px;
+    height: 62px;
     flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .post-avatar-circle {
-    width: 58px;
-    height: 58px;
+    width: 56px;
+    height: 56px;
     border-radius: 50%;
     overflow: hidden;
     border: 2px solid #e50914;
     background: #0f0f0f;
-    box-shadow: 0 0 12px rgba(229, 9, 20, 0.3);
+    box-shadow: 0 0 14px rgba(229, 9, 20, 0.35);
+    position: relative;
+    z-index: 2;
 }
 
 .post-avatar-img {
     width: 100%;
     height: 100%;
     object-fit: cover;
+    display: block;
 }
 
 .post-hat-accessory {
     position: absolute;
-    top: -16px;
+    top: -18px;
     left: 50%;
     transform: translateX(-50%);
-    width: 44px;
+    width: 52px;
     height: auto;
+    max-height: 38px;
+    object-fit: contain;
     z-index: 5;
     pointer-events: none;
 }
@@ -517,8 +568,22 @@ a {
     position: absolute;
     bottom: -6px;
     right: -10px;
-    width: 28px;
+    width: 30px;
     height: auto;
+    max-height: 30px;
+    object-fit: contain;
+    z-index: 5;
+    pointer-events: none;
+}
+
+.post-pet-accessory {
+    position: absolute;
+    bottom: -6px;
+    left: -14px;
+    width: 32px;
+    height: auto;
+    max-height: 32px;
+    object-fit: contain;
     z-index: 5;
     pointer-events: none;
 }
@@ -877,7 +942,6 @@ a {
     margin: 6px 0 0;
     display: -webkit-box;
     -webkit-line-clamp: 2;
-    line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
     text-overflow: ellipsis;

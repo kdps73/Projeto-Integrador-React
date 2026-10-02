@@ -4,6 +4,28 @@ import { supabase } from "./supabase";
 import "./css/index.css";
 import "./css/listas.css";
 
+// Função utilitária para obter a URL pública de itens do Supabase Storage
+function obterUrlItem(caminhoOuUrl) {
+    if (!caminhoOuUrl) return "";
+    if (
+        caminhoOuUrl.startsWith("http://") ||
+        caminhoOuUrl.startsWith("https://") ||
+        caminhoOuUrl.startsWith("./") ||
+        caminhoOuUrl.startsWith("/")
+    ) {
+        return caminhoOuUrl;
+    }
+    if (supabase) {
+        const nomeArquivo = caminhoOuUrl.startsWith("itens/")
+            ? caminhoOuUrl.replace(/^itens\//, "")
+            : caminhoOuUrl;
+
+        const { data } = supabase.storage.from("itens").getPublicUrl(nomeArquivo);
+        return data?.publicUrl || caminhoOuUrl;
+    }
+    return caminhoOuUrl;
+}
+
 // =========================================================
 // 4 LISTAS GENÉRICAS / OFICIAIS (FALLBACK E CURADORIA)
 // =========================================================
@@ -372,17 +394,21 @@ function Lista() {
 
                         if (!userErr && usuariosData) {
                             usuariosData.forEach(u => {
+                                const chapeuRaw = u.id_item_chapeu?.url_item || u.id_item_chapeu?.url_imagem;
+                                const maoRaw = u.id_item_mao?.url_item || u.id_item_mao?.url_imagem;
+                                const mascoteRaw = u.id_item_mascote?.url_item || u.id_item_mascote?.url_imagem;
+
                                 usuariosMap[u.id] = {
                                     id: u.id,
                                     nome: u.nome || u.username || "Usuário",
                                     username: u.username || `user_${u.id}`,
-                                    avatarUrl: u.url_img || u.avatar_url || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=300&q=80",
+                                    avatarUrl: u.url_img ? obterUrlItem(u.url_img) : (u.avatar_url || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=300&q=80"),
                                     bio: u.bio || "Cinéfilo apaixonado por boas histórias.",
                                     xpTotal: u.xp_total || 0,
                                     nivel: u.nivel || Math.max(1, Math.floor((u.xp_total || 0) / 600)),
-                                    chapeuUrl: u.id_item_chapeu?.url_imagem || null,
-                                    maoUrl: u.id_item_mao?.url_imagem || null,
-                                    mascoteUrl: u.id_item_mascote?.url_imagem || null
+                                    chapeuUrl: chapeuRaw ? obterUrlItem(chapeuRaw) : null,
+                                    maoUrl: maoRaw ? obterUrlItem(maoRaw) : null,
+                                    mascoteUrl: mascoteRaw ? obterUrlItem(mascoteRaw) : null
                                 };
                             });
                         }
@@ -390,20 +416,18 @@ function Lista() {
                         console.warn("Erro ao buscar usuários do Supabase:", errUser);
                     }
 
-                    // B) Buscar Playlists Públicas e Playlists do Usuário Logado
+                    // B) Buscar Playlists do Supabase (excluindo 'Favoritos' e 'Assistir Mais Tarde')
                     try {
                         const { data: playlistsData, error: plErr } = await supabase
                             .from("playlists")
                             .select("*");
 
                         if (!plErr && playlistsData && playlistsData.length > 0) {
-                            // Filtra apenas as que são públicas OU pertencem ao usuário logado
-                            const usuarioIdAtual = usuarioLogado?.id || (localStorage.getItem("user") ? JSON.parse(localStorage.getItem("user"))?.id : 11);
-
+                            // Exclui as listas fixas ('Favoritos' e 'Assistir Mais Tarde') e mantém apenas playlists personalizadas com filmes
                             const listasValidas = playlistsData.filter(pl => {
-                                const ehDono = pl.id_usuario === usuarioIdAtual;
-                                const ehPublica = pl.publica === true || pl.publica === undefined || pl.publica === null;
-                                return (ehDono || ehPublica) && pl.filmes && Array.isArray(pl.filmes) && pl.filmes.length > 0;
+                                const nomeNorm = pl.nome ? pl.nome.trim().toLowerCase() : "";
+                                const ehListaFixa = nomeNorm === "assistir mais tarde" || nomeNorm === "favoritos";
+                                return !ehListaFixa && pl.filmes && Array.isArray(pl.filmes) && pl.filmes.length > 0;
                             });
 
                             listasDoBanco = listasValidas.map(pl => {
@@ -427,7 +451,6 @@ function Lista() {
                                     descricao: pl.descricao || `Lista personalizada criada por @${criador.username}.`,
                                     isOficial: false,
                                     id_usuario: pl.id_usuario,
-                                    publica: pl.publica ?? true,
                                     autor: criador,
                                     filmes: pl.filmes || []
                                 };
@@ -549,38 +572,21 @@ function Lista() {
                             )}
                         </div>
 
-                        {/* ABAS DE FILTRO RÁPIDO */}
-                        <div className="listas-filter-tabs">
-                            <button
-                                type="button"
-                                className={`filter-tab ${filtroAtivo === 'todas' ? 'ativo' : ''}`}
-                                onClick={() => setFiltroAtivo('todas')}
+                        {/* FILTRO DROPDOWN MENOR */}
+                        <div className="listas-filter-select-wrapper">
+                            <select
+                                className="listas-filter-select"
+                                value={filtroAtivo}
+                                onChange={(e) => setFiltroAtivo(e.target.value)}
+                                aria-label="Filtrar playlists"
                             >
-                                Todas ({listasExibicao.length})
-                            </button>
-                            {usuarioLogado && (
-                                <button
-                                    type="button"
-                                    className={`filter-tab ${filtroAtivo === 'minhas' ? 'ativo' : ''}`}
-                                    onClick={() => setFiltroAtivo('minhas')}
-                                >
-                                    Minhas Listas
-                                </button>
-                            )}
-                            <button
-                                type="button"
-                                className={`filter-tab ${filtroAtivo === 'comunidade' ? 'ativo' : ''}`}
-                                onClick={() => setFiltroAtivo('comunidade')}
-                            >
-                                Comunidade
-                            </button>
-                            <button
-                                type="button"
-                                className={`filter-tab ${filtroAtivo === 'oficiais' ? 'ativo' : ''}`}
-                                onClick={() => setFiltroAtivo('oficiais')}
-                            >
-                                Curadoria CinePlanner
-                            </button>
+                                <option value="todas">Todas as Listas ({listasExibicao.length})</option>
+                                {usuarioLogado && (
+                                    <option value="minhas">Minhas Listas</option>
+                                )}
+                                <option value="comunidade">Comunidade</option>
+                                <option value="oficiais">Curadoria CinePlanner</option>
+                            </select>
                         </div>
                     </div>
                 </header>
@@ -629,7 +635,7 @@ function Lista() {
                                                 {playlist.autor?.chapeuUrl && (
                                                     <img
                                                         src={playlist.autor.chapeuUrl}
-                                                        alt="Acessório de Chapéu"
+                                                        alt="Chapéu Equipado"
                                                         className="post-hat-accessory"
                                                     />
                                                 )}
@@ -649,6 +655,13 @@ function Lista() {
                                                         src={playlist.autor.maoUrl}
                                                         alt="Acessório de Mão"
                                                         className="post-hand-accessory"
+                                                    />
+                                                )}
+                                                {playlist.autor?.mascoteUrl && (
+                                                    <img
+                                                        src={playlist.autor.mascoteUrl}
+                                                        alt="Mascote de Companhia"
+                                                        className="post-pet-accessory"
                                                     />
                                                 )}
                                             </div>
