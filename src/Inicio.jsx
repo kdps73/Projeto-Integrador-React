@@ -35,13 +35,8 @@ function Inicio() {
             const exists = prev.find(f => f.id === filter.id);
             if (exists) return prev;
 
-            if (filter.type === 'year') {
-                return [...prev.filter(f => f.type !== 'year'), filter];
-            }
-            if (filter.type === 'special') {
-                return [...prev.filter(f => f.type !== 'special'), filter];
-            }
-            return [...prev, filter];
+            // Substitui qualquer filtro existente do mesmo tipo
+            return [...prev.filter(f => f.type !== filter.type), filter];
         });
     };
 
