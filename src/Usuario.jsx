@@ -121,16 +121,15 @@ function Usuario() {
     // =========================================================
     const [usuario, setUsuario] = useState({
         id: 1,
-        nome: "They Pro Filmes",
-        username: "THEY_PRO_FILMES",
-        email: "usuario@cineplanner.com",
-        bio: "Amante de ficção científica, cinema clássico e maratonas de fim de semana.",
-        xpTotal: 25400,
-        nivel: 50,
-        chapeuUrl: "./img/hat-red-dead.png",
-        maoUrl: "./img/acessorio-red-dead.png",
-        mascoteUrl: "./img/pet-red-dead.png",
-        avatarUrl: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=300&q=80",
+        nome: "",
+        username: "",
+        email: "",
+        bio: "",
+        xpTotal: 0,
+        nivel: 0,
+        chapeuUrl: "",
+        maoUrl: "",
+        mascoteUrl: "",
         idItemChapeu: null,
         idItemMao: null,
         idItemMascote: null
@@ -662,7 +661,7 @@ function Usuario() {
                         try {
                             const userSalvo = JSON.parse(userStr);
                             localStorage.setItem('user', JSON.stringify({ ...userSalvo, url_img: caminhoNoBanco }));
-                        } catch (_) {}
+                        } catch (_) { }
                     }
                 } else {
                     console.warn('Erro no upload do avatar:', uploadError.message);
@@ -804,8 +803,8 @@ function Usuario() {
                                 ) : (
                                     <div className="avatar-placeholder">
                                         <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                                            <circle cx="12" cy="7" r="4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                            <circle cx="12" cy="7" r="4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                                         </svg>
                                     </div>
                                 )}
@@ -814,8 +813,8 @@ function Usuario() {
                                         <div className="avatar-upload-spinner" />
                                     ) : (
                                         <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" width="22" height="22">
-                                            <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                                            <circle cx="12" cy="13" r="4" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                            <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                            <circle cx="12" cy="13" r="4" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                                         </svg>
                                     )}
                                     <span>{uploadandoAvatar ? 'Enviando...' : 'Alterar foto'}</span>
