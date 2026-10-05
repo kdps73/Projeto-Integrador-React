@@ -9,16 +9,28 @@ function Filmes({ fetchUrl, page = 1 }) {
 
     useEffect(() => {
         async function buscarListaDeFilmes() {
-            if (page === 1) setCarregando(true);
+            if (page === 1 || filmes.length === 0) setCarregando(true);
             try {
-                // Adiciona o parâmetro de página na requisição
-                const finalUrl = fetchUrl.includes('?') 
-                    ? `${fetchUrl}&page=${page}` 
-                    : `${fetchUrl}?page=${page}`;
-
-                const resp = await fetch(finalUrl);
-                const dados = await resp.json();
-                const listaBasica = dados.results || [];
+                let listaBasica = [];
+                
+                if (filmes.length === 0 && page > 1) {
+                    // Restoring state from URL, need to fetch all pages up to current
+                    const promessas = [];
+                    for (let p = 1; p <= page; p++) {
+                        const finalUrl = fetchUrl.includes('?') ? `${fetchUrl}&page=${p}` : `${fetchUrl}?page=${p}`;
+                        promessas.push(fetch(finalUrl).then(r => r.json()));
+                    }
+                    const resultados = await Promise.all(promessas);
+                    resultados.forEach(dados => {
+                        listaBasica = listaBasica.concat(dados.results || []);
+                    });
+                } else {
+                    // Normal fetch (page 1 or loading next page)
+                    const finalUrl = fetchUrl.includes('?') ? `${fetchUrl}&page=${page}` : `${fetchUrl}?page=${page}`;
+                    const resp = await fetch(finalUrl);
+                    const dados = await resp.json();
+                    listaBasica = dados.results || [];
+                }
 
                 const promessasDeDetalhes = listaBasica.map(async (filme) => {
                     const urlDetalhes = `https://api.themoviedb.org/3/movie/${filme.id}?language=pt-BR&api_key=${API_KEY}`;
@@ -39,8 +51,7 @@ function Filmes({ fetchUrl, page = 1 }) {
 
                 const listaCompleta = await Promise.all(promessasDeDetalhes);
                 
-                // Se for a primeira página, substitui a lista. Se não, adiciona no final filtrando repetidos.
-                if (page === 1) {
+                if (page === 1 || filmes.length === 0) {
                     setFilmes(listaCompleta);
                 } else {
                     setFilmes(prev => {
@@ -52,7 +63,7 @@ function Filmes({ fetchUrl, page = 1 }) {
             } catch (erro) {
                 console.error("Erro ao buscar a lista de filmes:", erro);
             } finally {
-                if (page === 1) setCarregando(false);
+                setCarregando(false);
             }
         }
 
@@ -61,6 +72,19 @@ function Filmes({ fetchUrl, page = 1 }) {
         }
     }, [fetchUrl, page]);
 
+    useEffect(() => {
+        if (filmes.length > 0 && !carregando) {
+            const savedScroll = sessionStorage.getItem('cineplanner_scroll');
+            if (savedScroll) {
+                // Pequeno delay para garantir que a DOM renderizou os cards (imagens fixas ajudam)
+                setTimeout(() => {
+                    window.scrollTo({ top: parseInt(savedScroll), behavior: 'smooth' });
+                    sessionStorage.removeItem('cineplanner_scroll');
+                }, 100);
+            }
+        }
+    }, [filmes, carregando]);
+
     return (
         <>
             {carregando ? (
@@ -68,7 +92,11 @@ function Filmes({ fetchUrl, page = 1 }) {
             ) : filmes.length > 0 ? (
                 filmes.map((filme) => (
                     <article className="filme-card" id={`card-filme-${filme.id}`} key={filme.id}>
-                        <Link to={`/resenhas/${filme.id}`} className="card-link">
+                        <Link 
+                            to={`/resenhas/${filme.id}`} 
+                            className="card-link"
+                            onClick={() => sessionStorage.setItem('cineplanner_scroll', window.scrollY)}
+                        >
                             <div className="card-poster">
                                 <img
                                     src={filme.poster_url || "https://placehold.co/300x450/1a1a1a/e50914?text=Sem+Poster"}
