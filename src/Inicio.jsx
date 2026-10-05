@@ -14,106 +14,104 @@ function Inicio() {
     const searchQuery = searchParams.get("search");
     const { hash } = useLocation();
 
-    const [fetchUrl, setFetchUrl] = useState(`${BASE_URL}/movie/popular?language=pt-BR&api_key=${API_KEY}`);
-    const [page, setPage] = useState(1);
-    const [tituloSecao, setTituloSecao] = useState("Mais Populares");
-    const [subtituloSecao, setSubtituloSecao] = useState("Ordenados por popularidade");
-    const [activeFilters, setActiveFilters] = useState([]);
+    const [page, setPage] = useState(() => {
+        const saved = sessionStorage.getItem('cineplanner_page');
+        return saved ? parseInt(saved) : 1;
+    });
+
+    const [activeFilters, setActiveFilters] = useState(() => {
+        const saved = sessionStorage.getItem('cineplanner_filters');
+        return saved ? JSON.parse(saved) : [];
+    });
 
     useEffect(() => {
-        if (hash) {
-            const id = hash.replace('#', '');
-            const element = document.getElementById(id);
-            if (element) {
-                element.scrollIntoView({ behavior: 'smooth' });
-            }
+        sessionStorage.setItem('cineplanner_page', page);
+        sessionStorage.setItem('cineplanner_filters', JSON.stringify(activeFilters));
+    }, [page, activeFilters]);
+
+    // Reset page and filters when a new search is made
+    useEffect(() => {
+        if (searchQuery) {
+            setPage(1);
+            setActiveFilters([]);
         }
-    }, [hash]);
+    }, [searchQuery]);
 
     const handleAddFilter = (filter) => {
         setActiveFilters(prev => {
             const exists = prev.find(f => f.id === filter.id);
             if (exists) return prev;
-
-            // Substitui qualquer filtro existente do mesmo tipo
             return [...prev.filter(f => f.type !== filter.type), filter];
         });
+        setPage(1);
     };
 
     const handleRemoveFilter = (filterId) => {
         setActiveFilters(prev => prev.filter(f => f.id !== filterId));
+        setPage(1);
     };
 
-    useEffect(() => {
-        if (searchQuery) {
-            setFetchUrl(`${BASE_URL}/search/movie?query=${encodeURIComponent(searchQuery)}&language=pt-BR&api_key=${API_KEY}`);
-            setTituloSecao(`Resultados para "${searchQuery}"`);
-            setSubtituloSecao("Filmes encontrados");
-            setPage(1);
-            return;
-        }
+    const handleClearFilters = () => {
+        setActiveFilters([]);
+        setPage(1);
+    };
 
-        if (activeFilters.length === 0) {
-            setFetchUrl(`${BASE_URL}/movie/popular?language=pt-BR&api_key=${API_KEY}`);
-            setTituloSecao("Mais Populares");
-            setSubtituloSecao("Ordenados por popularidade");
-            setPage(1);
-            return;
-        }
+    let fetchUrl = `${BASE_URL}/movie/popular?language=pt-BR&api_key=${API_KEY}`;
+    let tituloSecao = "Mais Populares";
+    let subtituloSecao = "Ordenados por popularidade";
 
+    if (searchQuery) {
+        fetchUrl = `${BASE_URL}/search/movie?query=${encodeURIComponent(searchQuery)}&language=pt-BR&api_key=${API_KEY}`;
+        tituloSecao = `Resultados para "${searchQuery}"`;
+        subtituloSecao = "Filmes encontrados";
+    } else if (activeFilters.length > 0) {
         const specialFilter = activeFilters.find(f => f.type === 'special');
         const hasOtherFilters = activeFilters.some(f => f.type !== 'special');
 
         if (specialFilter && !hasOtherFilters) {
             if (specialFilter.id === 'special-upcoming') {
                 const today = new Date();
-                const url = `${BASE_URL}/discover/movie?language=pt-BR&api_key=${API_KEY}&primary_release_date.gte=${today.toISOString().split('T')[0]}&with_release_type=2|3|4|5|6&region=BR&sort_by=popularity.desc`;
-                setFetchUrl(url);
+                fetchUrl = `${BASE_URL}/discover/movie?language=pt-BR&api_key=${API_KEY}&primary_release_date.gte=${today.toISOString().split('T')[0]}&with_release_type=2|3|4|5|6&region=BR&sort_by=popularity.desc`;
             } else {
-                setFetchUrl(`${specialFilter.url}&api_key=${API_KEY}`);
+                fetchUrl = `${specialFilter.url}&api_key=${API_KEY}`;
             }
-            setTituloSecao(specialFilter.titulo);
-            setSubtituloSecao(specialFilter.subtitulo);
-            setPage(1);
-            return;
-        }
-
-        let url = `${BASE_URL}/discover/movie?language=pt-BR&api_key=${API_KEY}`;
-        
-        const genres = activeFilters.filter(f => f.type === 'genre').map(f => f.value).join('|');
-        if (genres) {
-            url += `&with_genres=${genres}`;
-        }
-
-        const year = activeFilters.find(f => f.type === 'year');
-        if (year) {
-            url += `&primary_release_year=${year.value}`;
-        }
-
-        if (specialFilter) {
-            if (specialFilter.id === 'special-top') {
-                url += `&sort_by=vote_average.desc&vote_count.gte=200`;
-            } else if (specialFilter.id === 'special-week') {
-                const lastWeek = new Date();
-                lastWeek.setDate(lastWeek.getDate() - 7);
-                url += `&primary_release_date.gte=${lastWeek.toISOString().split('T')[0]}&sort_by=popularity.desc`;
-            } else if (specialFilter.id === 'special-month') {
-                url += `&sort_by=popularity.desc`;
-            } else if (specialFilter.id === 'special-now') {
-                url += `&with_release_type=2|3&region=BR`;
-            } else if (specialFilter.id === 'special-upcoming') {
-                const today = new Date();
-                url += `&primary_release_date.gte=${today.toISOString().split('T')[0]}&with_release_type=2|3&region=BR`;
+            tituloSecao = specialFilter.titulo;
+            subtituloSecao = specialFilter.subtitulo;
+        } else {
+            fetchUrl = `${BASE_URL}/discover/movie?language=pt-BR&api_key=${API_KEY}`;
+            
+            const genres = activeFilters.filter(f => f.type === 'genre').map(f => f.value).join('|');
+            if (genres) {
+                fetchUrl += `&with_genres=${genres}`;
             }
-        }
 
-        setFetchUrl(url);
-        
-        const labels = activeFilters.map(f => f.label).join(", ");
-        setTituloSecao(`Filtros: ${labels}`);
-        setSubtituloSecao("Resultados personalizados");
-        setPage(1);
-    }, [searchQuery, activeFilters]);
+            const year = activeFilters.find(f => f.type === 'year');
+            if (year) {
+                fetchUrl += `&primary_release_year=${year.value}`;
+            }
+
+            if (specialFilter) {
+                if (specialFilter.id === 'special-top') {
+                    fetchUrl += `&sort_by=vote_average.desc&vote_count.gte=200`;
+                } else if (specialFilter.id === 'special-week') {
+                    const lastWeek = new Date();
+                    lastWeek.setDate(lastWeek.getDate() - 7);
+                    fetchUrl += `&primary_release_date.gte=${lastWeek.toISOString().split('T')[0]}&sort_by=popularity.desc`;
+                } else if (specialFilter.id === 'special-month') {
+                    fetchUrl += `&sort_by=popularity.desc`;
+                } else if (specialFilter.id === 'special-now') {
+                    fetchUrl += `&with_release_type=2|3&region=BR`;
+                } else if (specialFilter.id === 'special-upcoming') {
+                    const today = new Date();
+                    fetchUrl += `&primary_release_date.gte=${today.toISOString().split('T')[0]}&with_release_type=2|3&region=BR`;
+                }
+            }
+            
+            const labels = activeFilters.map(f => f.label).join(", ");
+            tituloSecao = `Filtros: ${labels}`;
+            subtituloSecao = "Resultados personalizados";
+        }
+    }
 
     return (
         <>
@@ -197,7 +195,7 @@ function Inicio() {
                                     </button>
                                 </div>
                             ))}
-                            <button className="clear-all-filters-btn" onClick={() => setActiveFilters([])}>Limpar tudo</button>
+                            <button className="clear-all-filters-btn" onClick={handleClearFilters}>Limpar tudo</button>
                         </div>
                     )}
                 </nav>

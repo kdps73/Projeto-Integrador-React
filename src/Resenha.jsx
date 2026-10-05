@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useParams, useNavigate } from "react-router-dom";
 import "./css/index.css";
 import "./css/resenha.css";
 import { supabase } from "./supabase";
@@ -37,6 +37,7 @@ function obterUrlItem(caminhoOuUrl) {
 function Resenha() {
 
     const { id } = useParams();
+    const navigate = useNavigate();
     const [filme, setFilme] = useState(null);
 
     // Estados adicionados para os comentários não quebrarem a página
@@ -583,6 +584,13 @@ function Resenha() {
                     {toastXP.msg}
                 </div>
             )}
+
+            <button onClick={() => navigate(-1)} className="back-btn" aria-label="Voltar" style={{ position: 'fixed', top: '84px', left: '24px', background: 'rgba(0,0,0,0.5)', border: 'none', color: '#fff', padding: '8px', borderRadius: '50%', cursor: 'pointer', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(5px)', transition: 'background 0.3s', width: 'fit-content', height: 'fit-content' }} onMouseOver={e => e.currentTarget.style.background = 'rgba(229, 9, 20, 0.8)'} onMouseOut={e => e.currentTarget.style.background = 'rgba(0,0,0,0.5)'}>
+                <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="19" y1="12" x2="5" y2="12"></line>
+                    <polyline points="12 19 5 12 12 5"></polyline>
+                </svg>
+            </button>
 
             <section className="filme-hero" id="filme-hero" style={{ '--bg-image': backdropUrl ? `url(${backdropUrl})` : 'none' }}>
                 <div className="filme-hero-inner">
