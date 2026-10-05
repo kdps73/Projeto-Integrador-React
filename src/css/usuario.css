@@ -663,6 +663,7 @@
     line-height: 1.3;
     display: -webkit-box;
     -webkit-line-clamp: 2;
+    line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -761,6 +762,7 @@
     color: #bbb;
     display: -webkit-box;
     -webkit-line-clamp: 3;
+    line-clamp: 3;
     -webkit-box-orient: vertical;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -1323,9 +1325,15 @@
         width: 100%;
     }
 
-    /* Mascote removido em telas de celular (conforme instrução do usuário) */
+    /* Mascote agora aparece na direita do avatar no celular */
     #pagina-usuario .pet-accessory {
-        display: none !important;
+        display: block !important;
+        position: absolute;
+        top: 30px;
+        right: 20px;
+        width: 75px;
+        height: 75px;
+        margin: 0;
     }
 
     #pagina-usuario .custom-playlist-block {
