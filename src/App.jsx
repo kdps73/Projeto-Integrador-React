@@ -7,6 +7,8 @@ import Listas from "./Listas";
 import Login from "./Login";
 import Registro from "./Registro";
 import Resenha from "./Resenha";
+import Planos from "./Planos";
+
 function App() {
     return (
         <BrowserRouter>
@@ -18,6 +20,7 @@ function App() {
                 <Route path="/cadastro" element={<Registro/>}/>
                 <Route path="/usuario" element={<Usuario/>}/>
                 <Route path="/listas" element={<Listas/>}/>
+                <Route path="/planos" element={<Planos/>}/>
             </Routes>
             <Rodape/>
         </BrowserRouter>

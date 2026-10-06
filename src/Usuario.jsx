@@ -142,6 +142,19 @@ function Usuario() {
     const [statusBio, setStatusBio] = useState("");
     const [isEditingBio, setIsEditingBio] = useState(false);
 
+    // Estado do Plano Atual do Usuário
+    const [planoAtual, setPlanoAtual] = useState(() => {
+        return localStorage.getItem("plano_usuario") || "Gratuito";
+    });
+
+    useEffect(() => {
+        const handlePlanoChange = () => {
+            setPlanoAtual(localStorage.getItem("plano_usuario") || "Gratuito");
+        };
+        window.addEventListener("planoChanged", handlePlanoChange);
+        return () => window.removeEventListener("planoChanged", handlePlanoChange);
+    }, []);
+
     // Upload de foto de perfil
     const avatarInputRef = useRef(null);
     const [uploadandoAvatar, setUploadandoAvatar] = useState(false);
@@ -747,6 +760,26 @@ function Usuario() {
                             <span>PROGRESSO DO PERFIL</span>
                             <span className="xp-badge">LEVEL {nivelCalculado}</span>
                         </div>
+
+                        {/* DIV DO PLANO AO LADO DA BARRA DE XP */}
+                        <div className="card-plano-usuario-top">
+                            <div className="info-plano-topo">
+                                <span className="label-plano-topo">Plano Atual</span>
+                                <span className="nome-plano-topo">{planoAtual}</span>
+                            </div>
+                            <button
+                                type="button"
+                                className="btn-upgrade-topo"
+                                onClick={() => navigate('/planos')}
+                                title="Ver todos os planos e fazer upgrade"
+                            >
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                                </svg>
+                                <span>Upgrade</span>
+                            </button>
+                        </div>
+
                         <div className="xp-stats">
                             <span className="xp-current">{usuario.xpTotal.toLocaleString()} XP total</span>
                             <span className="xp-target">{xpNoNivel} / {xpNecessario} XP para o nível {nivelCalculado + 1}</span>

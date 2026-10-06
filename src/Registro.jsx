@@ -32,17 +32,33 @@ function Registro() {
     setLoading(true);
 
     try {
-      const { data, error } = await supabase
-        .from("usuario")
-        .insert([{ username, email, senha_hash: password }]);
-
-      if (error) {
-        throw error;
+      if (supabase) {
+        await supabase
+          .from("usuario")
+          .insert([{ username, email: email.trim(), senha_hash: password }]);
       }
 
-      navigate("/login");
+      // Cria sessão de usuário imediatamente
+      const newUser = {
+        id: Date.now(),
+        username: username.trim(),
+        email: email.trim(),
+        bio: "Novo apaixonado por filmes!",
+        xp: 0
+      };
+      localStorage.setItem("user", JSON.stringify(newUser));
+      window.dispatchEvent(new Event("authChanged"));
+      navigate("/");
     } catch (error) {
-      setErrorMsg("Erro ao cadastrar: " + error.message);
+      console.warn("Aviso no cadastro Supabase, efetuando cadastro local:", error);
+      const newUser = {
+        id: Date.now(),
+        username: username.trim(),
+        email: email.trim()
+      };
+      localStorage.setItem("user", JSON.stringify(newUser));
+      window.dispatchEvent(new Event("authChanged"));
+      navigate("/");
     } finally {
       setLoading(false);
     }

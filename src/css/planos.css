@@ -1,0 +1,472 @@
+/* =========================================================
+   CINEPLANNER - PLANOS.CSS (PÁGINA DE PLANOS)
+   ========================================================= */
+
+#pagina-planos {
+    min-height: 100vh;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    overflow-x: hidden;
+    background-color: #141414;
+    color: var(--branco, #ffffff);
+    font-family: var(--fonte-corpo, 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif);
+    display: flex;
+    flex-direction: column;
+}
+
+#pagina-planos a {
+    text-decoration: none;
+    color: inherit;
+}
+
+#pagina-planos .planos-main {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 100px 24px 70px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* =========================================================
+   CABEÇALHO DA PÁGINA
+   ========================================================= */
+
+.planos-header {
+    text-align: center;
+    max-width: 760px;
+    margin-bottom: 50px;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.btn-voltar-perfil {
+    align-self: flex-start;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    color: #cccccc;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin-bottom: 24px;
+}
+
+.btn-voltar-perfil:hover {
+    background: rgba(229, 9, 20, 0.15);
+    border-color: rgba(229, 9, 20, 0.4);
+    color: #ffffff;
+    transform: translateX(-3px);
+}
+
+.planos-badge-topo {
+    background: rgba(229, 9, 20, 0.15);
+    color: var(--vermelho, #e50914);
+    border: 1px solid rgba(229, 9, 20, 0.35);
+    padding: 6px 14px;
+    border-radius: 30px;
+    font-size: 0.75rem;
+    font-weight: 800;
+    letter-spacing: 1.5px;
+    margin-bottom: 16px;
+    text-transform: uppercase;
+}
+
+.planos-titulo {
+    font-family: var(--fonte-titulo, 'Outfit', sans-serif);
+    font-size: 2.5rem;
+    font-weight: 800;
+    line-height: 1.2;
+    margin-bottom: 14px;
+    background: linear-gradient(135deg, #ffffff 0%, #d4d4d4 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.planos-subtitulo {
+    font-size: 1.05rem;
+    color: #a0a0a0;
+    line-height: 1.6;
+}
+
+/* =========================================================
+   GRID DE CARDS DOS PLANOS
+   ========================================================= */
+
+.planos-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 28px;
+    width: 100%;
+    align-items: stretch;
+}
+
+.plano-card {
+    background: #191919;
+    border: 1px solid #282828;
+    border-radius: 20px;
+    padding: 32px 26px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    position: relative;
+    transition: all 0.35s cubic-bezier(0.165, 0.84, 0.44, 1);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+.plano-card:hover {
+    transform: translateY(-8px);
+    border-color: #3d3d3d;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+}
+
+.plano-card.ativo {
+    border-color: rgba(229, 9, 20, 0.6);
+    box-shadow: 0 0 25px rgba(229, 9, 20, 0.25);
+}
+
+/* Card Destaque (Intermediário) */
+.plano-card.destaque {
+    background: linear-gradient(180deg, #201b1b 0%, #171515 100%);
+    border: 1px solid rgba(229, 9, 20, 0.4);
+    box-shadow: 0 15px 35px rgba(229, 9, 20, 0.15);
+}
+
+.plano-card.destaque:hover {
+    border-color: var(--vermelho, #e50914);
+    box-shadow: 0 22px 45px rgba(229, 9, 20, 0.35);
+}
+
+/* Card PRO */
+.plano-card.pro {
+    background: linear-gradient(180deg, #1d1928 0%, #15131f 100%);
+    border: 1px solid rgba(168, 85, 247, 0.4);
+    box-shadow: 0 15px 35px rgba(168, 85, 247, 0.15);
+}
+
+.plano-card.pro:hover {
+    border-color: #a855f7;
+    box-shadow: 0 22px 45px rgba(168, 85, 247, 0.35);
+}
+
+/* Badges de Card */
+.badge-plano-ativo {
+    position: absolute;
+    top: -14px;
+    right: 24px;
+    background: var(--vermelho, #e50914);
+    color: #ffffff;
+    font-size: 0.68rem;
+    font-weight: 800;
+    padding: 4px 12px;
+    border-radius: 12px;
+    letter-spacing: 1px;
+    box-shadow: 0 4px 12px rgba(229, 9, 20, 0.5);
+}
+
+.badge-destaque {
+    position: absolute;
+    top: -14px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: linear-gradient(90deg, #e50914, #ff5252);
+    color: #ffffff;
+    font-size: 0.72rem;
+    font-weight: 800;
+    padding: 5px 16px;
+    border-radius: 20px;
+    letter-spacing: 1px;
+    box-shadow: 0 4px 15px rgba(229, 9, 20, 0.4);
+    white-space: nowrap;
+}
+
+.badge-pro {
+    position: absolute;
+    top: -14px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: linear-gradient(90deg, #9333ea, #c084fc);
+    color: #ffffff;
+    font-size: 0.72rem;
+    font-weight: 800;
+    padding: 5px 16px;
+    border-radius: 20px;
+    letter-spacing: 1px;
+    box-shadow: 0 4px 15px rgba(147, 51, 234, 0.4);
+    white-space: nowrap;
+}
+
+/* Cabeçalho do Card */
+.plano-card-header {
+    margin-bottom: 24px;
+}
+
+.plano-icone {
+    width: 54px;
+    height: 54px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 18px;
+}
+
+.icone-gratuito {
+    background: rgba(255, 255, 255, 0.06);
+    color: #a0a0a0;
+}
+
+.icone-intermediario {
+    background: rgba(229, 9, 20, 0.15);
+    color: var(--vermelho, #e50914);
+}
+
+.icone-pro {
+    background: rgba(168, 85, 247, 0.15);
+    color: #c084fc;
+}
+
+.plano-nome {
+    font-family: var(--fonte-titulo, 'Outfit', sans-serif);
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 8px;
+    color: #ffffff;
+}
+
+.plano-desc {
+    font-size: 0.88rem;
+    color: #999999;
+    line-height: 1.5;
+    min-height: 40px;
+    margin-bottom: 20px;
+}
+
+.plano-preco {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+}
+
+.plano-preco .valor {
+    font-size: 2.2rem;
+    font-weight: 800;
+    color: #ffffff;
+}
+
+.plano-preco .periodo {
+    font-size: 0.9rem;
+    color: #777777;
+}
+
+/* Lista de Recursos */
+.plano-recursos {
+    list-style: none;
+    margin-bottom: 32px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    flex: 1;
+}
+
+.plano-recursos li {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    font-size: 0.92rem;
+    color: #d1d1d1;
+    line-height: 1.4;
+}
+
+.check-icon {
+    flex-shrink: 0;
+    margin-top: 2px;
+    color: #888888;
+}
+
+.check-icon.destaque-icon {
+    color: var(--vermelho, #e50914);
+}
+
+.check-icon.pro-icon {
+    color: #c084fc;
+}
+
+/* Botões de Ação */
+.plano-card-footer {
+    margin-top: auto;
+}
+
+.btn-plano {
+    width: 100%;
+    padding: 14px 20px;
+    border-radius: 12px;
+    font-size: 0.95rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    border: none;
+    text-align: center;
+}
+
+.btn-plano-atual {
+    background: rgba(255, 255, 255, 0.08);
+    color: #888888;
+    cursor: default;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.btn-plano-secundario {
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #ffffff;
+}
+
+.btn-plano-secundario:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: #ffffff;
+}
+
+.btn-plano-primario {
+    background: linear-gradient(135deg, #e50914 0%, #b30710 100%);
+    color: #ffffff;
+    box-shadow: 0 4px 15px rgba(229, 9, 20, 0.4);
+}
+
+.btn-plano-primario:hover {
+    background: linear-gradient(135deg, #ff1e27 0%, #d40813 100%);
+    box-shadow: 0 6px 20px rgba(229, 9, 20, 0.6);
+    transform: translateY(-2px);
+}
+
+.btn-plano-pro {
+    background: linear-gradient(135deg, #9333ea 0%, #6b21a8 100%);
+    color: #ffffff;
+    box-shadow: 0 4px 15px rgba(147, 51, 234, 0.4);
+}
+
+.btn-plano-pro:hover {
+    background: linear-gradient(135deg, #a855f7 0%, #7e22ce 100%);
+    box-shadow: 0 6px 20px rgba(147, 51, 234, 0.6);
+    transform: translateY(-2px);
+}
+
+/* =========================================================
+   MODAL DE CONFIRMAÇÃO DA ASSINATURA
+   ========================================================= */
+
+.modal-overlay-planos {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.75);
+    backdrop-filter: blur(6px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    padding: 20px;
+    animation: fadeInModal 0.3s ease;
+}
+
+.modal-content-planos {
+    background: #1c1c1c;
+    border: 1px solid #333333;
+    border-radius: 20px;
+    padding: 36px 32px;
+    max-width: 440px;
+    width: 100%;
+    text-align: center;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8);
+    animation: popUpModal 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.modal-icone-sucesso {
+    font-size: 3.2rem;
+    margin-bottom: 16px;
+}
+
+.modal-content-planos h2 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 10px;
+    color: #ffffff;
+}
+
+.modal-content-planos p {
+    font-size: 0.95rem;
+    color: #aaaaaa;
+    line-height: 1.5;
+    margin-bottom: 24px;
+}
+
+.modal-acoes-planos {
+    display: flex;
+    gap: 12px;
+}
+
+.btn-modal-concluir {
+    flex: 1;
+    padding: 12px;
+    background: #2b2b2b;
+    border: 1px solid #3d3d3d;
+    color: #ffffff;
+    border-radius: 10px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.btn-modal-concluir:hover {
+    background: #383838;
+}
+
+.btn-modal-perfil {
+    flex: 1;
+    padding: 12px;
+    background: var(--vermelho, #e50914);
+    border: none;
+    color: #ffffff;
+    border-radius: 10px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.btn-modal-perfil:hover {
+    background: #ff1e27;
+}
+
+@keyframes fadeInModal {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes popUpModal {
+    from { transform: scale(0.85); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+}
+
+/* =========================================================
+   RESPONSIVIDADE
+   ========================================================= */
+
+@media (max-width: 992px) {
+    .planos-grid {
+        grid-template-columns: 1fr;
+        max-width: 480px;
+    }
+    
+    .planos-titulo {
+        font-size: 2rem;
+    }
+}
