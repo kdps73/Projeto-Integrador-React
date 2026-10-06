@@ -247,7 +247,7 @@ function Resenha() {
 
     async function fetchDetalhes() {
         try {
-            const res = await fetch(`https://api.themoviedb.org/3/movie/${id}?language=pt-BR&append_to_response=credits,release_dates&api_key=${API_KEY}`);
+            const res = await fetch(`https://api.themoviedb.org/3/movie/${id}?language=pt-BR&append_to_response=credits,release_dates,videos&api_key=${API_KEY}`);
             const data = await res.json();
             setFilme(data);
             fetchEstatisticasLocais();
@@ -724,6 +724,20 @@ function Resenha() {
                 <div className="hero-fade-bottom"></div>
             </section>
 
+            {filme.videos && filme.videos.results && filme.videos.results.some(v => v.site === "YouTube" && v.type === "Trailer") && (
+                <section className="filme-trailer" style={{ width: '100%', maxWidth: '1000px', margin: '40px auto', padding: '0 20px', position: 'relative', zIndex: 10 }}>
+                    <h2 style={{ color: '#fff', marginBottom: '20px', fontSize: '24px', textAlign: 'center' }}>Trailer Oficial</h2>
+                    <div style={{ position: 'relative', width: '100%', paddingBottom: '56.25%', height: 0, overflow: 'hidden', borderRadius: '12px', boxShadow: '0 10px 30px rgba(0,0,0,0.5)' }}>
+                        <iframe 
+                            src={`https://www.youtube.com/embed/${filme.videos.results.find(v => v.site === "YouTube" && v.type === "Trailer" && v.official)?.key || filme.videos.results.find(v => v.site === "YouTube" && v.type === "Trailer")?.key}`} 
+                            style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', border: 0 }} 
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                            allowFullScreen
+                            title="Trailer do Filme"
+                        ></iframe>
+                    </div>
+                </section>
+            )}
 
             <section className="comentarios-section" id="comentarios">
                 <div className="comentarios-fade-top"></div>

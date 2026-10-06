@@ -116,10 +116,28 @@ function Inicio() {
     return (
         <>
             <header className="hero" id="hero">
+                <style>{`
+                    @keyframes unblurLetter {
+                        0% { filter: blur(10px); opacity: 0; transform: translateX(-10px); }
+                        100% { filter: blur(0); opacity: 1; transform: translateX(0); }
+                    }
+                `}</style>
                 <Carousel3D />
                 <div className="hero-overlay"></div>
                 <div className="hero-content hero-title-container" style={{ pointerEvents: 'none' }}>
-                    <h1 className="hero-title" style={{ pointerEvents: 'auto' }}>CiNEPLANNER</h1>
+                    <h1 className="hero-title" style={{ pointerEvents: 'auto', display: 'flex', justifyContent: 'center' }}>
+                        {"CiNEPLANNER".split("").map((char, index) => (
+                            <span key={index} style={{
+                                animation: `unblurLetter 0.5s forwards ease-out`,
+                                animationDelay: `${index * 0.08}s`,
+                                filter: 'blur(10px)',
+                                opacity: 0,
+                                display: 'inline-block'
+                            }}>
+                                {char}
+                            </span>
+                        ))}
+                    </h1>
                     
                 </div>
                 <div className="hero-content hero-desc-container" style={{ pointerEvents: 'none' }}>
