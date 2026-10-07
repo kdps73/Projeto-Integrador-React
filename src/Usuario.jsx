@@ -753,47 +753,51 @@ function Usuario() {
 
             <main className="usuario-main container">
 
-                {/* SEÇÃO DE PROGRESSO E XP */}
-                <section className="xp-section" aria-label="Progresso do Usuário">
-                    <div className="xp-header">
-                        <div className="xp-title">
-                            <span>PROGRESSO DO PERFIL</span>
-                            <span className="xp-badge">LEVEL {nivelCalculado}</span>
-                        </div>
-
-                        <div className="xp-stats">
-                            <span className="xp-current">{usuario.xpTotal.toLocaleString()} XP total</span>
-                            <span className="xp-target">{xpNoNivel} / {xpNecessario} XP para o nível {nivelCalculado + 1}</span>
-                        </div>
-                    </div>
-
-                    <div className="xp-bar-row">
-                        <div className="xp-bar-container" title={`${porcentagemXp}% concluído para o próximo nível`}>
-                            <div
-                                className="xp-fill"
-                                style={{ '--progress-width': `${porcentagemXp}%` }}
-                            ></div>
-                        </div>
-
-                        <div className="card-plano-usuario-top">
-                            <div className="info-plano-topo">
-                                <span className="label-plano-topo">Plano:</span>
-                                <span className="nome-plano-topo">{planoAtual}</span>
+                {/* CONTAINER TOPO - XP E PLANO */}
+                <div className="top-sections-container">
+                    {/* SEÇÃO DE PROGRESSO E XP */}
+                    <section className="xp-section" aria-label="Progresso do Usuário">
+                        <div className="xp-header">
+                            <div className="xp-title">
+                                <span>PROGRESSO DO PERFIL</span>
+                                <span className="xp-badge">LEVEL {nivelCalculado}</span>
                             </div>
-                            <button
-                                type="button"
-                                className="btn-upgrade-topo"
-                                onClick={() => navigate('/planos')}
-                                title="Ver todos os planos e fazer upgrade"
-                            >
-                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
-                                </svg>
-                                <span>Upgrade</span>
-                            </button>
+
+                            <div className="xp-stats">
+                                <span className="xp-current">{usuario.xpTotal.toLocaleString()} XP total</span>
+                                <span className="xp-target">{xpNoNivel} / {xpNecessario} XP para o nível {nivelCalculado + 1}</span>
+                            </div>
                         </div>
-                    </div>
-                </section>
+
+                        <div className="xp-bar-row">
+                            <div className="xp-bar-container" title={`${porcentagemXp}% concluído para o próximo nível`}>
+                                <div
+                                    className="xp-fill"
+                                    style={{ '--progress-width': `${porcentagemXp}%` }}
+                                ></div>
+                            </div>
+                        </div>
+                    </section>
+
+                    {/* SEÇÃO DE PLANO */}
+                    <section className="plano-section" aria-label="Plano do Usuário">
+                        <div className="info-plano-topo">
+                            <span className="label-plano-topo">Seu Plano Atual</span>
+                            <span className="nome-plano-topo">{planoAtual}</span>
+                        </div>
+                        <button
+                            type="button"
+                            className="btn-upgrade-topo"
+                            onClick={() => navigate('/planos')}
+                            title="Ver todos os planos e fazer upgrade"
+                        >
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                            </svg>
+                            <span>Fazer Upgrade</span>
+                        </button>
+                    </section>
+                </div>
 
                 {/* CARD DE PERFIL DO USUÁRIO */}
                 <section className="profile-card" aria-label="Card de Perfil">

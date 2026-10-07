@@ -44,17 +44,21 @@ div:has(> nav.navbar) {
 }
 
 .logo-text {
-    font-family: var(--fonte-titulo);
+    font-family: 'Garet', var(--fonte-titulo) !important;
     font-size: 1.6rem;
-    font-weight: 800;
+    font-weight: 850;
     color: var(--vermelho);
     letter-spacing: 1px;
-    text-shadow: 0 0 12px rgba(229, 9, 20, 0.6);
     transition: text-shadow var(--transicao);
 }
 
+.logo-i {
+    color: var(--branco, #ffffff);
+    font-weight: 900;
+}
+
 .logo-text:hover {
-    text-shadow: 0 0 22px rgba(229, 9, 20, 0.9);
+    text-shadow: 0 0 22px rgba(229, 9, 20, 0.5);
 }
 
 .logo-favicon {

@@ -1,3 +1,5 @@
+@import url('https://fonts.cdnfonts.com/css/garet');
+
 /* =============================================================
    INDEX.CSS – CinePlanner · Página Inicial
    Paleta: Preto #000 | Vermelho #e50914 | Cinza-claro #d4d4d4
@@ -29,7 +31,6 @@
     --cinza-claro: #d4d4d4;
     --cinza-fundo: #c8c8c8;
     --branco: #ffffff;
-    --fonte-titulo: 'Outfit', 'Montserrat', sans-serif;
     --fonte-corpo: 'Inter', 'Roboto', 'Segoe UI', sans-serif;
     --transicao: 0.3s ease;
 }
@@ -132,16 +133,28 @@ div:has(> nav.navbar) {
 }
 
 .hero-title {
-    font-family: var(--fonte-titulo);
+    font-family: 'Garet', var(--fonte-titulo) !important;
     font-size: clamp(3.5rem, 8vw, 6.5rem);
-    font-weight: 800;
-    color: var(--vermelho);
+    font-weight: 850;
     text-shadow:
         0 5px 20px rgba(0, 0, 0, 1),
-        0 0 30px rgba(229, 9, 20, 0.7),
-        0 0 70px rgba(229, 9, 20, 0.3);
+        0 0 30px rgba(229, 9, 20, 0.2),
+        0 0 70px rgba(229, 9, 20, 0.1);
     letter-spacing: 2px;
     line-height: 1;
+}
+
+.hero-char {
+    animation: unblurLetter 0.5s forwards ease-out;
+    filter: blur(10px);
+    opacity: 0;
+    display: inline-block;
+    color: var(--vermelho);
+}
+
+.hero-char-i {
+    color: var(--branco, #ffffff);
+    font-weight: 900;
 }
 
 .hero-subtitle {

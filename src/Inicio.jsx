@@ -127,13 +127,11 @@ function Inicio() {
                 <div className="hero-content hero-title-container" style={{ pointerEvents: 'none' }}>
                     <h1 className="hero-title" style={{ pointerEvents: 'auto', display: 'flex', justifyContent: 'center' }}>
                         {"CiNEPLANNER".split("").map((char, index) => (
-                            <span key={index} style={{
-                                animation: `unblurLetter 0.5s forwards ease-out`,
-                                animationDelay: `${index * 0.08}s`,
-                                filter: 'blur(10px)',
-                                opacity: 0,
-                                display: 'inline-block'
-                            }}>
+                            <span 
+                                key={index} 
+                                className={`hero-char ${char === 'i' ? 'hero-char-i' : ''}`}
+                                style={{ animationDelay: `${index * 0.08}s`, fontFamily: 'Garet' }}
+                            >
                                 {char}
                             </span>
                         ))}

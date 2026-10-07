@@ -90,17 +90,16 @@ a {
 }
 
 .logo-text {
-    font-family: 'Outfit', 'Montserrat', sans-serif;
+    font-family: 'Garet', 'Outfit', 'Montserrat', sans-serif !important;
     font-size: 1.6rem;
-    font-weight: 800;
+    font-weight: 850;
     color: #e50914;
     letter-spacing: 1px;
-    text-shadow: 0 0 12px rgba(229, 9, 20, 0.6);
     transition: text-shadow 0.3s ease;
 }
 
 .logo-text:hover {
-    text-shadow: 0 0 22px rgba(229, 9, 20, 0.9);
+    text-shadow: 0 0 22px rgba(229, 9, 20, 0.5);
 }
 
 .navbar-links {

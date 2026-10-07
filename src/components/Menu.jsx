@@ -113,7 +113,7 @@ function Menu() {
                 <div className="navbar-container">
                     {/* Logo */}
                     <Link to="/" className="navbar-logo" id="logo-link">
-                        <span className="logo-text desktop-only">CiNEPLANNER</span>
+                        <span className="logo-text desktop-only">C<span className="logo-i">i</span>NEPLANNER</span>
                         <img src="/favicon.svg" alt="CiNEPLANNER" className="logo-favicon mobile-only" />
                     </Link>
 
