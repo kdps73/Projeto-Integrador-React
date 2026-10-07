@@ -60,7 +60,7 @@ function Planos() {
                     {/* CARD 1: PLANO GRATUITO */}
                     <div className={`plano-card ${planoAtual === "Gratuito" ? "ativo" : ""}`}>
                         {planoAtual === "Gratuito" && (
-                            <div className="badge-plano-ativo">PLANO ATUAL</div>
+                            <div className="badge-plano-ativo">PLANO</div>
                         )}
                         <div className="plano-card-header">
                             <div className="plano-icone icone-gratuito">
@@ -113,7 +113,7 @@ function Planos() {
                     <div className={`plano-card destaque ${planoAtual === "Intermediário" ? "ativo" : ""}`}>
                         <div className="badge-destaque">MAIS POPULAR ⭐</div>
                         {planoAtual === "Intermediário" && (
-                            <div className="badge-plano-ativo">PLANO ATUAL</div>
+                            <div className="badge-plano-ativo">PLANO </div>
                         )}
                         <div className="plano-card-header">
                             <div className="plano-icone icone-intermediario">
@@ -177,7 +177,7 @@ function Planos() {
                     <div className={`plano-card pro ${planoAtual === "PRO" ? "ativo" : ""}`}>
                         <div className="badge-pro">VIP & RECOMPENSAS 👑</div>
                         {planoAtual === "PRO" && (
-                            <div className="badge-plano-ativo">PLANO ATUAL</div>
+                            <div className="badge-plano-ativo">PLANO </div>
                         )}
                         <div className="plano-card-header">
                             <div className="plano-icone icone-pro">
