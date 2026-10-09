@@ -4,6 +4,28 @@ import { supabase } from "./supabase";
 import "./css/index.css";
 import "./css/listas.css";
 
+function calcularNivel(xpTotal) {
+    let nivel = 1;
+    let xpAcumulado = 0;
+    while (nivel < 100) {
+        const custoProximo = 10 + Math.floor(nivel * nivel * 0.5);
+        if (xpAcumulado + custoProximo > xpTotal) break;
+        xpAcumulado += custoProximo;
+        nivel++;
+    }
+    return nivel;
+}
+
+const getPlanoUsuario = (uId, uNivel) => {
+    const logadoStr = localStorage.getItem("user");
+    const logado = logadoStr ? JSON.parse(logadoStr) : null;
+    if (logado && String(logado.id) === String(uId)) {
+        return localStorage.getItem("plano_usuario") || "Gratuito";
+    }
+    if (uNivel >= 50) return "PRO";
+    if (uNivel >= 20) return "Intermediário";
+    return "Gratuito";
+};
 // Função utilitária para obter a URL pública de itens do Supabase Storage e TMDB
 function obterUrlItem(caminhoOuUrl) {
     if (!caminhoOuUrl) return null;
@@ -482,7 +504,8 @@ function Lista() {
                                     avatarUrl: u.url_img ? obterUrlItem(u.url_img) : (u.avatar_url || ""),
                                     bio: u.bio || "Cinéfilo apaixonado por boas histórias.",
                                     xpTotal: u.xp_total || 0,
-                                    nivel: u.nivel || Math.max(1, Math.floor((u.xp_total || 0) / 600)),
+                                    nivel: u.nivel || calcularNivel(u.xp_total || 0),
+                                    plano: getPlanoUsuario(u.id, u.nivel || calcularNivel(u.xp_total || 0)),
                                     chapeuUrl: chapeuRaw ? obterUrlItem(chapeuRaw) : "./img/hat-red-dead.png",
                                     maoUrl: maoRaw ? obterUrlItem(maoRaw) : "./img/hand-red-dead.png",
                                     mascoteUrl: mascoteRaw ? obterUrlItem(mascoteRaw) : "./img/pet-red-dead.png"
@@ -528,6 +551,7 @@ function Lista() {
                                     bio: "Colecionador de filmes e fã de cinema.",
                                     xpTotal: 2500,
                                     nivel: 5,
+                                    plano: getPlanoUsuario(pl.id_usuario, 5),
                                     chapeuUrl: "./img/hat-red-dead.png",
                                     maoUrl: "./img/hand-red-dead.png",
                                     mascoteUrl: "./img/pet-red-dead.png"
@@ -791,9 +815,9 @@ function Lista() {
                                 >
                                     {/* CABEÇALHO DA PUBLICAÇÃO (PADRÃO POST-HEADER COM AVATAR E ÍCONES) */}
                                     <div className="post-header">
-                                        <div className="post-user-info">
+                                        <div className={`post-user-info plano-${playlist.autor?.plano?.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '') || 'gratuito'}`}>
                                             {/* AVATAR COM ÍCONES DE ACESSÓRIOS EQUIPADOS */}
-                                            <div className="post-avatar-wrapper">
+                                            <Link to={`/usuario/${playlist.id_usuario}`} className="post-avatar-wrapper">
                                                 {chapeu && (
                                                     <img
                                                         src={chapeu}
@@ -829,14 +853,14 @@ function Lista() {
                                                         onError={(e) => { e.target.style.display = 'none'; }}
                                                     />
                                                 )}
-                                            </div>
+                                            </Link>
 
                                             {/* DADOS DO AUTOR E METADADOS COM ÍCONES */}
                                             <div className="post-author-meta">
                                                 <div className="post-author-top-row">
-                                                    <span className="post-author-name">
+                                                    <Link to={`/usuario/${playlist.id_usuario}`} className="post-author-name">
                                                         {playlist.autor?.nome || "Cinéfilo"}
-                                                    </span>
+                                                    </Link>
                                                     <span className="post-author-handle">
                                                         @{playlist.autor?.username || "membro"}
                                                     </span>
@@ -846,6 +870,11 @@ function Lista() {
                                                                 <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
                                                             </svg>
                                                             NV. {playlist.autor.nivel}
+                                                        </span>
+                                                    )}
+                                                    {playlist.autor?.plano && playlist.autor.plano !== "Gratuito" && (
+                                                        <span className={`post-badge-plano plano-${playlist.autor.plano.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')}`}>
+                                                            {playlist.autor.plano === "PRO" ? "★ PRO" : "✦ INTERMEDIÁRIO"}
                                                         </span>
                                                     )}
                                                     {ehMinhaLista && (

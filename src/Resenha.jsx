@@ -5,6 +5,29 @@ import "./css/resenha.css";
 import { supabase } from "./supabase";
 import playlistIcon from "./assets/playlist_icon.svg";
 
+function calcularNivel(xpTotal) {
+    let nivel = 1;
+    let xpAcumulado = 0;
+    while (nivel < 100) {
+        const custoProximo = 10 + Math.floor(nivel * nivel * 0.5);
+        if (xpAcumulado + custoProximo > xpTotal) break;
+        xpAcumulado += custoProximo;
+        nivel++;
+    }
+    return nivel;
+}
+
+const getPlanoUsuario = (uId, uNivel) => {
+    const logadoStr = localStorage.getItem("user");
+    const logado = logadoStr ? JSON.parse(logadoStr) : null;
+    if (logado && String(logado.id) === String(uId)) {
+        return localStorage.getItem("plano_usuario") || "Gratuito";
+    }
+    if (uNivel >= 50) return "PRO";
+    if (uNivel >= 20) return "Intermediário";
+    return "Gratuito";
+};
+
 function obterUrlItem(caminhoOuUrl) {
     if (!caminhoOuUrl) return null;
     if (typeof caminhoOuUrl !== "string") return null;
@@ -770,8 +793,11 @@ function Resenha() {
                                                     const mascote = mascoteRaw ? obterUrlItem(mascoteRaw) : null;
                                                     const avatarUrl = coment.usuario?.url_img ? obterUrlItem(coment.usuario.url_img) : (coment.usuario?.avatar_url || null);
 
+                                                    const xp = coment.usuario?.xp_total || 0;
+                                                    const nivel = calcularNivel(xp);
+                                                    const plano = getPlanoUsuario(coment.usuario?.id, nivel);
                                                     return (
-                                                        <div className="user-avatar">
+                                                        <Link to={`/usuario/${coment.usuario?.id}`} className="user-avatar">
                                                             {chapeu && (
                                                                 <img
                                                                     src={chapeu}
@@ -807,12 +833,27 @@ function Resenha() {
                                                                     onError={(e) => { e.target.style.display = 'none'; }}
                                                                 />
                                                             )}
-                                                        </div>
+                                                        </Link>
                                                     );
                                                 })()}
                                                 <div className="user-info">
-                                                    <span className="user-nome">{coment.usuario?.nome || coment.usuario?.username || "Usuário"}</span>
+                                                    <Link to={`/usuario/${coment.usuario?.id}`} className="user-nome">
+                                                        {coment.usuario?.nome || coment.usuario?.username || "Usuário"}
+                                                    </Link>
                                                     <span className="user-data">{dataFormatada}</span>
+                                                    {(() => {
+                                                        const xp = coment.usuario?.xp_total || 0;
+                                                        const nivel = calcularNivel(xp);
+                                                        const plano = getPlanoUsuario(coment.usuario?.id, nivel);
+                                                        if (plano && plano !== "Gratuito") {
+                                                            return (
+                                                                <span className={`post-badge-plano plano-${plano.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')}`}>
+                                                                    {plano === "PRO" ? "★ PRO" : "✦ INTERMEDIÁRIO"}
+                                                                </span>
+                                                            );
+                                                        }
+                                                        return null;
+                                                    })()}
                                                 </div>
                                             </div>
                                             <div className="coment-curtidas">

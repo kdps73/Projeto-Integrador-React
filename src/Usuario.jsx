@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import Menu from "./components/Menu";
 import { supabase } from "./supabase";
 import playlistIcon from "./assets/playlist_icon.svg";
@@ -105,6 +105,17 @@ function calcularNivel(xpTotal) {
     return nivel;
 }
 
+const getPlanoUsuario = (uId, uNivel) => {
+    const logadoStr = localStorage.getItem("user");
+    const logado = logadoStr ? JSON.parse(logadoStr) : null;
+    if (logado && String(logado.id) === String(uId)) {
+        return localStorage.getItem("plano_usuario") || "Gratuito";
+    }
+    if (uNivel >= 50) return "PRO";
+    if (uNivel >= 20) return "Intermediário";
+    return "Gratuito";
+};
+
 function calcularProgressoNivel(xpTotal) {
     const nivelAtual = calcularNivel(xpTotal);
     const xpBase = xpAcumuladoAteNivel(nivelAtual);
@@ -115,7 +126,10 @@ function calcularProgressoNivel(xpTotal) {
 }
 
 function Usuario() {
+    const { id: paramId } = useParams();
     const navigate = useNavigate();
+    
+    const [isMeuPerfil, setIsMeuPerfil] = useState(true);
     // =========================================================
     // 1. ESTADOS DO USUÁRIO (Perfil, XP, Bio e Acessórios)
     // =========================================================
@@ -487,6 +501,14 @@ function Usuario() {
                     }
                 }
 
+                // Se houver paramId e for diferente do usuário salvo, estamos vendo outro perfil
+                if (paramId && currentUserId !== Number(paramId)) {
+                    currentUserId = Number(paramId);
+                    setIsMeuPerfil(false);
+                } else {
+                    setIsMeuPerfil(true);
+                }
+
                 // A) Buscar Perfil no Supabase se disponível
                 if (supabase && currentUserId) {
                     const { data: dadosUsuario } = await supabase
@@ -516,9 +538,11 @@ function Usuario() {
                         setInputBio(dadosUsuario.bio || "");
                     }
 
-                    // Buscar os itens
-                    const { data: dadosItens } = await supabase.from('itens').select('*');
-                    if (dadosItens) setItens(dadosItens);
+                    // Buscar os itens apenas se for meu perfil
+                    if (isMeuPerfil) {
+                        const { data: dadosItens } = await supabase.from('itens').select('*');
+                        if (dadosItens) setItens(dadosItens);
+                    }
                 }
 
                 // B) Sincronizar Playlists (Favoritos, Assistir Mais Tarde e Personalizadas) direto do Supabase
@@ -587,10 +611,18 @@ function Usuario() {
                             const personalizadas = dadosPlaylists.filter(
                                 p => p.nome !== "Favoritos" && p.nome !== "Assistir Mais Tarde"
                             );
+                            
+                            // Se estiver vendo outro perfil, só mostre listas públicas
+                            const userSalvoStr = localStorage.getItem("user");
+                            const idLogado = userSalvoStr ? JSON.parse(userSalvoStr).id : null;
+                            const isMeuPerfilLocal = currentUserId === Number(idLogado);
+                            const personalizadasFiltradas = !isMeuPerfilLocal
+                                ? personalizadas.filter(p => p.public === true || p.public === "true")
+                                : personalizadas;
 
                             // Resolve os filmes de cada playlist personalizada
                             const playlistsResolvidas = await Promise.all(
-                                personalizadas.map(async (pl) => ({
+                                personalizadasFiltradas.map(async (pl) => ({
                                     ...pl,
                                     filmes: await resolverFilmes(pl.filmes)
                                 }))
@@ -609,7 +641,7 @@ function Usuario() {
         }
 
         carregarFilmesUsuario();
-    }, []);
+    }, [paramId]);
 
     // =========================================================
     // 5. ATUALIZAÇÃO DA BIO E LOGOUT
@@ -779,24 +811,26 @@ function Usuario() {
                         </div>
                     </section>
 
-                    {/* SEÇÃO DE PLANO */}
-                    <section className="plano-section" aria-label="Plano do Usuário">
-                        <div className="info-plano-topo">
-                            <span className="label-plano-topo">Seu Plano Atual</span>
-                            <span className="nome-plano-topo">{planoAtual}</span>
-                        </div>
-                        <button
-                            type="button"
-                            className="btn-upgrade-topo"
-                            onClick={() => navigate('/planos')}
-                            title="Ver todos os planos e fazer upgrade"
-                        >
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
-                            </svg>
-                            <span>Fazer Upgrade</span>
-                        </button>
-                    </section>
+                    {/* SEÇÃO DE PLANO - APENAS SE FOR O MEU PERFIL */}
+                    {isMeuPerfil && (
+                        <section className="plano-section" aria-label="Plano do Usuário">
+                            <div className="info-plano-topo">
+                                <span className="label-plano-topo">Seu Plano Atual</span>
+                                <span className="nome-plano-topo">{planoAtual}</span>
+                            </div>
+                            <button
+                                type="button"
+                                className="btn-upgrade-topo"
+                                onClick={() => navigate('/planos')}
+                                title="Ver todos os planos e fazer upgrade"
+                            >
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                                </svg>
+                                <span>Fazer Upgrade</span>
+                            </button>
+                        </section>
+                    )}
                 </div>
 
                 {/* CARD DE PERFIL DO USUÁRIO */}
@@ -820,12 +854,12 @@ function Usuario() {
                             />
 
                             <div
-                                className={`avatar-circle avatar-clickable${uploadandoAvatar ? ' avatar-uploading' : ''}`}
-                                onClick={handleClickAvatar}
-                                title="Clique para alterar sua foto de perfil"
+                                className={`avatar-circle ${isMeuPerfil ? 'avatar-clickable' : ''}${uploadandoAvatar ? ' avatar-uploading' : ''}`}
+                                onClick={() => isMeuPerfil && handleClickAvatar()}
+                                title={isMeuPerfil ? "Clique para alterar sua foto de perfil" : ""}
                                 role="button"
-                                tabIndex={0}
-                                onKeyDown={(e) => e.key === 'Enter' && handleClickAvatar()}
+                                tabIndex={isMeuPerfil ? 0 : -1}
+                                onKeyDown={(e) => isMeuPerfil && e.key === 'Enter' && handleClickAvatar()}
                             >
                                 {usuario.avatarUrl ? (
                                     <img
@@ -846,6 +880,7 @@ function Usuario() {
                                         </svg>
                                     </div>
                                 )}
+                                {isMeuPerfil && (
                                 <div className="avatar-overlay">
                                     {uploadandoAvatar ? (
                                         <div className="avatar-upload-spinner" />
@@ -857,6 +892,7 @@ function Usuario() {
                                     )}
                                     <span>{uploadandoAvatar ? 'Enviando...' : 'Alterar foto'}</span>
                                 </div>
+                                )}
                             </div>
 
                             {usuario.maoUrl && (
@@ -867,6 +903,7 @@ function Usuario() {
                             )}
                         </div>
 
+                        {isMeuPerfil && (
                         <button onClick={handleLogout} className="logout-btn" title="Sair da conta">
                             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                 <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
@@ -875,6 +912,7 @@ function Usuario() {
                             </svg>
                             Sair
                         </button>
+                        )}
                     </div>
 
                     <div className="user-info">
@@ -883,7 +921,21 @@ function Usuario() {
                             <span className="user-email">{usuario.email}</span>
                         </div>
 
-                        <h1 className="username">{usuario.username}</h1>
+                        <h1 className="username" style={{ display: 'flex', alignItems: 'center' }}>
+                            {usuario.username}
+                            {(() => {
+                                const nivel = calcularNivel(usuario.xpTotal || 0);
+                                const plano = getPlanoUsuario(usuario.id, nivel);
+                                if (plano) {
+                                    return (
+                                        <span className={`post-badge-plano plano-${plano.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')}`} style={{ marginLeft: '12px', fontSize: '0.75rem', padding: '4px 10px', verticalAlign: 'middle' }}>
+                                            {plano === "PRO" ? "★ PRO" : (plano === "Intermediário" ? "✦ INTERMEDIÁRIO" : "GRATUITO")}
+                                        </span>
+                                    );
+                                }
+                                return null;
+                            })()}
+                        </h1>
 
                         {isEditingBio ? (
                             <div className="bio-box editing">
@@ -922,6 +974,7 @@ function Usuario() {
                                 <p className="bio-text-display">
                                     {usuario.bio ? usuario.bio : "Nenhuma bio informada."}
                                 </p>
+                                {isMeuPerfil && (
                                 <div className="bio-botoes-acoes">
                                     <button
                                         className="btn-editar-bio"
@@ -953,6 +1006,7 @@ function Usuario() {
                                         Itens
                                     </button>
                                 </div>
+                                )}
                                 {statusBio && <span className="bio-status-msg">{statusBio}</span>}
                             </div>
                         )}
@@ -967,6 +1021,7 @@ function Usuario() {
                 </section>
 
                 {/* SEÇÃO 1: FILMES FAVORITOS */}
+                {isMeuPerfil && (
                 <section className="movies-section" aria-label="Filmes Favoritos">
                     <div className="section-header">
                         <div className="section-header-left">
@@ -1095,8 +1150,10 @@ function Usuario() {
                         </div>
                     )}
                 </section>
+                )}
 
                 {/* SEÇÃO 2: ASSISTIR MAIS TARDE */}
+                {isMeuPerfil && (
                 <section className="movies-section" aria-label="Assistir Mais Tarde">
                     <div className="section-header">
                         <div className="section-header-left">
@@ -1225,6 +1282,7 @@ function Usuario() {
                         </div>
                     )}
                 </section>
+                )}
 
                 {/* SEÇÃO 3: SUAS PLAYLISTS PERSONALIZADAS (ABAIXO DE ASSISTIR MAIS TARDE) */}
                 <section className="movies-section custom-playlists-wrapper" aria-label="Minhas Playlists Personalizadas">
@@ -1240,7 +1298,7 @@ function Usuario() {
                     </div>
 
                     {/* FORMULÁRIO PARA CRIAR NOVA PLAYLIST */}
-                    {isCriandoPlaylist && (
+                    {isMeuPerfil && isCriandoPlaylist && (
                         <form onSubmit={handleCriarPlaylist} className="form-criar-playlist">
                             <input
                                 type="text"
@@ -1259,8 +1317,7 @@ function Usuario() {
 
                     {playlists.length === 0 ? (
                         <div className="empty-list">
-                            <span>Você ainda não criou nenhuma playlist personalizada.</span>
-
+                            <span>{isMeuPerfil ? "Você ainda não criou nenhuma playlist personalizada." : "Este usuário não possui listas públicas."}</span>
                         </div>
                     ) : (
                         playlists.map((pl) => (
@@ -1268,6 +1325,7 @@ function Usuario() {
                                 <div className="custom-playlist-header">
                                     <div className="custom-playlist-title-container">
                                         {/* BOTÃO TOGGLE PÚBLICA / PRIVADA À ESQUERDA DO TÍTULO */}
+                                        {isMeuPerfil && (
                                         <button
                                             type="button"
                                             onClick={() => togglePublicaPlaylist(pl.id)}
@@ -1290,12 +1348,14 @@ function Usuario() {
                                                 </svg>
                                             )}
                                         </button>
+                                        )}
                                         <h3>{pl.nome}</h3>
                                     </div>
                                     <div className="canto-direito">
                                         <span className="movie-count">
                                             {(pl.filmes ? pl.filmes.length : 0).toString().padStart(2, '0')} FILMES
                                         </span>
+                                        {isMeuPerfil && (
                                         <button
                                             type="button"
                                             className="btn-deletar-playlist"
@@ -1306,6 +1366,7 @@ function Usuario() {
                                                 <path d="m19.5,0H4.5C2.019,0,0,2.019,0,4.5v15c0,2.481,2.019,4.5,4.5,4.5h15c2.481,0,4.5-2.019,4.5-4.5V4.5c0-2.481-2.019-4.5-4.5-4.5Zm3.5,19.5c0,1.93-1.57,3.5-3.5,3.5H4.5c-1.93,0-3.5-1.57-3.5-3.5V4.5c0-1.93,1.57-3.5,3.5-3.5h15c1.93,0,3.5,1.57,3.5,3.5v15Zm-4.122-14.673l-6.216,7.173,6.216,7.173c.181.208.158.524-.051.705-.095.082-.211.122-.327.122-.14,0-.279-.059-.378-.173l-6.122-7.064-6.122,7.064c-.099.114-.238.173-.378.173-.116,0-.232-.04-.327-.122-.209-.181-.231-.497-.051-.705l6.216-7.173-6.216-7.173c-.181-.208-.158-.524.051-.705.208-.18.524-.159.705.051l6.122,7.064,6.122-7.064c.181-.21.496-.23.705-.051.209.181.231.497.051.705Z" />
                                             </svg>
                                         </button>
+                                        )}
                                     </div>
                                 </div>
 
@@ -1396,13 +1457,15 @@ function Usuario() {
                         ))
                     )}
 
-                    <button
-                        type="button"
-                        className="btn-explorar-catalogo"
-                        onClick={() => setIsCriandoPlaylist(true)}
-                    >
-                        + Crie Sua Playlist
-                    </button>
+                    {isMeuPerfil && (
+                        <button
+                            type="button"
+                            className="btn-explorar-catalogo"
+                            onClick={() => setIsCriandoPlaylist(true)}
+                        >
+                            + Crie Sua Playlist
+                        </button>
+                    )}
                 </section>
 
             </main>

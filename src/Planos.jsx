@@ -11,6 +11,8 @@ function Planos() {
         return localStorage.getItem("plano_usuario") || "Gratuito";
     });
     const [modalSucesso, setModalSucesso] = useState(null);
+    const [modalPagamento, setModalPagamento] = useState(null);
+    const [metodoPagamento, setMetodoPagamento] = useState("credito");
 
     useEffect(() => {
         const handlePlanoChange = () => {
@@ -23,11 +25,26 @@ function Planos() {
 
     const selecionarPlano = (nomePlano) => {
         if (planoAtual === nomePlano) return;
+        if (nomePlano === "Gratuito") {
+            confirmarMudancaPlano("Gratuito");
+        } else {
+            setModalPagamento(nomePlano);
+        }
+    };
 
+    const confirmarMudancaPlano = (nomePlano) => {
         localStorage.setItem("plano_usuario", nomePlano);
         setPlanoAtual(nomePlano);
         window.dispatchEvent(new Event("planoChanged"));
+        setModalPagamento(null);
         setModalSucesso(nomePlano);
+    };
+
+    const handlePagamentoForm = (e) => {
+        e.preventDefault();
+        if (modalPagamento) {
+            confirmarMudancaPlano(modalPagamento);
+        }
     };
 
     return (
@@ -54,6 +71,13 @@ function Planos() {
                     <p className="planos-subtitulo">
                         Eleve sua experiência cinematográfica. Crie playlists ilimitadas, ganhe bônus de XP e destaque-se na comunidade!
                     </p>
+                    {planoAtual !== "Gratuito" && (
+                        <div style={{ marginTop: '20px' }}>
+                            <button className="btn-cancelar-plano" onClick={() => selecionarPlano("Gratuito")} style={{ background: 'transparent', border: '1px solid #e50914', color: '#e50914', padding: '10px 20px', borderRadius: '5px', cursor: 'pointer', transition: 'all 0.3s' }} onMouseOver={e => { e.currentTarget.style.background = '#e50914'; e.currentTarget.style.color = '#fff'; }} onMouseOut={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#e50914'; }}>
+                                Cancelar Plano Atual
+                            </button>
+                        </div>
+                    )}
                 </header>
 
                 <div className="planos-grid">
@@ -260,6 +284,37 @@ function Planos() {
                             </button>
                             <button className="btn-modal-perfil" onClick={() => navigate("/usuario")}>
                                 Ir para Meu Perfil
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* MODAL FALSO DE PAGAMENTO */}
+            {modalPagamento && (
+                <div className="modal-overlay-planos" onClick={() => setModalPagamento(null)}>
+                    <div className="modal-content-planos modal-pagamento" onClick={(e) => e.stopPropagation()} style={{ textAlign: 'left' }}>
+                        <h2>Finalizar Assinatura - {modalPagamento}</h2>
+                        <p style={{ color: '#aaa', marginBottom: '20px' }}>Selecione uma forma de pagamento para continuar.</p>
+                        
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '25px' }}>
+                            <button type="button" onClick={() => confirmarMudancaPlano(modalPagamento)} style={{ padding: '15px', border: '1px solid #333', borderRadius: '8px', background: 'transparent', color: '#fff', cursor: 'pointer', textAlign: 'center', fontSize: '16px', transition: 'all 0.3s' }} onMouseOver={e => e.currentTarget.style.background = 'rgba(229, 9, 20, 0.1)'} onMouseOut={e => e.currentTarget.style.background = 'transparent'}>
+                                Cartão de Crédito
+                            </button>
+                            <button type="button" onClick={() => confirmarMudancaPlano(modalPagamento)} style={{ padding: '15px', border: '1px solid #333', borderRadius: '8px', background: 'transparent', color: '#fff', cursor: 'pointer', textAlign: 'center', fontSize: '16px', transition: 'all 0.3s' }} onMouseOver={e => e.currentTarget.style.background = 'rgba(229, 9, 20, 0.1)'} onMouseOut={e => e.currentTarget.style.background = 'transparent'}>
+                                Cartão de Débito
+                            </button>
+                            <button type="button" onClick={() => confirmarMudancaPlano(modalPagamento)} style={{ padding: '15px', border: '1px solid #333', borderRadius: '8px', background: 'transparent', color: '#fff', cursor: 'pointer', textAlign: 'center', fontSize: '16px', transition: 'all 0.3s' }} onMouseOver={e => e.currentTarget.style.background = 'rgba(229, 9, 20, 0.1)'} onMouseOut={e => e.currentTarget.style.background = 'transparent'}>
+                                Boleto Bancário
+                            </button>
+                            <button type="button" onClick={() => confirmarMudancaPlano(modalPagamento)} style={{ padding: '15px', border: '1px solid #333', borderRadius: '8px', background: 'transparent', color: '#fff', cursor: 'pointer', textAlign: 'center', fontSize: '16px', transition: 'all 0.3s' }} onMouseOver={e => e.currentTarget.style.background = 'rgba(229, 9, 20, 0.1)'} onMouseOut={e => e.currentTarget.style.background = 'transparent'}>
+                                Pix
+                            </button>
+                        </div>
+
+                        <div className="modal-acoes-planos">
+                            <button type="button" className="btn-modal-perfil" onClick={() => setModalPagamento(null)} style={{ background: '#333', color: '#fff', width: '100%' }}>
+                                Cancelar
                             </button>
                         </div>
                     </div>

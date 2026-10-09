@@ -63,9 +63,33 @@ div:has(> nav.navbar) {
     width: 100%;
     display: block;
 }
-
-
-
+/* ===== BADGES DE PLANO ===== */
+.post-badge-plano {
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 0.65rem;
+    font-weight: 800;
+    margin-left: 8px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-transform: uppercase;
+}
+.post-badge-plano.plano-pro {
+    background: rgba(138, 43, 226, 0.15); /* Roxo */
+    color: #8A2BE2;
+    border: 1px solid #8A2BE2;
+}
+.post-badge-plano.plano-intermediario {
+    background: rgba(255, 215, 0, 0.15); /* Amarelo */
+    color: #FFD700;
+    border: 1px solid #FFD700;
+}
+.post-badge-plano.plano-gratuito {
+    background: rgba(136, 136, 136, 0.15); /* Cinza */
+    color: #888;
+    border: 1px solid #888;
+}
 /* ===== HERO / CABEÇALHO ===== */
 .hero {
     position: relative;
